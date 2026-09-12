@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { riwayatApi, ItemRiwayat, PeriodePelayanan, periodeApi } from "@/lib/api";
+import { riwayatApi, ItemRiwayat, PeriodePelayanan, periodeApi, balitaApi, lansiaApi } from "@/lib/api";
+import { SearchIndex } from "@/lib/searchIndex";
+import { clientDataCache } from "@/lib/dataCache";
 import {
   Download,
   Loader2,
@@ -19,9 +21,12 @@ import {
   Scale,
   Eye,
   X,
-  Printer
+  Printer,
+  Users,
+  AlertCircle
 } from "lucide-react";
 import PageHelmet from "@/components/PageHelmet";
+import BalitaIcon from "@/components/BalitaIcon";
 import { LaporanSkeleton } from "@/components/Skeleton";
 
 interface LaporanModuleProps {
@@ -34,12 +39,36 @@ interface RekapanBalita {
   periode: string;
   totalPemeriksaan: number;
   totalAnak: number;
+  totalTerdaftar: number;
+  cakupanPersen: number;
+  tidakHadir: number;
+  perluTindakLanjut: number;
+  kasusStunting: number;
+  kasusWasting: number;
   statusBbU: { normal: number; kurang: number; sangatKurang: number; lebih: number };
-  statusTbU: { normal: number; pendek: number; sangatPendek: number };
+  statusTbU: { normal: number; pendek: number; sangatPendek: number; tinggi: number };
   statusBbTb: { normal: number; kurang: number; sangatKurang: number; lebih: number };
   vitaminA: number;
   imunisasiLengkap: number;
+  obatCacing: number;
   asiEksklusif: number;
+  totalBayiAsiEligible: number;
+  distribusiUsia: {
+    u0_6: number;
+    u7_12: number;
+    u13_24: number;
+    u25_60: number;
+  };
+  balitaPerluPerhatianList: Array<{
+    id: string;
+    pasienId?: string;
+    nama: string;
+    usia: string;
+    masalah: string[];
+    tanggal: string;
+    petugas: string;
+    saran: string;
+  }>;
 }
 
 interface RekapanLansia {
@@ -92,12 +121,51 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
     ? String(activePeriode.tahun)
     : String(now.getFullYear());
 
-  const [logs, setLogs] = useState<ItemRiwayat[]>([]);
+  const initialCacheKey = `laporan_logs_${posyanduId}_${defaultMonth}_${defaultYear}`;
+  const [logs, setLogs] = useState<ItemRiwayat[]>(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<ItemRiwayat[]>(initialCacheKey);
+      if (cached && cached.length > 0) return cached;
+    }
+    return [];
+  });
   const [filterMonth, setFilterMonth] = useState<string>(defaultMonth);
   const [filterYear, setFilterYear] = useState<string>(defaultYear);
   const [filterCategory, setFilterCategory] = useState<"Balita" | "Lansia">("Balita");
   const [filterFromDate, setFilterFromDate] = useState<string>("");
   const [filterToDate, setFilterToDate] = useState<string>("");
+
+  // In-Memory Search Index for instant, zero-latency search by token/prefix
+  const balitaIndexRef = useRef<SearchIndex<ItemRiwayat>>(
+    new SearchIndex<ItemRiwayat>((l) => [
+      l.nama,
+      l.nik,
+      l.petugas,
+      l.parameter,
+      l.statusBbU,
+      l.statusTbU,
+      l.statusBbTb,
+      l.statusImunisasi,
+    ])
+  );
+
+  const lansiaIndexRef = useRef<SearchIndex<ItemRiwayat>>(
+    new SearchIndex<ItemRiwayat>((l) => [
+      l.nama,
+      l.nik,
+      l.petugas,
+      l.parameter,
+      l.keluhan,
+      l.tindakan,
+      l.status,
+    ])
+  );
+
+  // Sync index whenever logs are loaded or changed
+  useEffect(() => {
+    balitaIndexRef.current.setSource(logs.filter((l) => l.tipe === "Balita"));
+    lansiaIndexRef.current.setSource(logs.filter((l) => l.tipe === "Lansia"));
+  }, [logs]);
 
   // Sync saat activePeriode berubah atau jika belum ada prop aktif
   useEffect(() => {
@@ -113,9 +181,41 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
       }).catch(() => {});
     }
   }, [posyanduId, activePeriode]);
+
+  // Total terdaftar balita & lansia untuk menghitung cakupan (%)
+  const [totalBalitaTerdaftar, setTotalBalitaTerdaftar] = useState<number>(0);
+  const [totalLansiaTerdaftar, setTotalLansiaTerdaftar] = useState<number>(0);
+
+  useEffect(() => {
+    if (!posyanduId) return;
+    balitaApi
+      .getAll(posyanduId, { limit: 1000 })
+      .then((res) => {
+        if (res.success && res.data) {
+          setTotalBalitaTerdaftar(res.data.length);
+        }
+      })
+      .catch(() => {});
+
+    lansiaApi
+      .getAll(posyanduId, { limit: 1000 })
+      .then((res) => {
+        if (res.success && res.data) {
+          setTotalLansiaTerdaftar(res.data.length);
+        }
+      })
+      .catch(() => {});
+  }, [posyanduId]);
+
   const [rekapanBalita, setRekapanBalita] = useState<RekapanBalita | null>(null);
   const [rekapanLansia, setRekapanLansia] = useState<RekapanLansia | null>(null);
-  const [rekapanLoading, setRekapanLoading] = useState(false);
+  const [rekapanLoading, setRekapanLoading] = useState(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<ItemRiwayat[]>(initialCacheKey);
+      if (cached && cached.length > 0) return false;
+    }
+    return false;
+  });
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
   const [searchBalita, setSearchBalita] = useState<string>("");
@@ -157,8 +257,17 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
 
   const fetchRiwayat = async () => {
     if (!posyanduId) return;
-    try {
+    const cacheKey = `laporan_logs_${posyanduId}_${filterMonth}_${filterYear}`;
+    const cached = clientDataCache.get<ItemRiwayat[]>(cacheKey);
+
+    if (cached && cached.length > 0) {
+      setLogs(cached);
+      setRekapanLoading(false);
+    } else if (logs.length === 0) {
       setRekapanLoading(true);
+    }
+
+    try {
       const res = await riwayatApi.getAll(posyanduId, {
         tipe: "semua",
         bulan: filterMonth || undefined,
@@ -166,12 +275,13 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
       });
       if (res.success && res.data) {
         setLogs(res.data);
+        clientDataCache.set(cacheKey, res.data);
       } else {
         setLogs([]);
       }
     } catch (err) {
       console.error("Gagal mengambil data riwayat:", err);
-      setLogs([]);
+      if (!cached) setLogs([]);
     } finally {
       setRekapanLoading(false);
     }
@@ -292,10 +402,106 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
       : "Semua Periode";
 
     if (balitaLogs.length > 0) {
+      const uniqueAnakCount = new Set(balitaLogs.map((l) => l.pasienId || l.nama)).size;
+      const terdaftarCount = Math.max(totalBalitaTerdaftar, uniqueAnakCount);
+      const cakupanPersen = terdaftarCount > 0 ? Number(((uniqueAnakCount / terdaftarCount) * 100).toFixed(1)) : 100;
+      const tidakHadirCount = Math.max(0, terdaftarCount - uniqueAnakCount);
+
+      // Usia & ASI calculation
+      let u0_6 = 0;
+      let u7_12 = 0;
+      let u13_24 = 0;
+      let u25_60 = 0;
+      let bayiAsiCount = 0;
+      let asiEksklusifCount = 0;
+
+      const attentionList: RekapanBalita["balitaPerluPerhatianList"] = [];
+
+      balitaLogs.forEach((l) => {
+        let usiaBln = -1;
+        if (l.tanggalLahir) {
+          const lahir = new Date(l.tanggalLahir);
+          const periksa = l.tanggal ? new Date(l.tanggal) : new Date();
+          usiaBln = Math.max(
+            0,
+            (periksa.getFullYear() - lahir.getFullYear()) * 12 +
+              (periksa.getMonth() - lahir.getMonth())
+          );
+        }
+
+        if (usiaBln >= 0) {
+          if (usiaBln <= 6) {
+            u0_6++;
+            bayiAsiCount++;
+            if (l.asiEksklusif) asiEksklusifCount++;
+          } else if (usiaBln <= 12) {
+            u7_12++;
+          } else if (usiaBln <= 24) {
+            u13_24++;
+          } else {
+            u25_60++;
+          }
+        } else {
+          if (l.asiEksklusif) asiEksklusifCount++;
+        }
+
+        // Cek indikator risiko / tindak lanjut
+        const masalah: string[] = [];
+        let saran = "Pemantauan rutin posyandu";
+
+        if (l.statusTbU === "SP") {
+          masalah.push("Sangat Pendek (Severe Stunting)");
+          saran = "Rujukan Puskesmas & PMT Pemulihan Tinggi Protein";
+        } else if (l.statusTbU === "P") {
+          masalah.push("Pendek (Stunting)");
+          saran = "Intervensi PMT Pemulihan & Konseling Sanitasi/Gizi";
+        }
+
+        if (l.statusBbTb === "SK") {
+          masalah.push("Gizi Buruk (Severe Wasting)");
+          saran = "Rujukan Segera ke Puskesmas / Rawat Inap";
+        } else if (l.statusBbTb === "K") {
+          masalah.push("Gizi Kurang (Wasting)");
+          if (saran === "Pemantauan rutin posyandu") saran = "PMT Pemulihan 90 Hari & Edukasi MP-ASI";
+        } else if (l.statusBbTb === "G" || l.statusBbTb === "L") {
+          masalah.push("Berisiko Gizi Lebih / Gemuk");
+          if (saran === "Pemantauan rutin posyandu") saran = "Konseling Pola Makan Sehat & Aktivitas Fisik";
+        }
+
+        if (l.statusBbU === "SK") {
+          masalah.push("BB Sangat Kurang");
+        } else if (l.statusBbU === "K") {
+          masalah.push("BB Kurang");
+        }
+
+        if (masalah.length > 0) {
+          const usiaDisplay = usiaBln >= 0 ? `${usiaBln} bln` : "-";
+          attentionList.push({
+            id: l.id,
+            pasienId: l.pasienId,
+            nama: l.nama || "Balita",
+            usia: usiaDisplay,
+            masalah,
+            tanggal: l.tanggal || "-",
+            petugas: l.petugas || "Kader",
+            saran,
+          });
+        }
+      });
+
+      const stuntingCount = balitaLogs.filter((l) => l.statusTbU === "P" || l.statusTbU === "SP").length;
+      const wastingCount = balitaLogs.filter((l) => l.statusBbTb === "K" || l.statusBbTb === "SK").length;
+
       const rekapanB: RekapanBalita = {
         periode: periodeText,
         totalPemeriksaan: balitaLogs.length,
-        totalAnak: new Set(balitaLogs.map((l) => l.pasienId || l.nama)).size,
+        totalAnak: uniqueAnakCount,
+        totalTerdaftar: terdaftarCount,
+        cakupanPersen,
+        tidakHadir: tidakHadirCount,
+        perluTindakLanjut: attentionList.length,
+        kasusStunting: stuntingCount,
+        kasusWasting: wastingCount,
         statusBbU: {
           normal: balitaLogs.filter((l) => l.statusBbU === "N").length,
           kurang: balitaLogs.filter((l) => l.statusBbU === "K").length,
@@ -306,6 +512,7 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
           normal: balitaLogs.filter((l) => l.statusTbU === "N").length,
           pendek: balitaLogs.filter((l) => l.statusTbU === "P").length,
           sangatPendek: balitaLogs.filter((l) => l.statusTbU === "SP").length,
+          tinggi: balitaLogs.filter((l) => l.statusTbU === "T").length,
         },
         statusBbTb: {
           normal: balitaLogs.filter((l) => l.statusBbTb === "N").length,
@@ -315,7 +522,16 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
         },
         vitaminA: balitaLogs.filter((l) => l.vitaminA).length,
         imunisasiLengkap: balitaLogs.filter((l) => l.statusImunisasi && l.statusImunisasi !== "").length,
-        asiEksklusif: balitaLogs.filter((l) => l.asiEksklusif).length,
+        obatCacing: balitaLogs.filter((l) => l.obatCacing).length,
+        asiEksklusif: asiEksklusifCount,
+        totalBayiAsiEligible: bayiAsiCount,
+        distribusiUsia: {
+          u0_6,
+          u7_12,
+          u13_24,
+          u25_60,
+        },
+        balitaPerluPerhatianList: attentionList,
       };
       setRekapanBalita(rekapanB);
     } else {
@@ -323,12 +539,22 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
         periode: periodeText,
         totalPemeriksaan: 0,
         totalAnak: 0,
+        totalTerdaftar: totalBalitaTerdaftar,
+        cakupanPersen: 0,
+        tidakHadir: totalBalitaTerdaftar,
+        perluTindakLanjut: 0,
+        kasusStunting: 0,
+        kasusWasting: 0,
         statusBbU: { normal: 0, kurang: 0, sangatKurang: 0, lebih: 0 },
-        statusTbU: { normal: 0, pendek: 0, sangatPendek: 0 },
+        statusTbU: { normal: 0, pendek: 0, sangatPendek: 0, tinggi: 0 },
         statusBbTb: { normal: 0, kurang: 0, sangatKurang: 0, lebih: 0 },
         vitaminA: 0,
         imunisasiLengkap: 0,
+        obatCacing: 0,
         asiEksklusif: 0,
+        totalBayiAsiEligible: 0,
+        distribusiUsia: { u0_6: 0, u7_12: 0, u13_24: 0, u25_60: 0 },
+        balitaPerluPerhatianList: [],
       });
     }
 
@@ -388,35 +614,33 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
     calculateRekapan();
     setPageBalita(1);
     setPageLansia(1);
-  }, [logs, filterCategory, filterFromDate, filterToDate]);
+  }, [logs, filterCategory, filterFromDate, filterToDate, totalBalitaTerdaftar]);
 
-  // Filter data Balita berdasarkan search & tanggal
-  const filteredBalitaLogs = logs
-    .filter((l) => l.tipe === "Balita")
-    .filter((l) => {
+  // Filter data Balita berdasarkan search (via in-memory SearchIndex) & tanggal
+  const filteredBalitaLogs = useMemo(() => {
+    const source = searchBalita.trim()
+      ? balitaIndexRef.current.search(searchBalita)
+      : logs.filter((l) => l.tipe === "Balita");
+
+    return source.filter((l) => {
       if (filterFromDate && l.tanggal < filterFromDate) return false;
       if (filterToDate && l.tanggal > filterToDate) return false;
-      if (!searchBalita.trim()) return true;
-      const searchLower = searchBalita.toLowerCase();
-      return (
-        l.nama?.toLowerCase().includes(searchLower) ||
-        l.petugas?.toLowerCase().includes(searchLower)
-      );
+      return true;
     });
+  }, [logs, searchBalita, filterFromDate, filterToDate]);
 
-  // Filter data Lansia berdasarkan search & tanggal
-  const filteredLansiaLogs = logs
-    .filter((l) => l.tipe === "Lansia")
-    .filter((l) => {
+  // Filter data Lansia berdasarkan search (via in-memory SearchIndex) & tanggal
+  const filteredLansiaLogs = useMemo(() => {
+    const source = searchLansia.trim()
+      ? lansiaIndexRef.current.search(searchLansia)
+      : logs.filter((l) => l.tipe === "Lansia");
+
+    return source.filter((l) => {
       if (filterFromDate && l.tanggal < filterFromDate) return false;
       if (filterToDate && l.tanggal > filterToDate) return false;
-      if (!searchLansia.trim()) return true;
-      const searchLower = searchLansia.toLowerCase();
-      return (
-        l.nama?.toLowerCase().includes(searchLower) ||
-        l.petugas?.toLowerCase().includes(searchLower)
-      );
+      return true;
     });
+  }, [logs, searchLansia, filterFromDate, filterToDate]);
 
   const currentYear = new Date().getFullYear();
   const baseYear = activePeriode?.tahun ? Math.max(currentYear, activePeriode.tahun) : currentYear;
@@ -661,11 +885,23 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
       {/* Ringkasan Rekapan Balita */}
       {filterCategory === "Balita" && (
         <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-5">
+          {/* Header & Cakupan Keseluruhan */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-100 pb-4">
             <div>
-              <h3 className="text-base font-extrabold text-saas-dark tracking-tight">Ringkasan Rekapan Balita</h3>
-              <p className="text-xs text-saas-muted mt-0.5 font-medium">
-                Periode: <span className="font-bold text-saas-primary">{rekapanBalita?.periode || "Semua Periode"}</span>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-saas-dark tracking-tight">Ringkasan Rekapan Balita</h3>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
+                  {rekapanBalita?.periode || "Semua Periode"}
+                </span>
+              </div>
+              <p className="text-xs text-saas-muted mt-1 font-medium flex items-center gap-1.5 flex-wrap">
+                <span className="font-bold text-gray-700">{rekapanBalita?.totalTerdaftar || 0} Terdaftar</span>
+                <span>•</span>
+                <span className="font-bold text-teal-700">{rekapanBalita?.totalAnak || 0} Diperiksa</span>
+                <span>•</span>
+                <span>Cakupan <strong className="text-gray-900">{rekapanBalita?.cakupanPersen || 0}%</strong></span>
+                <span>•</span>
+                <span className="text-amber-700 font-semibold">{rekapanBalita?.tidakHadir || 0} Tidak Hadir</span>
               </p>
             </div>
             <div className="text-xs font-semibold text-saas-muted bg-gray-50 border border-gray-200/80 px-3 py-1.5 rounded-lg w-fit">
@@ -673,233 +909,610 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
             </div>
           </div>
 
-          {/* Group 1 - Status Gizi Utama (5 Card KPI Grid) */}
+          {/* Tier 1 - KPI Utama (5 Card KPI Grid) */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">Status Gizi &amp; Perkembangan Utama</h4>
+            <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">Tier 1 — Indikator Kunci &amp; Kasus Prioritas</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-              {/* Total Pemeriksaan */}
+              {/* Total Diperiksa */}
               <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-teal-300 transition-all flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Total Periksa</span>
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Total Diperiksa</span>
                   <div className="w-7 h-7 rounded-md bg-teal-50 text-saas-primary flex items-center justify-center shrink-0 border border-teal-100">
                     <FileText className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="mt-2">
                   <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {rekapanBalita?.totalPemeriksaan || 0}
+                    {rekapanBalita?.totalAnak || 0} <span className="text-sm font-semibold text-gray-500">Anak</span>
                   </div>
                   <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200/60 inline-block">
-                    100% Total Data
+                    {rekapanBalita?.totalPemeriksaan || 0} Kali Pemeriksaan
                   </span>
                 </div>
               </div>
 
-              {/* Gizi Normal */}
+              {/* Cakupan Pemeriksaan */}
               <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-emerald-300 transition-all flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Gizi Normal</span>
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Cakupan Periksa</span>
                   <div className="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="mt-2">
                   <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {rekapanBalita?.statusBbTb.normal || 0}
+                    {rekapanBalita?.cakupanPersen || 0}%
                   </div>
                   <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/60 inline-block">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.statusBbTb.normal / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}% dari Total
+                    {rekapanBalita?.totalAnak || 0} dari {rekapanBalita?.totalTerdaftar || 0} Terdaftar
                   </span>
                 </div>
               </div>
 
-              {/* Gizi Kurang */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-amber-300 transition-all flex flex-col justify-between">
+              {/* Balita Perlu Tindak Lanjut */}
+              <div className="bg-white border border-rose-200/90 rounded-xl p-4 shadow-2xs hover:border-rose-300 transition-all flex flex-col justify-between bg-rose-50/10">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Gizi Kurang</span>
-                  <div className="w-7 h-7 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-                    <AlertTriangle className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {rekapanBalita?.statusBbTb.kurang || 0}
-                  </div>
-                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60 inline-block">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.statusBbTb.kurang / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}% dari Total
-                  </span>
-                </div>
-              </div>
-
-              {/* Gizi Buruk */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-red-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Gizi Buruk</span>
-                  <div className="w-7 h-7 rounded-md bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {rekapanBalita?.statusBbTb.sangatKurang || 0}
-                  </div>
-                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-red-50 text-red-800 border border-red-200/60 inline-block">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.statusBbTb.sangatKurang / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}% dari Total
-                  </span>
-                </div>
-              </div>
-
-              {/* Perlu Perhatian */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-rose-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Perlu Perhatian</span>
+                  <span className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">Perlu Tindak Lanjut</span>
                   <div className="w-7 h-7 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {(rekapanBalita?.statusBbTb.sangatKurang || 0) + (rekapanBalita?.statusBbTb.kurang || 0)}
+                  <div className="text-2xl font-extrabold text-rose-700 tracking-tight">
+                    {rekapanBalita?.perluTindakLanjut || 0} <span className="text-sm font-semibold text-rose-600">Anak</span>
                   </div>
-                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200/60 inline-block">
+                  <span className={`mt-1 px-2 py-0.5 rounded text-[10px] font-bold border inline-block ${
+                    (rekapanBalita?.perluTindakLanjut || 0) > 0
+                      ? "bg-rose-50 text-rose-800 border-rose-200/70"
+                      : "bg-emerald-50 text-emerald-800 border-emerald-200/70"
+                  }`}>
+                    {(rekapanBalita?.perluTindakLanjut || 0) > 0 ? "Prioritas Pantauan Kader" : "Kondisi Terkendali"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Kasus Stunting (TB/U) */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-purple-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Kasus Stunting (TB/U)</span>
+                  <div className="w-7 h-7 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
+                    <BalitaIcon className="w-4 h-4 text-purple-600" />
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
+                    {rekapanBalita?.kasusStunting || 0} <span className="text-sm font-semibold text-gray-500">Anak</span>
+                  </div>
+                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200/60 inline-block">
                     {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? (((rekapanBalita.statusBbTb.sangatKurang + rekapanBalita.statusBbTb.kurang) / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}% Gabungan
+                      ? ((rekapanBalita.kasusStunting / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
+                      : "0"}% Pendek &amp; S. Pendek
+                  </span>
+                </div>
+              </div>
+
+              {/* Kasus Wasting (BB/TB) */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-amber-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Kasus Wasting (BB/TB)</span>
+                  <div className="w-7 h-7 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+                    <Activity className="w-4 h-4 text-amber-600" />
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
+                    {rekapanBalita?.kasusWasting || 0} <span className="text-sm font-semibold text-gray-500">Anak</span>
+                  </div>
+                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60 inline-block">
+                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
+                      ? ((rekapanBalita.kasusWasting / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
+                      : "0"}% Kurus &amp; Gizi Buruk
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Group 2 - Parameter Indikator Kesehatan (6 Card KPI Grid) */}
-          <div className="space-y-2 pt-2 border-t border-gray-100">
-            <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">Indikator Berat Badan &amp; Suplementasi</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-              {/* BB/U Normal */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">BB/U Normal</span>
-                  <div className="w-6 h-6 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanBalita?.statusBbU.normal || 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-700">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.statusBbU.normal / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}%
-                  </span>
-                </div>
+          {/* Tier 2 - Status Gizi & Antropometri (3 Pilar Standar Kemenkes / WHO) */}
+          <div className="space-y-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">Tier 2 — Status Gizi &amp; Antropometri (Standar Kemenkes / WHO)</h4>
+                <p className="text-[11px] text-gray-500">Evaluasi terpilah 3 pilar antropometri balita untuk diagnosis yang akurat</p>
               </div>
-
-              {/* BB/U Kurang */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">BB/U Kurang</span>
-                  <div className="w-6 h-6 rounded bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanBalita?.statusBbU.kurang || 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-amber-700">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.statusBbU.kurang / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}%
-                  </span>
-                </div>
-              </div>
-
-              {/* BB/U Sangat Kurang */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">BB/U S.Kurang</span>
-                  <div className="w-6 h-6 rounded bg-red-50 text-red-600 flex items-center justify-center shrink-0">
-                    <Activity className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanBalita?.statusBbU.sangatKurang || 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-red-700">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.statusBbU.sangatKurang / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Imunisasi Lengkap */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">Imun. Lengkap</span>
-                  <div className="w-6 h-6 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanBalita?.imunisasiLengkap || 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-indigo-700">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.imunisasiLengkap / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Vitamin A */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">Vitamin A</span>
-                  <div className="w-6 h-6 rounded bg-rose-50 text-rose-600 font-extrabold text-xs flex items-center justify-center shrink-0 border border-rose-100">
-                    A
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanBalita?.vitaminA || 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-rose-700">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.vitaminA / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}%
-                  </span>
-                </div>
-              </div>
-
-              {/* ASI Eksklusif */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">ASI Eksklusif</span>
-                  <div className="w-6 h-6 rounded bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-                    <HeartHandshake className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanBalita?.asiEksklusif || 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-teal-700">
-                    {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                      ? ((rekapanBalita.asiEksklusif / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}%
-                  </span>
-                </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Kolom 1: BB/U (Berat Badan menurut Umur) */}
+              <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-gray-200/60 pb-2">
+                  <div>
+                    <span className="text-xs font-extrabold text-gray-900 tracking-tight">BB/U (Berat menurut Umur)</span>
+                    <p className="text-[10px] text-gray-500">Indikator Berat Badan / Underweight</p>
+                  </div>
+                  <Scale className="w-4 h-4 text-saas-primary" />
+                </div>
+                <div className="space-y-2 text-xs">
+                  {/* Normal */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      Normal
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-gray-900">{rekapanBalita?.statusBbU.normal || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusBbU.normal / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Kurang */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      Kurang (Underweight)
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-amber-700">{rekapanBalita?.statusBbU.kurang || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusBbU.kurang / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Sangat Kurang */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                      Sangat Kurang (Severely)
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-red-700">{rekapanBalita?.statusBbU.sangatKurang || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusBbU.sangatKurang / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Risiko BB Lebih */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      Risiko BB Lebih
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-blue-700">{rekapanBalita?.statusBbU.lebih || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusBbU.lebih / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Kolom 2: TB/U (Tinggi menurut Umur) */}
+              <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-gray-200/60 pb-2">
+                  <div>
+                    <span className="text-xs font-extrabold text-gray-900 tracking-tight">TB/U (Tinggi menurut Umur)</span>
+                    <p className="text-[10px] text-gray-500">Indikator Stunting Kronis</p>
+                  </div>
+                  <BalitaIcon className="w-4 h-4 text-purple-600" />
+                </div>
+                <div className="space-y-2 text-xs">
+                  {/* Normal */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      Normal
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-gray-900">{rekapanBalita?.statusTbU.normal || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusTbU.normal / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Pendek (Stunted) */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      Pendek (Stunted)
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-amber-700">{rekapanBalita?.statusTbU.pendek || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusTbU.pendek / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Sangat Pendek (Severely Stunted) */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                      Sangat Pendek (Severely)
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-red-700">{rekapanBalita?.statusTbU.sangatPendek || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusTbU.sangatPendek / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Tinggi */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-teal-500" />
+                      Tinggi
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-teal-700">{rekapanBalita?.statusTbU.tinggi || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusTbU.tinggi / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Kolom 3: BB/TB (Berat menurut Tinggi) */}
+              <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-gray-200/60 pb-2">
+                  <div>
+                    <span className="text-xs font-extrabold text-gray-900 tracking-tight">BB/TB (Berat menurut Tinggi)</span>
+                    <p className="text-[10px] text-gray-500">Indikator Wasting / Gizi Akut</p>
+                  </div>
+                  <Activity className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="space-y-2 text-xs">
+                  {/* Gizi Baik / Normal */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      Gizi Baik (Normal)
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-gray-900">{rekapanBalita?.statusBbTb.normal || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusBbTb.normal / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Gizi Kurang (Kurus) */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      Gizi Kurang (Wasted)
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-amber-700">{rekapanBalita?.statusBbTb.kurang || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusBbTb.kurang / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Gizi Buruk (Severely Wasted) */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-red-500" />
+                      Gizi Buruk (Severe Wasted)
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-red-700">{rekapanBalita?.statusBbTb.sangatKurang || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusBbTb.sangatKurang / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                  {/* Berisiko Gizi Lebih / Gemuk */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      Gizi Lebih / Gemuk
+                    </span>
+                    <div className="text-right">
+                      <span className="font-bold text-blue-700">{rekapanBalita?.statusBbTb.lebih || 0}</span>
+                      <span className="text-[10px] text-gray-500 ml-1.5">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.statusBbTb.lebih / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tier 3 - 2-Kolom Grid: Pelayanan Kesehatan & Distribusi Usia */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
+            {/* Pelayanan Kesehatan */}
+            <div className="bg-white border border-gray-200/80 rounded-xl p-4 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                <div>
+                  <h4 className="text-xs font-bold text-saas-dark uppercase tracking-wider">Tier 3 — Cakupan Pelayanan Kesehatan</h4>
+                  <p className="text-[11px] text-gray-500">Persentase balita yang menerima intervensi kesehatan</p>
+                </div>
+                <ShieldCheck className="w-4 h-4 text-saas-primary" />
+              </div>
+
+              <div className="space-y-3 text-xs">
+                {/* Imunisasi */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-gray-700">Imunisasi Lengkap</span>
+                    <span className="font-bold text-gray-900">
+                      {rekapanBalita?.imunisasiLengkap || 0} / {rekapanBalita?.totalPemeriksaan || 0}{" "}
+                      <span className="text-gray-500 font-normal">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.imunisasiLengkap / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? Math.min(100, (rekapanBalita.imunisasiLengkap / rekapanBalita.totalPemeriksaan) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Vitamin A */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-gray-700">Vitamin A</span>
+                    <span className="font-bold text-gray-900">
+                      {rekapanBalita?.vitaminA || 0} / {rekapanBalita?.totalPemeriksaan || 0}{" "}
+                      <span className="text-gray-500 font-normal">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.vitaminA / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-rose-500 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? Math.min(100, (rekapanBalita.vitaminA / rekapanBalita.totalPemeriksaan) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Obat Cacing */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-gray-700">Obat Cacing</span>
+                    <span className="font-bold text-gray-900">
+                      {rekapanBalita?.obatCacing || 0} / {rekapanBalita?.totalPemeriksaan || 0}{" "}
+                      <span className="text-gray-500 font-normal">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.obatCacing / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-amber-500 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? Math.min(100, (rekapanBalita.obatCacing / rekapanBalita.totalPemeriksaan) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* ASI Eksklusif */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1">
+                      <span className="font-semibold text-gray-700">ASI Eksklusif (Usia 0–6 Bln)</span>
+                      <span className="text-[10px] text-gray-400" title="Dihitung proporsional terhadap bayi usia 0-6 bulan">*</span>
+                    </div>
+                    <span className="font-bold text-gray-900">
+                      {rekapanBalita?.asiEksklusif || 0} / {rekapanBalita?.totalBayiAsiEligible || 0}{" "}
+                      <span className="text-gray-500 font-normal">
+                        ({rekapanBalita && rekapanBalita.totalBayiAsiEligible > 0 ? ((rekapanBalita.asiEksklusif / rekapanBalita.totalBayiAsiEligible) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-teal-600 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${rekapanBalita && rekapanBalita.totalBayiAsiEligible > 0 ? Math.min(100, (rekapanBalita.asiEksklusif / rekapanBalita.totalBayiAsiEligible) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1 italic">
+                    * Proporsional terhadap {rekapanBalita?.totalBayiAsiEligible || 0} bayi kelompok usia 0–6 bulan
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Distribusi Kelompok Usia */}
+            <div className="bg-white border border-gray-200/80 rounded-xl p-4 space-y-3 shadow-2xs">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                <div>
+                  <h4 className="text-xs font-bold text-saas-dark uppercase tracking-wider">Distribusi Kelompok Usia</h4>
+                  <p className="text-[11px] text-gray-500">Segmentasi usia balita yang hadir dalam posyandu</p>
+                </div>
+                <Users className="w-4 h-4 text-saas-primary" />
+              </div>
+
+              <div className="space-y-3 text-xs">
+                {/* 0–6 Bulan */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-gray-700">0–6 Bulan (Bayi)</span>
+                    <span className="font-bold text-gray-900">
+                      {rekapanBalita?.distribusiUsia.u0_6 || 0} Anak{" "}
+                      <span className="text-gray-500 font-normal">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.distribusiUsia.u0_6 / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? Math.min(100, (rekapanBalita.distribusiUsia.u0_6 / rekapanBalita.totalPemeriksaan) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* 7–12 Bulan */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-gray-700">7–12 Bulan (Baduta Awal)</span>
+                    <span className="font-bold text-gray-900">
+                      {rekapanBalita?.distribusiUsia.u7_12 || 0} Anak{" "}
+                      <span className="text-gray-500 font-normal">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.distribusiUsia.u7_12 / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-teal-500 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? Math.min(100, (rekapanBalita.distribusiUsia.u7_12 / rekapanBalita.totalPemeriksaan) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* 13–24 Bulan */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-gray-700">13–24 Bulan (Baduta)</span>
+                    <span className="font-bold text-gray-900">
+                      {rekapanBalita?.distribusiUsia.u13_24 || 0} Anak{" "}
+                      <span className="text-gray-500 font-normal">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.distribusiUsia.u13_24 / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? Math.min(100, (rekapanBalita.distribusiUsia.u13_24 / rekapanBalita.totalPemeriksaan) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* 25–60 Bulan */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-gray-700">25–60 Bulan (Prasekolah)</span>
+                    <span className="font-bold text-gray-900">
+                      {rekapanBalita?.distribusiUsia.u25_60 || 0} Anak{" "}
+                      <span className="text-gray-500 font-normal">
+                        ({rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? ((rekapanBalita.distribusiUsia.u25_60 / rekapanBalita.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                      </span>
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? Math.min(100, (rekapanBalita.distribusiUsia.u25_60 / rekapanBalita.totalPemeriksaan) * 100) : 0}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tier 4 - ⚠️ Balita Perlu Tindak Lanjut (Daftar Aksi Prioritas Kader) */}
+          <div className="space-y-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-rose-600" />
+                    Tier 4 — Balita Perlu Tindak Lanjut &amp; Perhatian Khusus
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800">
+                    {rekapanBalita?.balitaPerluPerhatianList?.length || 0} Kasus
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  Balita yang terindikasi masalah antropometri (stunting, wasting, underweight, atau risiko obesitas) untuk segera ditindaklanjuti kader / bidan
+                </p>
+              </div>
+            </div>
+
+            {rekapanBalita?.balitaPerluPerhatianList && rekapanBalita.balitaPerluPerhatianList.length > 0 ? (
+              <div className="border border-rose-200/80 rounded-xl overflow-hidden bg-rose-50/20 shadow-2xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-rose-100/50 text-rose-950 font-bold border-b border-rose-200/70">
+                        <th className="px-3.5 py-2.5">Nama Balita</th>
+                        <th className="px-3.5 py-2.5">Usia</th>
+                        <th className="px-3.5 py-2.5">Indikasi Masalah Gizi</th>
+                        <th className="px-3.5 py-2.5">Tanggal Periksa</th>
+                        <th className="px-3.5 py-2.5">Rekomendasi Tindak Lanjut</th>
+                        <th className="px-3.5 py-2.5 text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-rose-100/70 bg-white">
+                      {rekapanBalita.balitaPerluPerhatianList.map((item) => (
+                        <tr key={item.id} className="hover:bg-rose-50/40 transition-colors">
+                          <td className="px-3.5 py-2.5 font-bold text-gray-900">
+                            {item.nama}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-600">
+                            {item.usia}
+                          </td>
+                          <td className="px-3.5 py-2.5">
+                            <div className="flex flex-wrap gap-1">
+                              {item.masalah.map((m, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200"
+                                >
+                                  {m}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-600">
+                            {item.tanggal}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-700 font-medium">
+                            {item.saran}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-right">
+                            {onNavigate && item.pasienId ? (
+                              <button
+                                onClick={() => onNavigate("balita", item.pasienId)}
+                                className="px-2.5 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                              >
+                                Buka Profil
+                              </button>
+                            ) : (
+                              <span className="text-[11px] text-gray-400">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-emerald-900">Kondisi Baik: Tidak Ditemukan Kasus Masalah Pertumbuhan</p>
+                  <p className="text-[11px] text-emerald-700 mt-0.5">
+                    Semua balita yang diperiksa pada periode ini memiliki status gizi normal dan tidak terdeteksi indikasi stunting atau wasting.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Detail Data Pemeriksaan Table */}
@@ -1099,7 +1712,6 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
                 </div>
               </div>
             )}
-          </div>
         </div>
       )}
 
