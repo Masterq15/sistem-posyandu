@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatTanggalIndonesia, formatTanggalInput } from "../../lib/dateUtils";
 import Modal from "../../components/Modal";
 import LansiaIcon from "../../components/LansiaIcon";
 import BalitaIcon from "../../components/BalitaIcon";
 import { RiwayatTableSkeleton } from "../../components/Skeleton";
 import { riwayatApi, ItemRiwayat, balitaApi, lansiaApi, PeriodePelayanan } from "@/lib/api";
+import { SearchIndex } from "../../lib/searchIndex";
+import { clientDataCache } from "../../lib/dataCache";
 import {
   hitungStatusBbU,
   hitungStatusTbU,
@@ -31,7 +33,11 @@ import {
   Trash2,
   Eye,
   Activity,
-  User
+  User,
+  Users,
+  RotateCcw,
+  X,
+  Filter
 } from "lucide-react";
 import ActionMenu from "@/components/ActionMenu";
 import PageHelmet from "@/components/PageHelmet";
@@ -53,8 +59,21 @@ interface RiwayatModuleProps {
 }
 
 export default function RiwayatModule({ posyanduId, activePeriode, onNavigate }: RiwayatModuleProps) {
-  const [logs, setLogs] = useState<ItemRiwayat[]>([]);
-  const [loading, setLoading] = useState(true);
+  const initialCacheKey = `riwayat_logs_${posyanduId}_semua_semua_${activePeriode ? activePeriode.bulan : "semua"}_${activePeriode ? activePeriode.tahun : "semua"}`;
+  const [logs, setLogs] = useState<ItemRiwayat[]>(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<ItemRiwayat[]>(initialCacheKey);
+      if (cached && cached.length > 0) return cached;
+    }
+    return [];
+  });
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<ItemRiwayat[]>(initialCacheKey);
+      if (cached && cached.length > 0) return false;
+    }
+    return true;
+  });
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"semua" | "Balita" | "Lansia">("semua");
   const [statusFilter, setStatusFilter] = useState<"semua" | "success" | "warning">("semua");
@@ -64,6 +83,24 @@ export default function RiwayatModule({ posyanduId, activePeriode, onNavigate }:
   const [selectedTahun, setSelectedTahun] = useState<number | "semua">(
     activePeriode ? activePeriode.tahun : "semua"
   );
+
+  // In-Memory Search Index for instant O(1) query lookups
+  const riwayatIndexRef = useRef<SearchIndex<ItemRiwayat>>(
+    new SearchIndex<ItemRiwayat>((log) => [
+      log.nama,
+      log.nik,
+      log.parameter,
+      log.status,
+      log.petugas,
+      log.keluhan,
+      log.tindakan,
+      log.tipe,
+    ])
+  );
+
+  useEffect(() => {
+    riwayatIndexRef.current.setSource(logs);
+  }, [logs]);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -258,17 +295,27 @@ export default function RiwayatModule({ posyanduId, activePeriode, onNavigate }:
 
   // Load data riwayat dari backend API
   const fetchRiwayat = async () => {
-    try {
+    const currentKey = `riwayat_logs_${posyanduId}_${typeFilter}_${statusFilter}_${selectedBulan}_${selectedTahun}`;
+    const cached = clientDataCache.get<ItemRiwayat[]>(currentKey);
+
+    if (cached && cached.length > 0) {
+      setLogs(cached);
+      setLoading(false);
+    } else if (logs.length === 0) {
       setLoading(true);
+    }
+
+    try {
       const res = await riwayatApi.getAll(posyanduId, {
         tipe: typeFilter,
-        search: query,
+        search: query || undefined,
         status: statusFilter,
         bulan: selectedBulan === "semua" ? undefined : String(selectedBulan),
         tahun: selectedTahun === "semua" ? undefined : String(selectedTahun),
       });
       if (res.success) {
         setLogs(res.data);
+        clientDataCache.set(currentKey, res.data);
       }
     } catch (err) {
       console.error("Gagal mengambil data riwayat:", err);
@@ -339,6 +386,40 @@ export default function RiwayatModule({ posyanduId, activePeriode, onNavigate }:
   const tbPrev = prevRecord?.tinggiBadan ?? 0;
   const tbDiff = prevRecord && latestRecord ? Number((tbLatest - tbPrev).toFixed(2)) : 0;
 
+  const monthNames = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
+
+  const currentYear = new Date().getFullYear();
+  const yearOptions = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+
+  const isFilterActive =
+    query.trim() !== "" ||
+    typeFilter !== "semua" ||
+    statusFilter !== "semua" ||
+    selectedBulan !== "semua" ||
+    selectedTahun !== "semua";
+
+  const handleResetFilters = () => {
+    setQuery("");
+    setTypeFilter("semua");
+    setStatusFilter("semua");
+    setSelectedBulan("semua");
+    setSelectedTahun("semua");
+  };
+
+  const handleSetCurrentPeriod = () => {
+    if (activePeriode) {
+      setSelectedBulan(activePeriode.bulan);
+      setSelectedTahun(activePeriode.tahun);
+    } else {
+      const now = new Date();
+      setSelectedBulan(now.getMonth() + 1);
+      setSelectedTahun(now.getFullYear());
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHelmet
@@ -380,98 +461,176 @@ export default function RiwayatModule({ posyanduId, activePeriode, onNavigate }:
         </div>
       </div>
 
-      {/* Filters Card */}
-      <div className="bg-white p-4 sm:p-6 rounded-card border border-gray-100/50 shadow-soft-card space-y-4">
-        <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
-          {/* Search bar */}
-          <div className="relative w-full lg:w-80">
+      {/* Filters Card - Clean & Intuitive Layout */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/80 shadow-soft-card space-y-3.5">
+        {/* Row 1: Search Utama + Kategori Segmented Control */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          {/* Search Input dengan Clear Button */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-saas-muted w-4 h-4" />
             <input
               type="text"
-              placeholder="Cari nama warga atau parameter..."
+              placeholder="Cari nama warga, parameter, atau petugas..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50/70 border border-gray-100 rounded-input text-sm text-saas-dark placeholder-saas-muted/70 focus:outline-none focus:border-saas-primary/50 focus:bg-white transition-all"
+              className="w-full pl-10 pr-9 py-2 bg-gray-50/90 hover:bg-gray-50 focus:bg-white border border-gray-200/80 focus:border-saas-primary rounded-xl text-sm text-saas-dark placeholder-saas-muted focus:outline-none focus:ring-2 focus:ring-saas-primary/10 transition-all font-medium"
             />
-            <Search className="absolute left-3.5 top-3 text-saas-muted/80 w-4 h-4" />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-saas-muted hover:text-saas-dark rounded-md transition-colors cursor-pointer"
+                title="Hapus kata pencarian"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 sm:gap-4">
-            {/* Filter Periode Bulan & Tahun */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <span className="text-xs font-bold text-saas-muted shrink-0 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" /> Periode:
-              </span>
+          {/* Segmented Control Kategori */}
+          <div className="inline-flex bg-gray-100/90 p-1 rounded-xl gap-1 shrink-0 self-start sm:self-auto">
+            {(["semua", "Balita", "Lansia"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTypeFilter(t)}
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                  typeFilter === t
+                    ? "bg-white text-saas-dark shadow-sm"
+                    : "text-saas-muted hover:text-saas-dark"
+                }`}
+              >
+                {t === "Balita" ? (
+                  <BalitaIcon className="w-3.5 h-3.5" />
+                ) : t === "Lansia" ? (
+                  <LansiaIcon className="w-3.5 h-3.5" />
+                ) : (
+                  <Users className="w-3.5 h-3.5" />
+                )}
+                {t === "semua" ? "Semua Kategori" : t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Row 2: Filter Refinement (Periode + Kondisi + Reset Filter) */}
+        <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Periode Selector (Bulan & Tahun) */}
+            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200/80 rounded-xl px-2.5 py-1.5">
+              <Calendar className="w-3.5 h-3.5 text-saas-muted shrink-0" />
+              <span className="font-semibold text-saas-muted mr-0.5">Periode:</span>
               <select
                 value={selectedBulan}
                 onChange={(e) => setSelectedBulan(e.target.value === "semua" ? "semua" : Number(e.target.value))}
-                className="text-xs px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg font-bold text-saas-dark focus:outline-none focus:border-saas-primary"
+                className="bg-transparent font-bold text-saas-dark focus:outline-none cursor-pointer"
               >
                 <option value="semua">Semua Bulan</option>
-                {[
-                  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-                  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-                ].map((m, idx) => (
+                {monthNames.map((m, idx) => (
                   <option key={m} value={idx + 1}>{m}</option>
                 ))}
               </select>
-
+              <span className="text-gray-300">/</span>
               <select
                 value={selectedTahun}
                 onChange={(e) => setSelectedTahun(e.target.value === "semua" ? "semua" : Number(e.target.value))}
-                className="text-xs px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg font-bold text-saas-dark focus:outline-none focus:border-saas-primary"
+                className="bg-transparent font-bold text-saas-dark focus:outline-none cursor-pointer"
               >
                 <option value="semua">Semua Tahun</option>
-                {[2024, 2025, 2026, 2027].map((y) => (
+                {yearOptions.map((y) => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>
             </div>
 
-            {/* Tipe filter */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
-              <span className="text-xs font-bold text-saas-muted shrink-0">Kategori:</span>
-              <div className="flex gap-1 w-full sm:w-auto overflow-x-auto pb-0.5">
-                {(["semua", "Balita", "Lansia"] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTypeFilter(t)}
-                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap shrink-0 ${
-                      typeFilter === t
-                        ? "bg-saas-primary/10 text-saas-primary border border-saas-primary/20"
-                        : "bg-gray-50 text-saas-muted hover:text-saas-dark border border-transparent"
-                    }`}
-                  >
-                    {t === "semua" ? "Semua" : t}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Tombol Cepat: Periode Ini */}
+            {activePeriode && (
+              <button
+                type="button"
+                onClick={handleSetCurrentPeriod}
+                className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all border cursor-pointer ${
+                  selectedBulan === activePeriode.bulan && selectedTahun === activePeriode.tahun
+                    ? "bg-saas-primary/10 text-saas-primary border-saas-primary/30"
+                    : "bg-white text-saas-muted border-gray-200/80 hover:bg-gray-50 hover:text-saas-dark"
+                }`}
+                title="Tampilkan data periode posyandu aktif saat ini"
+              >
+                Periode Ini ({monthNames[activePeriode.bulan - 1].slice(0, 3)} {activePeriode.tahun})
+              </button>
+            )}
 
-            {/* Status filter */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
-              <span className="text-xs font-bold text-saas-muted shrink-0">Kondisi Hasil:</span>
-              <div className="flex gap-1 w-full sm:w-auto overflow-x-auto pb-0.5">
-                {[
-                  { label: "Semua", val: "semua" },
-                  { label: "Normal / Sehat", val: "success" },
-                  { label: "Perlu Perhatian / Rawan", val: "warning" },
-                ].map((s) => (
-                  <button
-                    key={s.val}
-                    onClick={() => setStatusFilter(s.val as any)}
-                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition-all whitespace-nowrap shrink-0 ${
-                      statusFilter === s.val
-                        ? "bg-saas-primary/10 text-saas-primary border border-saas-primary/20"
-                        : "bg-gray-50 text-saas-muted hover:text-saas-dark border border-transparent"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
+            {/* Filter Kondisi Hasil */}
+            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200/80 rounded-xl px-2.5 py-1.5">
+              <Activity className="w-3.5 h-3.5 text-saas-muted shrink-0" />
+              <span className="font-semibold text-saas-muted mr-0.5">Kondisi:</span>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="bg-transparent font-bold text-saas-dark focus:outline-none cursor-pointer"
+              >
+                <option value="semua">Semua Kondisi</option>
+                <option value="success">🟢 Normal / Sehat</option>
+                <option value="warning">🟡 Perlu Perhatian / Rawan</option>
+              </select>
             </div>
           </div>
+
+          {/* Reset Filter Button */}
+          {isFilterActive && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="px-2.5 py-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto"
+              title="Kembalikan semua filter ke pengaturan awal"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset Filter
+            </button>
+          )}
         </div>
+
+        {/* Row 3: Active Filter Chips */}
+        {isFilterActive && (
+          <div className="pt-2 flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-saas-muted font-medium text-[11px] flex items-center gap-1">
+              <Filter className="w-3 h-3" /> Filter aktif:
+            </span>
+            {query.trim() && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 text-saas-dark text-[11px] font-semibold">
+                Kata: &ldquo;{query}&rdquo;
+                <button type="button" onClick={() => setQuery("")} className="hover:text-red-500 cursor-pointer">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {typeFilter !== "semua" && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 border border-teal-200/50 text-[11px] font-semibold">
+                Kategori: {typeFilter}
+                <button type="button" onClick={() => setTypeFilter("semua")} className="hover:text-red-500 cursor-pointer">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {(selectedBulan !== "semua" || selectedTahun !== "semua") && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/50 text-[11px] font-semibold">
+                Periode: {selectedBulan !== "semua" ? monthNames[Number(selectedBulan) - 1] : ""} {selectedTahun !== "semua" ? selectedTahun : "Semua Tahun"}
+                <button type="button" onClick={() => { setSelectedBulan("semua"); setSelectedTahun("semua"); }} className="hover:text-red-500 cursor-pointer">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {statusFilter !== "semua" && (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
+                statusFilter === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"
+              }`}>
+                Kondisi: {statusFilter === "success" ? "Normal / Sehat" : "Perlu Perhatian / Rawan"}
+                <button type="button" onClick={() => setStatusFilter("semua")} className="hover:text-red-500 cursor-pointer">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* VIEW: GRAFIK TREND GLOBAL */}
@@ -561,16 +720,9 @@ export default function RiwayatModule({ posyanduId, activePeriode, onNavigate }:
                 </thead>
                 <tbody>
                   {(() => {
-                    const filteredLogs = logs.filter((log) => {
-                      if (!query) return true;
-                      const q = query.toLowerCase();
-                      return (
-                        log.nama.toLowerCase().includes(q) ||
-                        log.parameter.toLowerCase().includes(q) ||
-                        log.status.toLowerCase().includes(q) ||
-                        log.petugas.toLowerCase().includes(q)
-                      );
-                    });
+                    const filteredLogs = query.trim()
+                      ? riwayatIndexRef.current.search(query)
+                      : logs;
 
                     const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
                     const paginatedLogs = filteredLogs.slice(
