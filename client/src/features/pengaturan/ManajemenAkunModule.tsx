@@ -23,6 +23,7 @@ import PageHelmet from "../../components/PageHelmet";
 import { AkunTableSkeleton } from "../../components/Skeleton";
 import ActionMenu from "../../components/ActionMenu";
 import toast from "react-hot-toast";
+import { clientDataCache } from "../../lib/dataCache";
 
 interface ManajemenAkunModuleProps {
   posyanduId?: string | null;
@@ -34,8 +35,21 @@ export default function ManajemenAkunModule({ posyanduId: propPosyanduId }: Mana
   const isOwner = user?.role === "OWNER";
 
   // State
-  const [kaders, setKaders] = useState<KaderMember[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const cacheKey = `kaders_${currentPosyanduId}`;
+  const [kaders, setKaders] = useState<KaderMember[]>(() => {
+    if (typeof window !== "undefined" && currentPosyanduId) {
+      const cached = clientDataCache.get<KaderMember[]>(`kaders_${currentPosyanduId}`);
+      if (cached && cached.length > 0) return cached;
+    }
+    return [];
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (typeof window !== "undefined" && currentPosyanduId) {
+      const cached = clientDataCache.get<KaderMember[]>(`kaders_${currentPosyanduId}`);
+      if (cached && cached.length > 0) return false;
+    }
+    return true;
+  });
   const [errorNotice, setErrorNotice] = useState<string>("");
 
   // Form State
@@ -54,12 +68,21 @@ export default function ManajemenAkunModule({ posyanduId: propPosyanduId }: Mana
   // Fetch Kader List
   const fetchData = useCallback(async () => {
     if (!currentPosyanduId) return;
-    setIsLoading(true);
+    const currentKey = `kaders_${currentPosyanduId}`;
+    const cached = clientDataCache.get<KaderMember[]>(currentKey);
+
+    if (cached && cached.length > 0) {
+      setKaders(cached);
+      setIsLoading(false);
+    } else if (kaders.length === 0) {
+      setIsLoading(true);
+    }
     setErrorNotice("");
     try {
       const res = await kaderApi.getAll(currentPosyanduId);
       if (res.success && res.data) {
         setKaders(res.data);
+        clientDataCache.set(currentKey, res.data);
       }
     } catch (err: any) {
       console.error("Error loading kader data:", err);
@@ -67,7 +90,7 @@ export default function ManajemenAkunModule({ posyanduId: propPosyanduId }: Mana
     } finally {
       setIsLoading(false);
     }
-  }, [currentPosyanduId]);
+  }, [currentPosyanduId, kaders.length]);
 
   useEffect(() => {
     fetchData();

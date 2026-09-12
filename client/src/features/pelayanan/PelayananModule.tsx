@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { formatTanggalIndonesia, formatTanggalInput } from "../../lib/dateUtils";
 import {
   Heart,
@@ -24,6 +24,8 @@ import ActionMenu from "../../components/ActionMenu";
 import { hitungStatusBbU, hitungStatusTbU, hitungStatusBbTb, hitungIMT, convertStatusBbUToCode, convertStatusTbUToCode, convertStatusBbTbToCode } from "../../lib/zScoreCalculator";
 import { balitaApi, lansiaApi, periodeApi, Balita, Lansia, PeriodePelayanan } from "../../lib/api";
 import { useAuth } from "../../contexts/AuthContext";
+import { SearchIndex } from "../../lib/searchIndex";
+import { clientDataCache } from "../../lib/dataCache";
 
 // Reusable Modal Component
 import Modal from "../../components/Modal";
@@ -125,11 +127,33 @@ interface PelayananModuleProps {
 
 export default function PelayananModule({ posyanduId, activePeriode, onOpenPeriodeModal, onNavigate }: PelayananModuleProps) {
   const { user } = useAuth();
-  const [pasiens, setPasiens] = useState<Pasien[]>([]);
+  const cacheKey = `pelayanan_pasiens_${posyanduId}`;
+  const [pasiens, setPasiens] = useState<Pasien[]>(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<Pasien[]>(cacheKey);
+      if (cached && cached.length > 0) return cached;
+    }
+    return [];
+  });
   const [query, setQuery] = useState("");
   const [selectedPasien, setSelectedPasien] = useState<Pasien | null>(null);
   const [activeTab, setActiveTab] = useState<"Balita" | "Lansia">("Balita");
   const formRef = useRef<HTMLDivElement>(null);
+
+  // In-Memory Search Index for instant O(1) query lookups
+  const pelayananIndexRef = useRef<SearchIndex<Pasien>>(
+    new SearchIndex<Pasien>((p) => [
+      p.nama,
+      p.detail1,
+      p.detail2,
+      p.subInfo,
+      p.tipe,
+    ])
+  );
+
+  useEffect(() => {
+    pelayananIndexRef.current.setSource(pasiens);
+  }, [pasiens]);
 
   useEffect(() => {
     setActivePatientId(posyanduId, selectedPasien ? selectedPasien.id : null);
@@ -167,6 +191,7 @@ export default function PelayananModule({ posyanduId, activePeriode, onOpenPerio
         await lansiaApi.deletePemeriksaan(posyanduId, deletingLog.pasienId, deletingLog.id);
       }
       toast.success(`Record pemeriksaan ${deletingLog.nama} berhasil dihapus.`);
+      clientDataCache.invalidate("pelayanan_pasiens_" + posyanduId);
       fetchPatients(true);
       setDeletingLog(null);
     } catch (err: unknown) {
@@ -214,10 +239,19 @@ export default function PelayananModule({ posyanduId, activePeriode, onOpenPerio
     setSessionPage(1);
   }, [activeTab, activePeriode]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<Pasien[]>(cacheKey);
+      if (cached && cached.length > 0) return false;
+    }
+    return true;
+  });
 
   const fetchPatients = (silent = false) => {
-    if (!silent) {
+    const cached = clientDataCache.get<Pasien[]>(cacheKey);
+    if (cached && cached.length > 0) {
+      setIsLoading(false);
+    } else if (!silent && pasiens.length === 0) {
       setIsLoading(true);
     }
     const targetMonth = activePeriode ? activePeriode.bulan : (new Date().getMonth() + 1);
@@ -301,6 +335,7 @@ export default function PelayananModule({ posyanduId, activePeriode, onOpenPerio
 
         const allPasiens = [...balitas, ...lansias];
         setPasiens(allPasiens);
+        clientDataCache.set(cacheKey, allPasiens);
 
         // Restore selected patient jika sebelumnya ada pasien aktif yang tersimpan
         setSelectedPasien((prev) => {
@@ -743,17 +778,22 @@ export default function PelayananModule({ posyanduId, activePeriode, onOpenPerio
     return () => clearTimeout(timer);
   }, [query]);
 
-  const filteredPasiens = pasiens.filter((p) => {
-    const matchesSearch = p.nama.toLowerCase().includes(debouncedQuery.toLowerCase());
-    const matchesType = p.tipe === activeTab;
-    const matchesStatus =
-      statusFilter === "semua"
-        ? true
-        : statusFilter === "selesai"
-        ? p.isCheckedInCurrentPeriod
-        : !p.isCheckedInCurrentPeriod;
-    return matchesSearch && matchesType && matchesStatus;
-  });
+  const filteredPasiens = useMemo(() => {
+    const source = query && query.trim()
+      ? pelayananIndexRef.current.search(query)
+      : pasiens;
+
+    return source.filter((p) => {
+      const matchesType = p.tipe === activeTab;
+      const matchesStatus =
+        statusFilter === "semua"
+          ? true
+          : statusFilter === "selesai"
+          ? p.isCheckedInCurrentPeriod
+          : !p.isCheckedInCurrentPeriod;
+      return matchesType && matchesStatus;
+    });
+  }, [query, pasiens, activeTab, statusFilter]);
 
   // Warning Check (Checkup)
   const checkWarnings = (bbVal: string, sistolVal: string, gdsVal: string) => {
@@ -907,6 +947,7 @@ export default function PelayananModule({ posyanduId, activePeriode, onOpenPerio
           ? `Hasil pemeriksaan untuk ${selectedPasien.nama} berhasil diperbarui!`
           : `Hasil pemeriksaan untuk ${selectedPasien.nama} berhasil disimpan!`
       );
+      clientDataCache.invalidate("pelayanan_pasiens_" + posyanduId);
       fetchPatients(true);
       setFormWarning("");
     } catch (err: any) {
