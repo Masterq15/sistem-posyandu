@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import PageHelmet from "@/components/PageHelmet";
 import BalitaIcon from "@/components/BalitaIcon";
+import LansiaIcon from "@/components/LansiaIcon";
 import { LaporanSkeleton } from "@/components/Skeleton";
 
 interface LaporanModuleProps {
@@ -71,18 +72,80 @@ interface RekapanBalita {
   }>;
 }
 
+interface LansiaPerluPerhatian {
+  id: string;
+  pasienId?: string;
+  nama: string;
+  nik?: string;
+  usia: string;
+  jenisKelamin: string;
+  temuan: string[];
+  keluhan: string;
+  tanggal: string;
+  petugas: string;
+  saran: string;
+}
+
 interface RekapanLansia {
   periode: string;
   totalPemeriksaan: number;
   totalOrang: number;
-  statusHipertensi: number;
-  statusGdsTinggi: number;
-  statusHipertensiDanGds: number;
+  totalTerdaftar: number;
+  cakupanPersen: number;
+  tidakHadir: number;
+  perluFollowUp: number;
+  kasusHipertensi: number;
+  kasusDiabetes: number;
+  kasusMetabolik: number;
+  riwayat: {
+    hipertensi: number;
+    diabetes: number;
+    keduanya: number;
+    tanpaRiwayat: number;
+  };
+  statusTd: {
+    normal: number;
+    prehipertensi: number;
+    hipertensi1: number;
+    hipertensi2: number;
+  };
+  statusImt: {
+    kurang: number;
+    normal: number;
+    berlebih: number;
+    obesitas: number;
+  };
+  statusLingkarPerut: {
+    normal: number;
+    berisiko: number;
+  };
+  statusGds: {
+    dalamTarget: number;
+    perluPantau: number;
+    tinggi: number;
+  };
+  statusKolesterol: {
+    normal: number;
+    tinggi: number;
+    diperiksa: number;
+  };
+  statusAsamUrat: {
+    normal: number;
+    tinggi: number;
+    diperiksa: number;
+  };
   rataRataBb: number;
   rataRataTb: number;
   rataRataSistol: number;
   rataRataDiastol: number;
   rataRataGds: number;
+  rataRataKolesterol: number;
+  rataRataAsamUrat: number;
+  rataRataLingkarPerut: number;
+  keluhanList: Array<{ nama: string; count: number; persen: number }>;
+  tindakanList: Array<{ nama: string; count: number; persen: number }>;
+  totalMendapatTindakan: number;
+  lansiaPerluPerhatianList: LansiaPerluPerhatian[];
 }
 
 function extractPemberianLain(statusImunisasi?: string | null): string {
@@ -559,32 +622,269 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
     }
 
     if (lansiaLogs.length > 0) {
+      const totalPemeriksaan = lansiaLogs.length;
+      const totalOrang = new Set(lansiaLogs.map((l) => l.pasienId || l.nik || l.nama)).size;
+      const totalTerdaftar = totalLansiaTerdaftar > 0 ? totalLansiaTerdaftar : totalOrang;
+      const cakupanPersen = totalTerdaftar > 0
+        ? Number(((totalOrang / totalTerdaftar) * 100).toFixed(1))
+        : 100;
+      const tidakHadir = Math.max(0, totalTerdaftar - totalOrang);
+
+      // Riwayat Penyakit Kronis
+      let riwayatHtCount = 0;
+      let riwayatDmCount = 0;
+      let riwayatKeduanyaCount = 0;
+      let tanpaRiwayatCount = 0;
+
+      // Status Tekanan Darah (JNC / Kemenkes)
+      const statusTd = { normal: 0, prehipertensi: 0, hipertensi1: 0, hipertensi2: 0 };
+      let sumSistol = 0;
+      let countSistol = 0;
+      let sumDiastol = 0;
+      let countDiastol = 0;
+
+      // Status IMT & Lingkar Perut
+      const statusImt = { kurang: 0, normal: 0, berlebih: 0, obesitas: 0 };
+      const statusLingkarPerut = { normal: 0, berisiko: 0 };
+      let sumBb = 0;
+      let countBb = 0;
+      let sumTb = 0;
+      let countTb = 0;
+      let sumLp = 0;
+      let countLp = 0;
+
+      // Status Lab (GDS, Kolesterol, Asam Urat)
+      const statusGds = { dalamTarget: 0, perluPantau: 0, tinggi: 0 };
+      let sumGds = 0;
+      let countGds = 0;
+
+      const statusKolesterol = { normal: 0, tinggi: 0, diperiksa: 0 };
+      let sumKol = 0;
+
+      const statusAsamUrat = { normal: 0, tinggi: 0, diperiksa: 0 };
+      let sumAu = 0;
+
+      // Keluhan & Tindakan
+      const keluhanCounts: Record<string, number> = {};
+      const tindakanCounts: Record<string, number> = {};
+      let totalMendapatTindakan = 0;
+
+      const attentionMap = new Map<string, LansiaPerluPerhatian>();
+
+      lansiaLogs.forEach((log) => {
+        // Riwayat HT & DM
+        const hasHt = log.riwayatHt === true;
+        const hasDm = log.riwayatDm === true;
+        if (hasHt && hasDm) riwayatKeduanyaCount++;
+        else if (hasHt) riwayatHtCount++;
+        else if (hasDm) riwayatDmCount++;
+        else tanpaRiwayatCount++;
+
+        // Tekanan Darah
+        const sistol = log.tekananDarahSistol || 0;
+        const diastol = log.tekananDarahDiastol || 0;
+        if (sistol > 0 || diastol > 0) {
+          if (sistol > 0) { sumSistol += sistol; countSistol++; }
+          if (diastol > 0) { sumDiastol += diastol; countDiastol++; }
+
+          if (sistol >= 160 || diastol >= 100) statusTd.hipertensi2++;
+          else if (sistol >= 140 || diastol >= 90) statusTd.hipertensi1++;
+          else if (sistol >= 120 || diastol >= 80) statusTd.prehipertensi++;
+          else statusTd.normal++;
+        }
+
+        // IMT
+        const bb = log.beratBadan || 0;
+        const tb = log.tinggiBadan || 0;
+        if (bb > 0) { sumBb += bb; countBb++; }
+        if (tb > 0) { sumTb += tb; countTb++; }
+        if (bb > 0 && tb > 0) {
+          const imt = bb / ((tb / 100) ** 2);
+          if (imt < 18.5) statusImt.kurang++;
+          else if (imt < 23.0) statusImt.normal++;
+          else if (imt < 25.0) statusImt.berlebih++;
+          else statusImt.obesitas++;
+        }
+
+        // Lingkar Perut
+        const lp = log.lingkarPerut || 0;
+        const jk = log.jenisKelamin?.toUpperCase() || "L";
+        if (lp > 0) {
+          sumLp += lp;
+          countLp++;
+          const limit = jk === "P" ? 80 : 90;
+          if (lp > limit) statusLingkarPerut.berisiko++;
+          else statusLingkarPerut.normal++;
+        }
+
+        // GDS
+        const gds = log.gulaDarahSewaktu || 0;
+        if (gds > 0) {
+          sumGds += gds;
+          countGds++;
+          if (gds < 140) statusGds.dalamTarget++;
+          else if (gds < 200) statusGds.perluPantau++;
+          else statusGds.tinggi++;
+        }
+
+        // Kolesterol
+        if (log.kolesterol !== undefined && log.kolesterol !== null && Number(log.kolesterol) > 0) {
+          const kol = Number(log.kolesterol);
+          statusKolesterol.diperiksa++;
+          sumKol += kol;
+          if (kol >= 200) statusKolesterol.tinggi++;
+          else statusKolesterol.normal++;
+        }
+
+        // Asam Urat
+        if (log.asamUrat !== undefined && log.asamUrat !== null && Number(log.asamUrat) > 0) {
+          const au = Number(log.asamUrat);
+          statusAsamUrat.diperiksa++;
+          sumAu += au;
+          const limitAu = jk === "P" ? 6.0 : 7.0;
+          if (au > limitAu) statusAsamUrat.tinggi++;
+          else statusAsamUrat.normal++;
+        }
+
+        // Keluhan parsing
+        const rawKeluhan = (log.keluhan || "").trim().toLowerCase();
+        if (rawKeluhan && rawKeluhan !== "-" && rawKeluhan !== "tidak ada") {
+          let cat = "Keluhan Lainnya";
+          if (/pegal|sendi|linu|rematik|nyeri lutut|encok/.test(rawKeluhan)) cat = "Pegal / Nyeri Sendi";
+          else if (/pusing|sakit kepala|migrain|kleyengan/.test(rawKeluhan)) cat = "Pusing / Sakit Kepala";
+          else if (/lelah|lemas|capek|letih/.test(rawKeluhan)) cat = "Mudah Lelah / Lemas";
+          else if (/pinggang|punggung/.test(rawKeluhan)) cat = "Nyeri Punggung / Pinggang";
+          else if (/batuk|sesak|pilek|napas|flu/.test(rawKeluhan)) cat = "Batuk / Gangguan Napas";
+          else if (/mata|kabur/.test(rawKeluhan)) cat = "Penglihatan Kabur";
+          keluhanCounts[cat] = (keluhanCounts[cat] || 0) + 1;
+        }
+
+        // Tindakan parsing
+        const rawTindakan = (log.tindakan || "").trim().toLowerCase();
+        if (rawTindakan && rawTindakan !== "-" && rawTindakan !== "tidak ada") {
+          totalMendapatTindakan++;
+          let catT = "Edukasi & Pemantauan";
+          if (/konseling|gizi|makan|diet|nutrisi/.test(rawTindakan)) catT = "Konseling Pola Makan & Gizi";
+          else if (/pantau|monitoring|kontrol|rutin/.test(rawTindakan)) catT = "Monitoring / Pemantauan Rutin";
+          else if (/rujuk|puskesmas|faskes|rs/.test(rawTindakan)) catT = "Rujukan Puskesmas / Faskes";
+          else if (/obat|vitamin|terapi|farmasi/.test(rawTindakan)) catT = "Pemberian Vitamin / Terapi";
+          else if (/senam|olahraga|aktivitas/.test(rawTindakan)) catT = "Edukasi Aktivitas Fisik";
+          tindakanCounts[catT] = (tindakanCounts[catT] || 0) + 1;
+        }
+
+        // Deteksi Lansia Perlu Perhatian / Follow-up
+        const temuan: string[] = [];
+        const isHt2 = sistol >= 160 || diastol >= 100;
+        const isHt1 = (sistol >= 140 || diastol >= 90) && !isHt2;
+        const isGdsTinggi = gds >= 200;
+        const isGdsWaspada = gds >= 140 && gds < 200;
+        const kol = Number(log.kolesterol || 0);
+        const isKolTinggi = kol >= 200;
+        const au = Number(log.asamUrat || 0);
+        const isAuTinggi = au > (jk === "P" ? 6.0 : 7.0);
+        const isObesitasSentral = lp > (jk === "P" ? 80 : 90);
+
+        if (isHt2) temuan.push(`TD: ${sistol}/${diastol} (HT Derajat 2)`);
+        else if (isHt1) temuan.push(`TD: ${sistol}/${diastol} (HT Derajat 1)`);
+
+        if (isGdsTinggi) temuan.push(`GDS: ${gds} mg/dL (Tinggi)`);
+        else if (isGdsWaspada) temuan.push(`GDS: ${gds} mg/dL (Perlu Pantau)`);
+
+        if (isKolTinggi) temuan.push(`Kolesterol: ${kol} mg/dL`);
+        if (isAuTinggi) temuan.push(`Asam Urat: ${au} mg/dL`);
+        if (isObesitasSentral) temuan.push(`Obesitas Sentral (${lp} cm)`);
+
+        let usiaTahun = "-";
+        if (log.tanggalLahir) {
+          const lahir = new Date(log.tanggalLahir);
+          const sekarang = new Date();
+          usiaTahun = Math.floor((sekarang.getTime() - lahir.getTime()) / (365.25 * 24 * 60 * 60 * 1000)) + " Thn";
+        }
+
+        if (temuan.length > 0) {
+          const key = log.pasienId || log.nik || log.nama;
+          let saran = "Konseling Pola Hidup & Monitoring Berkala";
+          if (isHt2 || isGdsTinggi) {
+            saran = "Segera Rujuk Puskesmas untuk Evaluasi Dokter";
+          } else if (isKolTinggi || isAuTinggi) {
+            saran = "Pemeriksaan Lab Lanjutan & Diet Rendah Lemak/Purin";
+          } else if (isHt1) {
+            saran = "Kontrol Tekanan Darah Rutin & Kurangi Asupan Garam";
+          } else if (isObesitasSentral) {
+            saran = "Konseling Pengaturan Pola Makan & Aktivitas Fisik Ringan";
+          }
+
+          attentionMap.set(key, {
+            id: log.id,
+            pasienId: log.pasienId,
+            nama: log.nama,
+            nik: log.nik,
+            usia: usiaTahun,
+            jenisKelamin: jk === "P" ? "Perempuan" : "Laki-laki",
+            temuan,
+            keluhan: log.keluhan || "-",
+            tanggal: log.tanggal,
+            petugas: log.petugas || "Kader",
+            saran,
+          });
+        }
+      });
+
+      const keluhanList = Object.entries(keluhanCounts)
+        .map(([nama, count]) => ({
+          nama,
+          count,
+          persen: Number(((count / totalPemeriksaan) * 100).toFixed(1)),
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      const tindakanList = Object.entries(tindakanCounts)
+        .map(([nama, count]) => ({
+          nama,
+          count,
+          persen: Number(((count / totalPemeriksaan) * 100).toFixed(1)),
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      const totalHipertensi = statusTd.hipertensi1 + statusTd.hipertensi2;
+      const totalDiabetes = statusGds.tinggi;
+      const totalMetabolik = attentionMap.size;
+
       const rekapanL: RekapanLansia = {
         periode: periodeText,
-        totalPemeriksaan: lansiaLogs.length,
-        totalOrang: new Set(lansiaLogs.map((l) => l.pasienId || l.nama)).size,
-        statusHipertensi: lansiaLogs.filter(
-          (l) => (l.tekananDarahSistol || 0) >= 140 || (l.tekananDarahDiastol || 0) >= 90
-        ).length,
-        statusGdsTinggi: lansiaLogs.filter((l) => (l.gulaDarahSewaktu || 0) >= 200).length,
-        statusHipertensiDanGds: lansiaLogs.filter(
-          (l) =>
-            ((l.tekananDarahSistol || 0) >= 140 || (l.tekananDarahDiastol || 0) >= 90) &&
-            (l.gulaDarahSewaktu || 0) >= 200
-        ).length,
-        rataRataBb:
-          lansiaLogs.reduce((sum, l) => sum + (l.beratBadan || 0), 0) / lansiaLogs.length,
-        rataRataTb:
-          lansiaLogs.reduce((sum, l) => sum + (l.tinggiBadan || 0), 0) / lansiaLogs.length,
-        rataRataSistol:
-          lansiaLogs.reduce((sum, l) => sum + (l.tekananDarahSistol || 0), 0) /
-          lansiaLogs.length,
-        rataRataDiastol:
-          lansiaLogs.reduce((sum, l) => sum + (l.tekananDarahDiastol || 0), 0) /
-          lansiaLogs.length,
-        rataRataGds:
-          lansiaLogs.reduce((sum, l) => sum + (l.gulaDarahSewaktu || 0), 0) /
-          lansiaLogs.length,
+        totalPemeriksaan,
+        totalOrang,
+        totalTerdaftar,
+        cakupanPersen,
+        tidakHadir,
+        perluFollowUp: attentionMap.size,
+        kasusHipertensi: totalHipertensi,
+        kasusDiabetes: totalDiabetes,
+        kasusMetabolik: totalMetabolik,
+        riwayat: {
+          hipertensi: riwayatHtCount + riwayatKeduanyaCount,
+          diabetes: riwayatDmCount + riwayatKeduanyaCount,
+          keduanya: riwayatKeduanyaCount,
+          tanpaRiwayat: tanpaRiwayatCount,
+        },
+        statusTd,
+        statusImt,
+        statusLingkarPerut,
+        statusGds,
+        statusKolesterol,
+        statusAsamUrat,
+        rataRataBb: countBb > 0 ? Number((sumBb / countBb).toFixed(1)) : 0,
+        rataRataTb: countTb > 0 ? Number((sumTb / countTb).toFixed(1)) : 0,
+        rataRataSistol: countSistol > 0 ? Math.round(sumSistol / countSistol) : 0,
+        rataRataDiastol: countDiastol > 0 ? Math.round(sumDiastol / countDiastol) : 0,
+        rataRataGds: countGds > 0 ? Math.round(sumGds / countGds) : 0,
+        rataRataKolesterol: statusKolesterol.diperiksa > 0 ? Math.round(sumKol / statusKolesterol.diperiksa) : 0,
+        rataRataAsamUrat: statusAsamUrat.diperiksa > 0 ? Number((sumAu / statusAsamUrat.diperiksa).toFixed(1)) : 0,
+        rataRataLingkarPerut: countLp > 0 ? Number((sumLp / countLp).toFixed(1)) : 0,
+        keluhanList,
+        tindakanList,
+        totalMendapatTindakan,
+        lansiaPerluPerhatianList: Array.from(attentionMap.values()),
       };
       setRekapanLansia(rekapanL);
     } else {
@@ -592,14 +892,32 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
         periode: periodeText,
         totalPemeriksaan: 0,
         totalOrang: 0,
-        statusHipertensi: 0,
-        statusGdsTinggi: 0,
-        statusHipertensiDanGds: 0,
+        totalTerdaftar: totalLansiaTerdaftar,
+        cakupanPersen: 0,
+        tidakHadir: totalLansiaTerdaftar,
+        perluFollowUp: 0,
+        kasusHipertensi: 0,
+        kasusDiabetes: 0,
+        kasusMetabolik: 0,
+        riwayat: { hipertensi: 0, diabetes: 0, keduanya: 0, tanpaRiwayat: 0 },
+        statusTd: { normal: 0, prehipertensi: 0, hipertensi1: 0, hipertensi2: 0 },
+        statusImt: { kurang: 0, normal: 0, berlebih: 0, obesitas: 0 },
+        statusLingkarPerut: { normal: 0, berisiko: 0 },
+        statusGds: { dalamTarget: 0, perluPantau: 0, tinggi: 0 },
+        statusKolesterol: { normal: 0, tinggi: 0, diperiksa: 0 },
+        statusAsamUrat: { normal: 0, tinggi: 0, diperiksa: 0 },
         rataRataBb: 0,
         rataRataTb: 0,
         rataRataSistol: 0,
         rataRataDiastol: 0,
         rataRataGds: 0,
+        rataRataKolesterol: 0,
+        rataRataAsamUrat: 0,
+        rataRataLingkarPerut: 0,
+        keluhanList: [],
+        tindakanList: [],
+        totalMendapatTindakan: 0,
+        lansiaPerluPerhatianList: [],
       });
     }
   };
@@ -614,7 +932,7 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
     calculateRekapan();
     setPageBalita(1);
     setPageLansia(1);
-  }, [logs, filterCategory, filterFromDate, filterToDate, totalBalitaTerdaftar]);
+  }, [logs, filterCategory, filterFromDate, filterToDate, totalBalitaTerdaftar, totalLansiaTerdaftar]);
 
   // Filter data Balita berdasarkan search (via in-memory SearchIndex) & tanggal
   const filteredBalitaLogs = useMemo(() => {
@@ -1718,11 +2036,23 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
       {/* Ringkasan Rekapan Lansia */}
       {filterCategory === "Lansia" && (
         <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-5">
+          {/* Header & Cakupan Keseluruhan */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-100 pb-4">
             <div>
-              <h3 className="text-base font-extrabold text-saas-dark tracking-tight">Ringkasan Rekapan Lansia</h3>
-              <p className="text-xs text-saas-muted mt-0.5 font-medium">
-                Periode: <span className="font-bold text-saas-primary">{rekapanLansia?.periode || "Semua Periode"}</span>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-saas-dark tracking-tight">Ringkasan Rekapan Lansia</h3>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
+                  {rekapanLansia?.periode || "Semua Periode"}
+                </span>
+              </div>
+              <p className="text-xs text-saas-muted mt-1 font-medium flex items-center gap-1.5 flex-wrap">
+                <span className="font-bold text-gray-700">{rekapanLansia?.totalTerdaftar || 0} Terdaftar</span>
+                <span>•</span>
+                <span className="font-bold text-teal-700">{rekapanLansia?.totalOrang || 0} Diperiksa</span>
+                <span>•</span>
+                <span>Cakupan <strong className="text-gray-900">{rekapanLansia?.cakupanPersen ?? 0}%</strong></span>
+                <span>•</span>
+                <span className="text-amber-700 font-semibold">{rekapanLansia?.tidakHadir || 0} Tidak Hadir</span>
               </p>
             </div>
             <div className="text-xs font-semibold text-saas-muted bg-gray-50 border border-gray-200/80 px-3 py-1.5 rounded-lg w-fit">
@@ -1730,210 +2060,622 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
             </div>
           </div>
 
-          {/* Group 1 - Status Utama Lansia (5 Card KPI Grid) */}
+          {/* Tier 1 - KPI Utama Lansia (5 Card KPI Grid) */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">Status Kesehatan &amp; Tekanan Darah</h4>
+            <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">Tier 1 — Indikator Prioritas Kesehatan Lansia</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-              {/* Total Pemeriksaan */}
+              {/* Total Lansia Diperiksa */}
               <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-teal-300 transition-all flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Total Periksa</span>
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Total Diperiksa</span>
                   <div className="w-7 h-7 rounded-md bg-teal-50 text-saas-primary flex items-center justify-center shrink-0 border border-teal-100">
                     <FileText className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="mt-2">
                   <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {rekapanLansia?.totalPemeriksaan || 0}
+                    {rekapanLansia?.totalOrang || 0} <span className="text-xs font-normal text-saas-muted">Lansia</span>
                   </div>
                   <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200/60 inline-block">
-                    100% Total Data
+                    {rekapanLansia?.totalPemeriksaan || 0} Kunjungan
                   </span>
                 </div>
               </div>
 
-              {/* Tekanan Darah Normal */}
+              {/* Cakupan Pemeriksaan */}
               <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-emerald-300 transition-all flex flex-col justify-between">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">TD Normal</span>
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Cakupan Kehadiran</span>
                   <div className="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-                    <Heart className="w-4 h-4" />
+                    <CheckCircle2 className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {rekapanLansia ? Math.max(0, rekapanLansia.totalPemeriksaan - rekapanLansia.statusHipertensi) : 0}
+                  <div className="text-2xl font-extrabold text-emerald-700 tracking-tight">
+                    {rekapanLansia?.cakupanPersen ?? 0}%
                   </div>
                   <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/60 inline-block">
-                    {rekapanLansia && rekapanLansia.totalPemeriksaan > 0
-                      ? (((rekapanLansia.totalPemeriksaan - rekapanLansia.statusHipertensi) / rekapanLansia.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}% dari Total
+                    Target Wilayah Tercapai
                   </span>
                 </div>
               </div>
 
-              {/* Tekanan Darah Tinggi */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-amber-300 transition-all flex flex-col justify-between">
+              {/* Perlu Follow-up */}
+              <div className={`bg-white border rounded-xl p-4 shadow-2xs transition-all flex flex-col justify-between ${
+                (rekapanLansia?.perluFollowUp || 0) > 0 ? "border-rose-300 bg-rose-50/10" : "border-gray-200/80 hover:border-rose-300"
+              }`}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">TD Tinggi</span>
-                  <div className="w-7 h-7 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-                    <AlertTriangle className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {rekapanLansia?.statusHipertensi || 0}
-                  </div>
-                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60 inline-block">
-                    {rekapanLansia && rekapanLansia.totalPemeriksaan > 0
-                      ? ((rekapanLansia.statusHipertensi / rekapanLansia.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}% dari Total
-                  </span>
-                </div>
-              </div>
-
-              {/* Tekanan Darah Rendah */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-blue-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">TD Rendah</span>
-                  <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">0</div>
-                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200/60 inline-block">
-                    0% dari Total
-                  </span>
-                </div>
-              </div>
-
-              {/* Perlu Perhatian / Rawat */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-rose-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Perlu Perhatian</span>
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Perlu Follow-Up</span>
                   <div className="w-7 h-7 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
                     <AlertTriangle className="w-4 h-4" />
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                    {rekapanLansia?.statusHipertensiDanGds || 0}
+                  <div className={`text-2xl font-extrabold tracking-tight ${
+                    (rekapanLansia?.perluFollowUp || 0) > 0 ? "text-rose-600" : "text-saas-dark"
+                  }`}>
+                    {rekapanLansia?.perluFollowUp || 0} <span className="text-xs font-normal text-saas-muted">Lansia</span>
                   </div>
-                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200/60 inline-block">
+                  <span className={`mt-1 px-2 py-0.5 rounded text-[10px] font-bold inline-block border ${
+                    (rekapanLansia?.perluFollowUp || 0) > 0
+                      ? "bg-rose-50 text-rose-800 border-rose-200/60"
+                      : "bg-gray-50 text-gray-700 border-gray-200"
+                  }`}>
+                    Temuan Berisiko Klinis
+                  </span>
+                </div>
+              </div>
+
+              {/* Kasus Hipertensi */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-amber-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">Kasus Hipertensi</span>
+                  <div className="w-7 h-7 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+                    <Heart className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <div className="text-2xl font-extrabold text-amber-700 tracking-tight">
+                    {rekapanLansia?.kasusHipertensi || 0} <span className="text-xs font-normal text-saas-muted">Kasus</span>
+                  </div>
+                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60 inline-block">
                     {rekapanLansia && rekapanLansia.totalPemeriksaan > 0
-                      ? ((rekapanLansia.statusHipertensiDanGds / rekapanLansia.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}% Gabungan
+                      ? ((rekapanLansia.kasusHipertensi / rekapanLansia.totalPemeriksaan) * 100).toFixed(1)
+                      : "0"}% Derajat 1 &amp; 2
+                  </span>
+                </div>
+              </div>
+
+              {/* Kasus Diabetes / GDS Tinggi */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs hover:border-purple-300 transition-all flex flex-col justify-between">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">GDS Tinggi / DM</span>
+                  <div className="w-7 h-7 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100">
+                    <Droplet className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <div className="text-2xl font-extrabold text-purple-700 tracking-tight">
+                    {rekapanLansia?.kasusDiabetes || 0} <span className="text-xs font-normal text-saas-muted">Kasus</span>
+                  </div>
+                  <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200/60 inline-block">
+                    {rekapanLansia && rekapanLansia.totalPemeriksaan > 0
+                      ? ((rekapanLansia.kasusDiabetes / rekapanLansia.totalPemeriksaan) * 100).toFixed(1)
+                      : "0"}% GDS ≥ 200 mg/dL
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Group 2 - Parameter Fisik & Laboratorium (6 Card KPI Grid) */}
-          <div className="space-y-2 pt-2 border-t border-gray-100">
-            <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">Indikator IMT, Gula Darah &amp; Kolesterol</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-              {/* IMT Normal */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">IMT Normal</span>
-                  <div className="w-6 h-6 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <Scale className="w-3.5 h-3.5" />
+          {/* Tier 2 - Status Klinis & Skrining Vital (3 Kolom Standar Lansia) */}
+          <div className="space-y-3 pt-2 border-t border-gray-100">
+            <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">
+              Tier 2 — Status Klinis &amp; Skrining Pemeriksaan Vital
+            </h4>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Kolom 1: Status Tekanan Darah (JNC / Kemenkes) */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-rose-50 text-rose-600 flex items-center justify-center">
+                      <Heart className="w-3.5 h-3.5" />
+                    </div>
+                    <h5 className="text-xs font-bold text-gray-900">Tekanan Darah (TD)</h5>
                   </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanLansia ? Math.round(rekapanLansia.totalPemeriksaan * 0.625) : 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-700">62.5%</span>
-                </div>
-              </div>
-
-              {/* IMT Kurang */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">IMT Kurang</span>
-                  <div className="w-6 h-6 rounded bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                    <Scale className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanLansia ? Math.round(rekapanLansia.totalPemeriksaan * 0.083) : 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-amber-700">8.3%</span>
-                </div>
-              </div>
-
-              {/* IMT Berlebih */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">IMT Berlebih</span>
-                  <div className="w-6 h-6 rounded bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                    <Scale className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanLansia ? Math.round(rekapanLansia.totalPemeriksaan * 0.292) : 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-rose-700">29.2%</span>
-                </div>
-              </div>
-
-              {/* Gula Darah Normal */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">GDS Normal</span>
-                  <div className="w-6 h-6 rounded bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                    <Droplet className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanLansia ? Math.max(0, rekapanLansia.totalPemeriksaan - rekapanLansia.statusGdsTinggi) : 0}
-                  </div>
-                  <span className="text-[10px] font-bold text-purple-700">
-                    {rekapanLansia && rekapanLansia.totalPemeriksaan > 0
-                      ? (((rekapanLansia.totalPemeriksaan - rekapanLansia.statusGdsTinggi) / rekapanLansia.totalPemeriksaan) * 100).toFixed(1)
-                      : "0"}%
+                  <span className="text-[11px] font-medium text-gray-500">
+                    Rata-rata: <strong className="text-gray-900 font-bold">{rekapanLansia?.rataRataSistol || 0}/{rekapanLansia?.rataRataDiastol || 0}</strong> mmHg
                   </span>
                 </div>
+
+                <div className="space-y-2 text-xs">
+                  {/* Normal */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">Normal (&lt;120/&lt;80)</span>
+                      <span className="font-bold text-emerald-700">
+                        {rekapanLansia?.statusTd.normal || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusTd.normal / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusTd.normal / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Prehipertensi */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">Prehipertensi (120-139 / 80-89)</span>
+                      <span className="font-bold text-amber-700">
+                        {rekapanLansia?.statusTd.prehipertensi || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusTd.prehipertensi / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusTd.prehipertensi / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Hipertensi Derajat 1 */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">Hipertensi Tk 1 (140-159 / 90-99)</span>
+                      <span className="font-bold text-orange-700">
+                        {rekapanLansia?.statusTd.hipertensi1 || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusTd.hipertensi1 / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-orange-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusTd.hipertensi1 / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Hipertensi Derajat 2 */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">Hipertensi Tk 2 (≥160 / ≥100)</span>
+                      <span className="font-bold text-rose-700">
+                        {rekapanLansia?.statusTd.hipertensi2 || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusTd.hipertensi2 / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-rose-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusTd.hipertensi2 / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sub: Riwayat Penyakit Kronis */}
+                <div className="pt-2 border-t border-gray-100">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Riwayat Penyakit Terdata</span>
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                    <div className="bg-gray-50 rounded-lg p-1.5 border border-gray-100">
+                      <span className="text-gray-500 block text-[10px]">Hipertensi</span>
+                      <span className="font-extrabold text-gray-900">{rekapanLansia?.riwayat.hipertensi || 0} Lansia</span>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-1.5 border border-gray-100">
+                      <span className="text-gray-500 block text-[10px]">Diabetes</span>
+                      <span className="font-extrabold text-gray-900">{rekapanLansia?.riwayat.diabetes || 0} Lansia</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Kolesterol Normal */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">Kolesterol Normal</span>
-                  <div className="w-6 h-6 rounded bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
-                    <Droplet className="w-3.5 h-3.5" />
+              {/* Kolom 2: Status Berat Badan (IMT) & Lingkar Perut */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-blue-50 text-blue-600 flex items-center justify-center">
+                      <Scale className="w-3.5 h-3.5" />
+                    </div>
+                    <h5 className="text-xs font-bold text-gray-900">IMT &amp; Lingkar Perut</h5>
+                  </div>
+                  <span className="text-[11px] font-medium text-gray-500">
+                    Rata BB: <strong className="text-gray-900 font-bold">{rekapanLansia?.rataRataBb || 0}</strong> kg
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  {/* IMT Kurang */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">Kurang (&lt;18.5)</span>
+                      <span className="font-bold text-blue-700">
+                        {rekapanLansia?.statusImt.kurang || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusImt.kurang / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusImt.kurang / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* IMT Normal */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">Normal (18.5-22.9)</span>
+                      <span className="font-bold text-emerald-700">
+                        {rekapanLansia?.statusImt.normal || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusImt.normal / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusImt.normal / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* IMT Berlebih */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">Berlebih (23.0-24.9)</span>
+                      <span className="font-bold text-amber-700">
+                        {rekapanLansia?.statusImt.berlebih || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusImt.berlebih / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusImt.berlebih / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Obesitas */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">Obesitas (≥25.0)</span>
+                      <span className="font-bold text-rose-700">
+                        {rekapanLansia?.statusImt.obesitas || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusImt.obesitas / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-rose-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusImt.obesitas / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanLansia ? Math.round(rekapanLansia.totalPemeriksaan * 0.733) : 0}
+
+                {/* Sub: Lingkar Perut */}
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Lingkar Perut (LP)</span>
+                    <span className="text-[10px] text-gray-500 font-semibold">Rata: {rekapanLansia?.rataRataLingkarPerut || 0} cm</span>
                   </div>
-                  <span className="text-[10px] font-bold text-pink-700">73.3%</span>
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                    <div className="bg-emerald-50/60 rounded-lg p-1.5 border border-emerald-100">
+                      <span className="text-emerald-700 block text-[10px]">Normal (L≤90, P≤80)</span>
+                      <span className="font-extrabold text-emerald-900">{rekapanLansia?.statusLingkarPerut.normal || 0} Lansia</span>
+                    </div>
+                    <div className="bg-rose-50/60 rounded-lg p-1.5 border border-rose-100">
+                      <span className="text-rose-700 block text-[10px]">Risiko Sentral</span>
+                      <span className="font-extrabold text-rose-900">{rekapanLansia?.statusLingkarPerut.berisiko || 0} Lansia</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Pemeriksaan Lengkap */}
-              <div className="bg-white border border-gray-200/80 rounded-xl p-3.5 shadow-2xs hover:border-gray-300 transition-all flex flex-col justify-between">
-                <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold text-saas-muted uppercase tracking-wider">Periksa Lengkap</span>
-                  <div className="w-6 h-6 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+              {/* Kolom 3: Skrining Laboratorium (GDS, Kolesterol, Asam Urat) */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-purple-50 text-purple-600 flex items-center justify-center">
+                      <Activity className="w-3.5 h-3.5" />
+                    </div>
+                    <h5 className="text-xs font-bold text-gray-900">Skrining Laboratorium</h5>
+                  </div>
+                  <span className="text-[11px] font-medium text-gray-500">
+                    GDS Rata-rata: <strong className="text-gray-900 font-bold">{rekapanLansia?.rataRataGds || 0}</strong> mg/dL
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  {/* GDS Target */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">GDS Target (&lt;140 mg/dL)</span>
+                      <span className="font-bold text-emerald-700">
+                        {rekapanLansia?.statusGds.dalamTarget || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusGds.dalamTarget / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusGds.dalamTarget / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* GDS Pemantauan */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">GDS Pantau (140-199 mg/dL)</span>
+                      <span className="font-bold text-amber-700">
+                        {rekapanLansia?.statusGds.perluPantau || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusGds.perluPantau / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-amber-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusGds.perluPantau / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* GDS Tinggi */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-gray-600">GDS Tinggi (≥200 mg/dL)</span>
+                      <span className="font-bold text-rose-700">
+                        {rekapanLansia?.statusGds.tinggi || 0}{" "}
+                        <span className="text-[10px] font-normal text-gray-500">
+                          ({rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? ((rekapanLansia.statusGds.tinggi / rekapanLansia.totalPemeriksaan) * 100).toFixed(1) : 0}%)
+                        </span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-rose-500 h-1.5 rounded-full transition-all duration-300"
+                        style={{ width: `${rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? Math.min(100, (rekapanLansia.statusGds.tinggi / rekapanLansia.totalPemeriksaan) * 100) : 0}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="mt-1.5">
-                  <div className="text-xl font-extrabold text-saas-dark">
-                    {rekapanLansia ? Math.round(rekapanLansia.totalPemeriksaan * 0.875) : 0}
+
+                {/* Sub: Kolesterol & Asam Urat */}
+                <div className="pt-2 border-t border-gray-100 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-gray-600 font-medium">Kolesterol Total</span>
+                    <span className="font-bold text-gray-900">
+                      Rata: {rekapanLansia?.rataRataKolesterol || 0} mg/dL{" "}
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        (rekapanLansia?.statusKolesterol.tinggi || 0) > 0 ? "bg-rose-100 text-rose-800" : "bg-emerald-100 text-emerald-800"
+                      }`}>
+                        {rekapanLansia?.statusKolesterol.tinggi || 0} Tinggi
+                      </span>
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-700">87.5%</span>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-gray-600 font-medium">Asam Urat</span>
+                    <span className="font-bold text-gray-900">
+                      Rata: {rekapanLansia?.rataRataAsamUrat || 0} mg/dL{" "}
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                        (rekapanLansia?.statusAsamUrat.tinggi || 0) > 0 ? "bg-rose-100 text-rose-800" : "bg-emerald-100 text-emerald-800"
+                      }`}>
+                        {rekapanLansia?.statusAsamUrat.tinggi || 0} Tinggi
+                      </span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Tier 3 - 2-Kolom Grid (Keluhan Terbanyak & Tindakan Medis) */}
+          <div className="space-y-3 pt-2 border-t border-gray-100">
+            <h4 className="text-xs font-bold text-saas-muted uppercase tracking-wider">
+              Tier 3 — Analisis Keluhan &amp; Tindakan Intervensi
+            </h4>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Keluhan Terbanyak */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-amber-50 text-amber-600 flex items-center justify-center">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                    </div>
+                    <h5 className="text-xs font-bold text-gray-900">Keluhan Terbanyak Dilaporkan</h5>
+                  </div>
+                  <span className="text-[11px] font-semibold text-gray-500">
+                    {rekapanLansia?.keluhanList?.reduce((acc, k) => acc + k.count, 0) || 0} Keluhan Masuk
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  {rekapanLansia?.keluhanList && rekapanLansia.keluhanList.length > 0 ? (
+                    rekapanLansia.keluhanList.map((item, idx) => (
+                      <div key={idx}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold text-gray-700">{item.nama}</span>
+                          <span className="font-bold text-gray-900">
+                            {item.count} Lansia{" "}
+                            <span className="text-gray-500 font-normal">({item.persen}%)</span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="bg-amber-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min(100, item.persen)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-6 text-center text-xs text-gray-400 font-medium">
+                      Tidak ada keluhan yang dilaporkan pada periode ini.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tindakan Medis & Edukasi */}
+              <div className="bg-white border border-gray-200/80 rounded-xl p-4 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-teal-50 text-teal-600 flex items-center justify-center">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                    </div>
+                    <h5 className="text-xs font-bold text-gray-900">Tindakan Medis &amp; Edukasi</h5>
+                  </div>
+                  <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                    {rekapanLansia?.totalMendapatTindakan || 0} Ditindaklanjuti
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  {rekapanLansia?.tindakanList && rekapanLansia.tindakanList.length > 0 ? (
+                    rekapanLansia.tindakanList.map((item, idx) => (
+                      <div key={idx}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold text-gray-700">{item.nama}</span>
+                          <span className="font-bold text-gray-900">
+                            {item.count} Tindakan{" "}
+                            <span className="text-gray-500 font-normal">({item.persen}%)</span>
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="bg-teal-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min(100, item.persen)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-6 text-center text-xs text-gray-400 font-medium">
+                      Belum ada intervensi medis atau edukasi yang dicatat.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tier 4 - ⚠️ Lansia Perlu Follow-up (Daftar Aksi Prioritas Kader) */}
+          <div className="space-y-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-rose-600" />
+                    Tier 4 — Lansia Perlu Follow-Up &amp; Perhatian Khusus
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800">
+                    {rekapanLansia?.lansiaPerluPerhatianList?.length || 0} Kasus
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  Lansia dengan temuan klinis berisiko (hipertensi, hiperglikemia, hiperkolesterol, asam urat tinggi, obesitas) untuk diprioritaskan pemantauannya
+                </p>
+              </div>
+            </div>
+
+            {rekapanLansia?.lansiaPerluPerhatianList && rekapanLansia.lansiaPerluPerhatianList.length > 0 ? (
+              <div className="border border-rose-200/80 rounded-xl overflow-hidden bg-rose-50/20 shadow-2xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-rose-100/50 text-rose-950 font-bold border-b border-rose-200/70">
+                        <th className="px-3.5 py-2.5">Nama Lansia</th>
+                        <th className="px-3.5 py-2.5">Usia &amp; JK</th>
+                        <th className="px-3.5 py-2.5">Temuan Medis Berisiko</th>
+                        <th className="px-3.5 py-2.5">Keluhan</th>
+                        <th className="px-3.5 py-2.5">Rekomendasi Tindak Lanjut</th>
+                        <th className="px-3.5 py-2.5 text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-rose-100/70 bg-white">
+                      {rekapanLansia.lansiaPerluPerhatianList.map((item) => (
+                        <tr key={item.id} className="hover:bg-rose-50/40 transition-colors">
+                          <td className="px-3.5 py-2.5 font-bold text-gray-900 whitespace-nowrap">
+                            {item.nama}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-600 whitespace-nowrap">
+                            {item.usia} ({item.jenisKelamin})
+                          </td>
+                          <td className="px-3.5 py-2.5">
+                            <div className="flex flex-wrap gap-1">
+                              {item.temuan.map((t, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 whitespace-nowrap"
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-700">
+                            {item.keluhan || "-"}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-700 font-medium">
+                            {item.saran}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-right whitespace-nowrap">
+                            {onNavigate && item.pasienId ? (
+                              <button
+                                onClick={() => onNavigate("Lansia", item.pasienId)}
+                                className="px-2.5 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                              >
+                                Buka Profil
+                              </button>
+                            ) : (
+                              <span className="text-[11px] text-gray-400">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-emerald-900">Kondisi Baik: Semua Lansia dalam Batas Terkendali</p>
+                  <p className="text-[11px] text-emerald-700 mt-0.5">
+                    Tidak ditemukan lansia dengan tekanan darah stage 2, kadar gula darah tinggi (≥200 mg/dL), atau risiko metabolik berat pada periode ini.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Detail Data Pemeriksaan Lansia Table */}

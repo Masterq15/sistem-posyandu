@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Modal from "../../components/Modal";
 import PageHelmet from "../../components/PageHelmet";
 import { TableSkeleton } from "../../components/Skeleton";
 import LansiaIcon from "../../components/LansiaIcon";
 import { lansiaApi, PeriodePelayanan } from "../../lib/api";
+import { SearchIndex } from "../../lib/searchIndex";
+import { clientDataCache } from "../../lib/dataCache";
 import { formatTanggalIndonesia, formatTanggalInput } from "../../lib/dateUtils";
 import { getExamDraft, saveExamDraft, clearExamDraft } from "../../lib/draftStorage";
 import { useAuth } from "../../contexts/AuthContext";
@@ -97,12 +99,50 @@ interface LansiaModuleProps {
 
 export default function LansiaModule({ posyanduId, activePeriode, searchQuery = "", selectedId, onBack, backLabel }: LansiaModuleProps) {
   const { user } = useAuth();
-  const [lansias, setLansias] = useState<Lansia[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const initialCacheKey = `lansias_${posyanduId}_p1_lim10`;
+  const [lansias, setLansias] = useState<Lansia[]>(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<Lansia[]>(initialCacheKey);
+      if (cached && cached.length > 0) return cached;
+    }
+    return [];
+  });
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<Lansia[]>(initialCacheKey);
+      if (cached && cached.length > 0) return false;
+    }
+    return true;
+  });
+  const [isFetching, setIsFetching] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [view, setView] = useState<"list" | "detail" | "add">("list");
   const [selectedLansiaId, setSelectedLansiaId] = useState<string | null>(selectedId || null);
+
+  // In-Memory Search Index for instant O(1) query lookups by token/prefix
+  const lansiaIndexRef = useRef<SearchIndex<Lansia>>(
+    new SearchIndex<Lansia>((l) => [
+      l.nama,
+      l.nik,
+      l.noHp,
+      l.noBpjs,
+      l.rtRw,
+      l.alamat,
+      l.jenisKelamin === "L" ? "laki-laki l" : "perempuan p",
+      l.riwayatHt ? "hipertensi ht darah tinggi" : "",
+      l.riwayatDm ? "diabetes melitus dm gula" : "",
+    ])
+  );
+  const lansiasPoolRef = useRef<Map<string, Lansia>>(new Map());
+
+  // Keep in-memory search index updated with all discovered items
+  useEffect(() => {
+    lansias.forEach((l) => {
+      lansiasPoolRef.current.set(l.id, l);
+    });
+    lansiaIndexRef.current.setSource(Array.from(lansiasPoolRef.current.values()));
+  }, [lansias]);
 
   // Search, Filter & Pagination State
   const [query, setQuery] = useState(searchQuery);
@@ -200,9 +240,6 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
 
   // Fetch lansia from API
   const fetchLansias = useCallback(() => {
-    setIsLoading(true);
-    setApiError(null);
-
     const kelompokUmurParam =
       ageFilter === "45-59" ? "Pra Lansia (45-59th)" :
       ageFilter === "60-69" ? "Lansia (60-69th)" :
@@ -210,6 +247,25 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
 
     const htParam = diseaseFilter === "ht" ? "true" : undefined;
     const dmParam = diseaseFilter === "dm" ? "true" : undefined;
+
+    const pageCacheKey = `lansias_${posyanduId}_p${currentPage}_q${debouncedQuery || ""}_a${ageFilter}_d${diseaseFilter}_lim${limit}`;
+    const cachedPage = clientDataCache.get<{ data: Lansia[]; total: number; totalPages: number }>(pageCacheKey);
+
+    if (cachedPage) {
+      setLansias(cachedPage.data);
+      setTotalItems(cachedPage.total);
+      setTotalPages(cachedPage.totalPages);
+      setIsLoading(false);
+      return;
+    }
+
+    // Only show full skeleton on initial cold load when there is no data to show
+    if (lansias.length === 0) {
+      setIsLoading(true);
+    } else {
+      setIsFetching(true);
+    }
+    setApiError(null);
 
     lansiaApi
       .getAll(posyanduId, {
@@ -231,35 +287,46 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
             })),
           }));
           setLansias(mapped);
-          if (res.meta) {
-            setTotalItems(res.meta.total);
-            setTotalPages(res.meta.totalPages);
-          } else {
-            setTotalItems(mapped.length);
-            setTotalPages(1);
+          const total = res.meta ? res.meta.total : mapped.length;
+          const totPages = res.meta ? res.meta.totalPages : 1;
+          setTotalItems(total);
+          setTotalPages(totPages);
+
+          clientDataCache.set(pageCacheKey, { data: mapped, total, totalPages: totPages });
+          if (currentPage === 1 && !debouncedQuery && ageFilter === "semua" && diseaseFilter === "semua" && limit === 10) {
+            clientDataCache.set(initialCacheKey, mapped);
           }
         }
       })
       .catch((err) => setApiError(err.message))
-      .finally(() => setIsLoading(false));
-  }, [posyanduId, debouncedQuery, ageFilter, diseaseFilter, currentPage, limit]);
+      .finally(() => {
+        setIsLoading(false);
+        setIsFetching(false);
+      });
+  }, [posyanduId, debouncedQuery, ageFilter, diseaseFilter, currentPage, limit, lansias.length, initialCacheKey]);
 
   useEffect(() => {
     fetchLansias();
   }, [fetchLansias]);
 
-  // Filter List Lansia (client-side)
-  const filteredLansias = lansias.filter((l) => {
-    const ageYears = calculateAgeInYears(l.tanggalLahir);
-    let matchesAge = true;
-    if (ageFilter === "45-59") matchesAge = ageYears >= 45 && ageYears <= 59;
-    else if (ageFilter === "60-69") matchesAge = ageYears >= 60 && ageYears <= 69;
-    else if (ageFilter === "70+") matchesAge = ageYears >= 70;
-    let matchesDisease = true;
-    if (diseaseFilter === "ht") matchesDisease = l.riwayatHt;
-    else if (diseaseFilter === "dm") matchesDisease = l.riwayatDm;
-    return matchesAge && matchesDisease;
-  });
+  // Filter List Lansia (Search by Index + Client-side age & disease filters)
+  const filteredLansias = useMemo(() => {
+    const source = query && query.trim()
+      ? lansiaIndexRef.current.search(query)
+      : lansias;
+
+    return source.filter((l) => {
+      const ageYears = calculateAgeInYears(l.tanggalLahir);
+      let matchesAge = true;
+      if (ageFilter === "45-59") matchesAge = ageYears >= 45 && ageYears <= 59;
+      else if (ageFilter === "60-69") matchesAge = ageYears >= 60 && ageYears <= 69;
+      else if (ageFilter === "70+") matchesAge = ageYears >= 70;
+      let matchesDisease = true;
+      if (diseaseFilter === "ht") matchesDisease = l.riwayatHt;
+      else if (diseaseFilter === "dm") matchesDisease = l.riwayatDm;
+      return matchesAge && matchesDisease;
+    });
+  }, [query, lansias, ageFilter, diseaseFilter]);
 
   // Form State Tambah Lansia
   const [formNama, setFormNama] = useState("");
@@ -392,6 +459,7 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
         tingkatKemandirian: editKemandirian,
         gangguanMentalEmosional: editMental || undefined,
       });
+      clientDataCache.invalidate("lansias_" + posyanduId);
       fetchLansias();
       setIsEditModalOpen(false);
       toast.success("Profil lansia berhasil diperbarui!");
@@ -410,6 +478,7 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
     setIsSaving(true);
     try {
       await lansiaApi.delete(posyanduId, selectedLansiaId);
+      clientDataCache.invalidate("lansias_" + posyanduId);
       fetchLansias();
       setIsDeleteModalOpen(false);
       setSelectedLansiaId(null);
@@ -599,6 +668,7 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
         tingkatKemandirian: formKemandirian,
         gangguanMentalEmosional: formMental || undefined,
       });
+      clientDataCache.invalidate("lansias_" + posyanduId);
       fetchLansias();
       setFormNama("");
       setFormNik("");

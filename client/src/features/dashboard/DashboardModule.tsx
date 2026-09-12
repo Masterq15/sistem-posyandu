@@ -76,14 +76,27 @@ interface Pasien {
 }
 
 import { DashboardSkeleton, Skeleton } from "../../components/Skeleton";
+import { clientDataCache } from "../../lib/dataCache";
 
 export default function DashboardModule({ searchQuery, onNavigate, posyanduId, activePeriode }: DashboardModuleProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"Semua" | "Balita" | "Lansia">("Semua");
 
   // ── API state ──────────────────────────────────────────────
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
+  const [summary, setSummary] = useState<DashboardSummary | null>(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<DashboardSummary>(`dash_summary_${posyanduId}`);
+      if (cached) return cached;
+    }
+    return null;
+  });
+  const [isSummaryLoading, setIsSummaryLoading] = useState(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<DashboardSummary>(`dash_summary_${posyanduId}`);
+      if (cached) return false;
+    }
+    return true;
+  });
   const [dbPasiens, setDbPasiens] = useState<Pasien[]>([]);
   const [distribusiKehadiran, setDistribusiKehadiran] = useState<DistribusiKehadiran[]>([]);
   const [isDistribusiLoading, setIsDistribusiLoading] = useState(false);
@@ -145,17 +158,28 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
   }, [posyanduId, trenPeriod]);
 
   const fetchSummary = () => {
+    const dashCacheKey = `dash_summary_${posyanduId}`;
+    const cached = clientDataCache.get<DashboardSummary>(dashCacheKey);
+    if (cached) {
+      setSummary(cached);
+      setIsSummaryLoading(false);
+    } else if (!summary) {
+      setIsSummaryLoading(true);
+    }
+
     dashboardApi
       .getSummary(posyanduId)
       .then((res) => {
-        if (res.success) setSummary(res.data);
+        if (res.success) {
+          setSummary(res.data);
+          clientDataCache.set(dashCacheKey, res.data);
+        }
       })
       .catch(console.error)
       .finally(() => setIsSummaryLoading(false));
   };
 
   useEffect(() => {
-    setIsSummaryLoading(true);
     fetchSummary();
   }, [posyanduId, activePeriode]);
 

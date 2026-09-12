@@ -476,6 +476,8 @@ export interface ItemRiwayat {
   kolesterol?: number;
   asamUrat?: number;
   lingkarPerut?: number;
+  riwayatHt?: boolean;
+  riwayatDm?: boolean;
   keluhan?: string;
   tindakan?: string;
 }
@@ -759,10 +761,17 @@ export interface PublicPemeriksaanItem {
   beratBadan: number;
   tinggiBadan: number;
   lingkarKepala?: number;
+  lingkarLengan?: number;
+  nik?: string;
+  namaIbu?: string;
   statusBbU?: string;
   statusTbU?: string;
   statusBbTb?: string;
   vitaminA?: boolean;
+  asiEksklusif?: boolean;
+  obatCacing?: boolean;
+  vitB1?: boolean;
+  vitB6?: boolean;
   statusImunisasi?: string;
   tekananDarah?: string;
   sistol?: number;
@@ -770,7 +779,13 @@ export interface PublicPemeriksaanItem {
   gds?: number;
   kolesterol?: number;
   asamUrat?: number;
+  lingkarPerut?: number;
+  riwayatHt?: boolean;
+  riwayatDm?: boolean;
+  rtRw?: string;
   imt?: string;
+  keluhan?: string;
+  tindakan?: string;
   statusRingkasan: string;
   isPerluRujukan: boolean;
   tindakanCatatan?: string;
