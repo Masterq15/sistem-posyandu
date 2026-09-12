@@ -670,7 +670,8 @@ export default function PuskesmasPublicPage() {
       }))
       .sort((a, b) => b.count - a.count);
 
-    const kasusHipertensi = statusTd.hipertensi1 + statusTd.hipertensi2;
+    const statusHipertensi = statusTd.hipertensi1 + statusTd.hipertensi2;
+    const kasusHipertensi = statusHipertensi;
     const kasusDiabetes = statusGds.tinggi;
     const kasusMetabolik = lansiaLogs.filter((l) => {
       const isHt = (l.sistol || 0) >= 140 || (l.diastol || 0) >= 90;
@@ -969,7 +970,7 @@ export default function PuskesmasPublicPage() {
 
           {/* 2. Pilihan Posyandu */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               2. Posyandu
             </label>
             <select
@@ -979,11 +980,11 @@ export default function PuskesmasPublicPage() {
                 setPageBalita(1);
                 setPageLansia(1);
               }}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             >
-              <option value="semua">Semua Posyandu ({posyandus.length})</option>
+              <option value="semua" className="text-gray-900">Semua Posyandu ({posyandus.length})</option>
               {posyandus.map((p) => (
-                <option key={p.id} value={p.id}>
+                <option key={p.id} value={p.id} className="text-gray-900">
                   {p.nama} ({p.desa})
                 </option>
               ))}
@@ -992,7 +993,7 @@ export default function PuskesmasPublicPage() {
 
           {/* 3. Periode Bulan */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               3. Bulan
             </label>
             <select
@@ -1002,11 +1003,11 @@ export default function PuskesmasPublicPage() {
                 setPageBalita(1);
                 setPageLansia(1);
               }}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             >
-              <option value="">Semua Bulan</option>
+              <option value="" className="text-gray-900">Semua Bulan</option>
               {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={String(i + 1).padStart(2, "0")}>
+                <option key={i + 1} value={String(i + 1).padStart(2, "0")} className="text-gray-900">
                   {new Date(2000, i).toLocaleString("id-ID", { month: "long" })}
                 </option>
               ))}
@@ -1015,7 +1016,7 @@ export default function PuskesmasPublicPage() {
 
           {/* 4. Periode Tahun */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               4. Tahun
             </label>
             <select
@@ -1025,11 +1026,11 @@ export default function PuskesmasPublicPage() {
                 setPageBalita(1);
                 setPageLansia(1);
               }}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             >
-              <option value="">Semua Tahun</option>
+              <option value="" className="text-gray-900">Semua Tahun</option>
               {yearOptions.map((year) => (
-                <option key={year} value={year.toString()}>
+                <option key={year} value={year.toString()} className="text-gray-900">
                   {year}
                 </option>
               ))}
@@ -1038,7 +1039,7 @@ export default function PuskesmasPublicPage() {
 
           {/* Dari Tanggal */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               Dari Tanggal (Opsional)
             </label>
             <input
@@ -1049,13 +1050,13 @@ export default function PuskesmasPublicPage() {
                 setPageBalita(1);
                 setPageLansia(1);
               }}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             />
           </div>
 
           {/* Sampai Tanggal */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               Sampai Tanggal (Opsional)
             </label>
             <input
@@ -1066,7 +1067,7 @@ export default function PuskesmasPublicPage() {
                 setPageBalita(1);
                 setPageLansia(1);
               }}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             />
           </div>
         </div>
@@ -1798,12 +1799,12 @@ export default function PuskesmasPublicPage() {
                       setPageSizeBalita(Number(e.target.value));
                       setPageBalita(1);
                     }}
-                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-teal-600"
+                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs font-semibold text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-teal-600"
                   >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
+                    <option value={10} className="text-gray-900">10</option>
+                    <option value={25} className="text-gray-900">25</option>
+                    <option value={50} className="text-gray-900">50</option>
+                    <option value={100} className="text-gray-900">100</option>
                   </select>
                   <span>data</span>
                 </div>
@@ -2643,12 +2644,12 @@ export default function PuskesmasPublicPage() {
                       setPageSizeLansia(Number(e.target.value));
                       setPageLansia(1);
                     }}
-                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-teal-600"
+                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs font-semibold text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-teal-600"
                   >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
+                    <option value={10} className="text-gray-900">10</option>
+                    <option value={25} className="text-gray-900">25</option>
+                    <option value={50} className="text-gray-900">50</option>
+                    <option value={100} className="text-gray-900">100</option>
                   </select>
                   <span>data</span>
                 </div>

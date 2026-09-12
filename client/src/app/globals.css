@@ -22,6 +22,27 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+/* Pastikan form controls selalu menggunakan warna teks gelap pekat */
+select,
+input,
+textarea {
+  color: #0B0F19;
+}
+
+select option {
+  color: #0B0F19;
+  background-color: #FFFFFF;
+}
+
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #0B0F19;
+}
+
 @media print {
   @page {
     size: landscape;

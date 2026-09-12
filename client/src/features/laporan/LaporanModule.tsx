@@ -1040,17 +1040,17 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
 
           {/* 2. Periode Bulan */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               2. Bulan
             </label>
             <select
               value={filterMonth}
               onChange={(e) => setFilterMonth(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             >
-              <option value="">Semua Bulan</option>
+              <option value="" className="text-gray-900">Semua Bulan</option>
               {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={String(i + 1).padStart(2, "0")}>
+                <option key={i + 1} value={String(i + 1).padStart(2, "0")} className="text-gray-900">
                   {new Date(2000, i).toLocaleString("id-ID", { month: "long" })}
                 </option>
               ))}
@@ -1059,17 +1059,17 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
 
           {/* Periode Tahun */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               3. Tahun
             </label>
             <select
               value={filterYear}
               onChange={(e) => setFilterYear(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             >
-              <option value="">Semua Tahun</option>
+              <option value="" className="text-gray-900">Semua Tahun</option>
               {yearOptions.map((year) => (
-                <option key={year} value={year.toString()}>
+                <option key={year} value={year.toString()} className="text-gray-900">
                   {year}
                 </option>
               ))}
@@ -1078,27 +1078,27 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
 
           {/* Dari Tanggal */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               Dari Tanggal (Opsional)
             </label>
             <input
               type="date"
               value={filterFromDate}
               onChange={(e) => setFilterFromDate(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             />
           </div>
 
           {/* Sampai Tanggal */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-gray-900 mb-2 uppercase tracking-wider">
               Sampai Tanggal (Opsional)
             </label>
             <input
               type="date"
               value={filterToDate}
               onChange={(e) => setFilterToDate(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
+              className="w-full px-3 py-2 text-xs font-semibold text-gray-900 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-600 bg-white"
             />
           </div>
         </div>
@@ -1847,12 +1847,12 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
                       setPageSizeBalita(Number(e.target.value));
                       setPageBalita(1);
                     }}
-                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-teal-600"
+                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs font-semibold text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-teal-600"
                   >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
+                    <option value={10} className="text-gray-900">10</option>
+                    <option value={25} className="text-gray-900">25</option>
+                    <option value={50} className="text-gray-900">50</option>
+                    <option value={100} className="text-gray-900">100</option>
                   </select>
                   <span>data</span>
                 </div>
@@ -2693,12 +2693,12 @@ export default function LaporanModule({ posyanduId, activePeriode, onNavigate }:
                       setPageSizeLansia(Number(e.target.value));
                       setPageLansia(1);
                     }}
-                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-teal-600"
+                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs font-semibold text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-teal-600"
                   >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
+                    <option value={10} className="text-gray-900">10</option>
+                    <option value={25} className="text-gray-900">25</option>
+                    <option value={50} className="text-gray-900">50</option>
+                    <option value={100} className="text-gray-900">100</option>
                   </select>
                   <span>data</span>
                 </div>
