@@ -1217,16 +1217,21 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
                     <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">NIK</th>
                     <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">JK</th>
                     <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Usia</th>
-                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Riw DM</th>
                     <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Riw HT</th>
+                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Riw DM</th>
                     <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Tekanan Darah (TD)</th>
                     <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">GDS (mg/dL)</th>
+                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Kolesterol</th>
+                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Asam Urat</th>
+                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">L.Perut</th>
+                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Keluhan</th>
+                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Tindakan Medis</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {filteredLansiaLogs.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="py-8 text-center text-xs text-gray-500 font-medium">
+                      <td colSpan={15} className="py-8 text-center text-xs text-gray-500 font-medium">
                         Tidak ada catatan pemeriksaan Lansia yang sesuai dengan filter.
                       </td>
                     </tr>
@@ -1257,7 +1262,7 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
                                 <button
                                   type="button"
                                   onClick={() => onNavigate("Lansia", log.pasienId)}
-                                  className="text-gray-900 font-bold hover:text-indigo-600 hover:underline text-left transition-colors cursor-pointer"
+                                  className="text-gray-900 font-bold hover:text-teal-600 hover:underline text-left transition-colors cursor-pointer"
                                   title={`Lihat Profil ${log.nama}`}
                                 >
                                   {log.nama || "-"}
@@ -1270,12 +1275,21 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
                             <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{log.nik || "-"}</td>
                             <td className="px-3 py-2.5 text-gray-600 font-semibold whitespace-nowrap">{log.jenisKelamin || "-"}</td>
                             <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{usiaTahun !== "-" ? `${usiaTahun} th` : "-"}</td>
-                            <td className="px-3 py-2.5 text-gray-600 font-semibold whitespace-nowrap">{(log as any).riwayatDm ? "Ya" : "Tdk"}</td>
                             <td className="px-3 py-2.5 text-gray-600 font-semibold whitespace-nowrap">{(log as any).riwayatHt ? "Ya" : "Tdk"}</td>
+                            <td className="px-3 py-2.5 text-gray-600 font-semibold whitespace-nowrap">{(log as any).riwayatDm ? "Ya" : "Tdk"}</td>
                             <td className="px-3 py-2.5 text-gray-900 font-bold whitespace-nowrap">
                               {sistol && diastol ? `${sistol}/${diastol} mmHg` : "-"}
                             </td>
                             <td className="px-3 py-2.5 text-gray-900 font-bold whitespace-nowrap">{gds ? `${gds} mg/dL` : "-"}</td>
+                            <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{log.kolesterol ? `${log.kolesterol} mg/dL` : "-"}</td>
+                            <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{log.asamUrat ? `${log.asamUrat} mg/dL` : "-"}</td>
+                            <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{log.lingkarPerut ? `${log.lingkarPerut} cm` : "-"}</td>
+                            <td className="px-3 py-2.5 text-gray-700 max-w-[160px] truncate" title={log.keluhan || "-"}>
+                              {log.keluhan || "-"}
+                            </td>
+                            <td className="px-3 py-2.5 text-gray-700 max-w-[180px] truncate" title={log.tindakan || "-"}>
+                              {log.tindakan || "-"}
+                            </td>
                           </tr>
                         );
                       })

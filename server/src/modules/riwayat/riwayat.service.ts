@@ -626,7 +626,17 @@ export const riwayatService = {
       const bbUNormal = items.filter(i => i.statusBbU === 'N').length;
       const bbUKurang = items.filter(i => i.statusBbU === 'K').length;
       const bbUSgKurang = items.filter(i => i.statusBbU === 'SK').length;
-      const tbUPendek = items.filter(i => i.statusTbU === 'P' || i.statusTbU === 'SP').length;
+
+      const tbUNormal = items.filter(i => i.statusTbU === 'N').length;
+      const tbUPendek = items.filter(i => i.statusTbU === 'P').length;
+      const tbUSgPendek = items.filter(i => i.statusTbU === 'SP').length;
+      const tbUStunting = tbUPendek + tbUSgPendek;
+
+      const bbTbNormal = items.filter(i => i.statusBbTb === 'N').length;
+      const bbTbKurus = items.filter(i => i.statusBbTb === 'K').length;
+      const bbTbSgKurus = items.filter(i => i.statusBbTb === 'SK').length;
+      const bbTbGemuk = items.filter(i => i.statusBbTb === 'G' || i.statusBbTb === 'L').length;
+      const bbTbWasting = bbTbKurus + bbTbSgKurus;
 
       const vitACount = items.filter(i => i.vitaminA).length;
       const asiCount = items.filter(i => i.asiEksklusif).length;
@@ -635,38 +645,38 @@ export const riwayatService = {
 
       const sRow = currentRow + 1;
 
-      // Background Box Summary
+      // Background Box Summary (Putih Bersih & Profesional)
       for (let r = sRow; r <= sRow + 5; r++) {
         sheet.getRow(r).height = 18;
         for (let c = 1; c <= 29; c++) {
           const cell = sheet.getCell(r, c);
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FDF4' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
         }
       }
 
       // Title Summary
       sheet.mergeCells(`A${sRow}:AC${sRow}`);
       const sumTitleCell = sheet.getCell(`A${sRow}`);
-      sumTitleCell.value = 'SUMMARY KELOMPOK UMUR & REKAPITULASI PEMERIKSAAN POSYANDU';
-      sumTitleCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF065F46' } };
+      sumTitleCell.value = 'REKAPITULASI PELAYANAN KESEHATAN BALITA';
+      sumTitleCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
       sumTitleCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
       sheet.getRow(sRow).height = 22;
 
       // Group Subtitles
       sheet.mergeCells(`B${sRow + 1}:H${sRow + 1}`);
       const g1 = sheet.getCell(`B${sRow + 1}`);
-      g1.value = 'Rentang Umur Balita:';
-      g1.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF0F172A' } };
+      g1.value = 'Distribusi Sasaran Usia Balita:';
+      g1.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF334155' } };
 
-      sheet.mergeCells(`J${sRow + 1}:P${sRow + 1}`);
+      sheet.mergeCells(`J${sRow + 1}:U${sRow + 1}`);
       const g2 = sheet.getCell(`J${sRow + 1}`);
-      g2.value = 'Status Gizi & Perkembangan:';
-      g2.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF0F172A' } };
+      g2.value = 'Status Gizi Antropometri (BB/U, TB/U, TB/BB):';
+      g2.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF334155' } };
 
-      sheet.mergeCells(`V${sRow + 1}:AA${sRow + 1}`);
+      sheet.mergeCells(`V${sRow + 1}:AC${sRow + 1}`);
       const g3 = sheet.getCell(`V${sRow + 1}`);
-      g3.value = 'Intervensi & Pemberian Lain:';
-      g3.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF0F172A' } };
+      g3.value = 'Pelayanan Kesehatan & Suplementasi:';
+      g3.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF334155' } };
 
       // Row 1 Values
       sheet.mergeCells(`B${sRow + 2}:D${sRow + 2}`);
@@ -675,14 +685,14 @@ export const riwayatService = {
       sheet.getCell(`E${sRow + 2}`).value = `:  ${age0_6} Anak`;
 
       sheet.mergeCells(`J${sRow + 2}:M${sRow + 2}`);
-      sheet.getCell(`J${sRow + 2}`).value = '• BB/U Normal';
-      sheet.mergeCells(`N${sRow + 2}:S${sRow + 2}`);
-      sheet.getCell(`N${sRow + 2}`).value = `:  ${bbUNormal} Anak`;
+      sheet.getCell(`J${sRow + 2}`).value = '• BB/U';
+      sheet.mergeCells(`N${sRow + 2}:U${sRow + 2}`);
+      sheet.getCell(`N${sRow + 2}`).value = `:  ${bbUNormal} Normal | ${bbUKurang} Kurang | ${bbUSgKurang} S.Kurang`;
 
       sheet.mergeCells(`V${sRow + 2}:X${sRow + 2}`);
-      sheet.getCell(`V${sRow + 2}`).value = '• Vit A / ASI SKS / Obat Cacing';
+      sheet.getCell(`V${sRow + 2}`).value = '• Vitamin A (Kapsul)';
       sheet.mergeCells(`Y${sRow + 2}:AC${sRow + 2}`);
-      sheet.getCell(`Y${sRow + 2}`).value = `:  VitA(${vitACount}) | ASI(${asiCount}) | Cacing(${obatCacingCount})`;
+      sheet.getCell(`Y${sRow + 2}`).value = `:  ${vitACount} Balita`;
 
       // Row 2 Values
       sheet.mergeCells(`B${sRow + 3}:D${sRow + 3}`);
@@ -691,14 +701,14 @@ export const riwayatService = {
       sheet.getCell(`E${sRow + 3}`).value = `:  ${age7_12} Anak`;
 
       sheet.mergeCells(`J${sRow + 3}:M${sRow + 3}`);
-      sheet.getCell(`J${sRow + 3}`).value = '• BB/U Kurang / Sangat Kurang';
-      sheet.mergeCells(`N${sRow + 3}:S${sRow + 3}`);
-      sheet.getCell(`N${sRow + 3}`).value = `:  ${bbUKurang} Kurang / ${bbUSgKurang} S.Kurang`;
+      sheet.getCell(`J${sRow + 3}`).value = '• TB/U';
+      sheet.mergeCells(`N${sRow + 3}:U${sRow + 3}`);
+      sheet.getCell(`N${sRow + 3}`).value = `:  ${tbUNormal} Normal | ${tbUPendek} Pendek | ${tbUSgPendek} S.Pendek`;
 
       sheet.mergeCells(`V${sRow + 3}:X${sRow + 3}`);
-      sheet.getCell(`V${sRow + 3}`).value = '• Pemberian Lain / Imunisasi';
+      sheet.getCell(`V${sRow + 3}`).value = '• ASI Eksklusif';
       sheet.mergeCells(`Y${sRow + 3}:AC${sRow + 3}`);
-      sheet.getCell(`Y${sRow + 3}`).value = `:  ${pemberianLainCount} Balita`;
+      sheet.getCell(`Y${sRow + 3}`).value = `:  ${asiCount} Bayi`;
 
       // Row 3 Values
       sheet.mergeCells(`B${sRow + 4}:D${sRow + 4}`);
@@ -707,15 +717,30 @@ export const riwayatService = {
       sheet.getCell(`E${sRow + 4}`).value = `:  ${age13_24} Anak`;
 
       sheet.mergeCells(`J${sRow + 4}:M${sRow + 4}`);
-      sheet.getCell(`J${sRow + 4}`).value = '• TB/U Stunting (P / SP)';
-      sheet.mergeCells(`N${sRow + 4}:S${sRow + 4}`);
-      sheet.getCell(`N${sRow + 4}`).value = `:  ${tbUPendek} Anak`;
+      sheet.getCell(`J${sRow + 4}`).value = '• TB/BB';
+      sheet.mergeCells(`N${sRow + 4}:U${sRow + 4}`);
+      sheet.getCell(`N${sRow + 4}`).value = `:  ${bbTbNormal} Normal | ${bbTbKurus} Kurus | ${bbTbGemuk} Gemuk`;
+
+      sheet.mergeCells(`V${sRow + 4}:X${sRow + 4}`);
+      sheet.getCell(`V${sRow + 4}`).value = '• Pemberian Obat Cacing';
+      sheet.mergeCells(`Y${sRow + 4}:AC${sRow + 4}`);
+      sheet.getCell(`Y${sRow + 4}`).value = `:  ${obatCacingCount} Balita`;
 
       // Row 4 Values
       sheet.mergeCells(`B${sRow + 5}:D${sRow + 5}`);
       sheet.getCell(`B${sRow + 5}`).value = '• 25 - 60 Bulan';
       sheet.mergeCells(`E${sRow + 5}:H${sRow + 5}`);
       sheet.getCell(`E${sRow + 5}`).value = `:  ${age25_60} Anak`;
+
+      sheet.mergeCells(`J${sRow + 5}:M${sRow + 5}`);
+      sheet.getCell(`J${sRow + 5}`).value = '• Rekap Stunting & Wasting';
+      sheet.mergeCells(`N${sRow + 5}:U${sRow + 5}`);
+      sheet.getCell(`N${sRow + 5}`).value = `:  ${tbUStunting} Stunting (TB/U) | ${bbTbWasting} Wasting (TB/BB)`;
+
+      sheet.mergeCells(`V${sRow + 5}:X${sRow + 5}`);
+      sheet.getCell(`V${sRow + 5}`).value = '• Imunisasi / Tambahan Lain';
+      sheet.mergeCells(`Y${sRow + 5}:AC${sRow + 5}`);
+      sheet.getCell(`Y${sRow + 5}`).value = `:  ${pemberianLainCount} Balita`;
 
       for (let r = sRow + 2; r <= sRow + 5; r++) {
         for (let c = 1; c <= 29; c++) {
@@ -728,10 +753,10 @@ export const riwayatService = {
 
       // Border luar Summary Box
       const summaryBorder: Partial<ExcelJS.Borders> = {
-        top: { style: 'thin', color: { argb: 'FF0F766E' } },
-        left: { style: 'thin', color: { argb: 'FF0F766E' } },
-        bottom: { style: 'thin', color: { argb: 'FF0F766E' } },
-        right: { style: 'thin', color: { argb: 'FF0F766E' } },
+        top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        right: { style: 'thin', color: { argb: 'FF94A3B8' } },
       };
       applyBordersToRange(sheet, sRow, 1, sRow + 5, 29, summaryBorder);
 
@@ -774,25 +799,25 @@ export const riwayatService = {
       sheet.views = [{ showGridLines: true }];
 
       // Kop Surat Resmi (Persis PDF)
-      sheet.mergeCells('A1:P1');
+      sheet.mergeCells('A1:Q1');
       sheet.getCell('A1').value = `REGISTER POSYANDU LANSIA ${rawPosName}`;
       sheet.getCell('A1').font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FF0F172A' } };
       sheet.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
       sheet.getRow(1).height = 22;
 
-      sheet.mergeCells('A2:P2');
+      sheet.mergeCells('A2:Q2');
       sheet.getCell('A2').value = desaKecStr;
       sheet.getCell('A2').font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FF1E293B' } };
       sheet.getCell('A2').alignment = { horizontal: 'center', vertical: 'middle' };
       sheet.getRow(2).height = 18;
 
-      sheet.mergeCells('A3:P3');
+      sheet.mergeCells('A3:Q3');
       sheet.getCell('A3').value = tahunStr;
       sheet.getCell('A3').font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF334155' } };
       sheet.getCell('A3').alignment = { horizontal: 'center', vertical: 'middle' };
       sheet.getRow(3).height = 16;
 
-      sheet.mergeCells('A4:P4');
+      sheet.mergeCells('A4:Q4');
       sheet.getCell('A4').value = subTitleStr;
       sheet.getCell('A4').font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF64748B' } };
       sheet.getCell('A4').alignment = { horizontal: 'center', vertical: 'middle' };
@@ -800,11 +825,11 @@ export const riwayatService = {
 
       sheet.getRow(5).height = 10;
 
-      // Header Bertingkat (Baris 6 & 7)
+      // Header Bertingkat (Baris 6 & 7) - Style Senada Balita (Teal Emerald)
       for (let r = 6; r <= 7; r++) {
         sheet.getRow(r).height = 20;
-        for (let c = 1; c <= 16; c++) {
-          styleHeaderCell(sheet.getCell(r, c), 'FF4338CA', 'FF3730A3', 8.5);
+        for (let c = 1; c <= 17; c++) {
+          styleHeaderCell(sheet.getCell(r, c), 'FF0F766E', 'FF0D9488', 8.5);
         }
       }
 
@@ -831,6 +856,8 @@ export const riwayatService = {
       sheet.getCell('M7').value = 'Kolesterol';
       sheet.getCell('N7').value = 'Asam Urat';
       sheet.getCell('O7').value = 'L.Perut (cm)';
+      sheet.getCell('P7').value = 'Keluhan';
+      sheet.getCell('Q7').value = 'Tindakan Medis';
 
       // Merges
       sheet.mergeCells('A6:A7');
@@ -838,26 +865,23 @@ export const riwayatService = {
       sheet.mergeCells('G6:H6');
       sheet.mergeCells('I6:K6');
       sheet.mergeCells('L6:O6');
-      sheet.mergeCells('P6:P7');
+      sheet.mergeCells('P6:Q6');
 
       // Isi Data Lansia
       let currentRow = 8;
       if (items.length === 0) {
-        sheet.mergeCells(`A${currentRow}:P${currentRow}`);
+        sheet.mergeCells(`A${currentRow}:Q${currentRow}`);
         const emptyCell = sheet.getCell(`A${currentRow}`);
         emptyCell.value = 'Tidak ada data pemeriksaan lansia pada periode ini';
         emptyCell.font = { name: 'Arial', size: 9, italic: true, color: { argb: 'FF64748B' } };
         emptyCell.alignment = { horizontal: 'center', vertical: 'middle' };
         sheet.getRow(currentRow).height = 24;
-        applyBordersToRange(sheet, currentRow, 1, currentRow, 16, thinBorder);
+        applyBordersToRange(sheet, currentRow, 1, currentRow, 17, thinBorder);
         currentRow++;
       } else {
         items.forEach((item, idx) => {
           const usiaText = getUsiaText(item.tanggalLahir, item.tanggal, 'Lansia');
           const tdText = item.tekananDarahSistol ? `${item.tekananDarahSistol}/${item.tekananDarahDiastol}` : '-';
-          const keluhanStr = item.keluhan ? `Keluhan: ${item.keluhan}` : '';
-          const tindakanStr = item.tindakan ? `Tindakan: ${item.tindakan}` : '';
-          const combinedDesc = [keluhanStr, tindakanStr].filter(Boolean).join(' | ') || '-';
 
           const rowData = [
             idx + 1,
@@ -875,24 +899,25 @@ export const riwayatService = {
             item.kolesterol !== undefined ? item.kolesterol : '-',
             item.asamUrat !== undefined ? item.asamUrat : '-',
             item.lingkarPerut !== undefined ? item.lingkarPerut : '-',
-            combinedDesc
+            item.keluhan || '-',
+            item.tindakan || '-'
           ];
 
           const row = sheet.getRow(currentRow);
           row.values = rowData;
-          row.height = 20;
+          row.height = 22;
 
           const isEven = idx % 2 === 0;
           const bgArgb = isEven ? 'FFF8FAFC' : 'FFFFFFFF';
 
-          for (let c = 1; c <= 16; c++) {
+          for (let c = 1; c <= 17; c++) {
             const cell = sheet.getCell(currentRow, c);
             cell.font = { name: 'Arial', size: 8.5, bold: c === 2 || c === 11 };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
             cell.border = thinBorder;
 
-            if (c === 2 || c === 16) {
-              cell.alignment = { horizontal: 'left', vertical: 'middle' };
+            if (c === 2 || c === 16 || c === 17) {
+              cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
             } else {
               cell.alignment = { horizontal: 'center', vertical: 'middle' };
             }
@@ -902,7 +927,7 @@ export const riwayatService = {
         });
       }
 
-      // Lebar Kolom Lansia
+      // Lebar Kolom Lansia (17 Kolom)
       const lansiaColWidths = [
         6,   // 1: No
         24,  // 2: Nama Lansia
@@ -919,7 +944,8 @@ export const riwayatService = {
         12,  // 13: Kolesterol
         12,  // 14: Asam Urat
         12,  // 15: L.Perut (cm)
-        36   // 16: Keluhan & Tindakan Medis
+        24,  // 16: Keluhan
+        26   // 17: Tindakan Medis
       ];
 
       lansiaColWidths.forEach((w, i) => {
@@ -948,75 +974,96 @@ export const riwayatService = {
       const age70Plus = items.filter(i => getAgeInfo(i).years >= 70).length;
 
       const totalHt = items.filter(i => (i.tekananDarahSistol || 0) >= 140 || (i.tekananDarahDiastol || 0) >= 90).length;
+      const totalTdNormal = items.filter(i => (i.tekananDarahSistol || 0) > 0 && (i.tekananDarahSistol || 0) < 140 && (i.tekananDarahDiastol || 0) < 90).length;
+
       const totalDm = items.filter(i => (i.gulaDarahSewaktu || 0) >= 200).length;
+      const totalGdsNormal = items.filter(i => (i.gulaDarahSewaktu || 0) > 0 && (i.gulaDarahSewaktu || 0) < 200).length;
+
       const totalKolest = items.filter(i => (i.kolesterol || 0) >= 200).length;
+      const totalKolestNormal = items.filter(i => (i.kolesterol || 0) > 0 && (i.kolesterol || 0) < 200).length;
+
       const totalAsamUrat = items.filter(i => (i.asamUrat || 0) >= 7).length;
+      const totalAsamUratNormal = items.filter(i => (i.asamUrat || 0) > 0 && (i.asamUrat || 0) < 7).length;
+
+      const lansiaPria = items.filter(i => i.jenisKelamin === 'L').length;
+      const lansiaWanita = items.filter(i => i.jenisKelamin === 'P').length;
 
       const sRow = currentRow + 1;
 
-      // Background Box Summary
-      for (let r = sRow; r <= sRow + 4; r++) {
+      // Background Box Summary (Putih Bersih & Profesional)
+      for (let r = sRow; r <= sRow + 5; r++) {
         sheet.getRow(r).height = 18;
-        for (let c = 1; c <= 16; c++) {
+        for (let c = 1; c <= 17; c++) {
           const cell = sheet.getCell(r, c);
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0FDF4' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
         }
       }
 
       // Title Summary
-      sheet.mergeCells(`A${sRow}:P${sRow}`);
+      sheet.mergeCells(`A${sRow}:Q${sRow}`);
       const sumTitleCell = sheet.getCell(`A${sRow}`);
-      sumTitleCell.value = 'SUMMARY KELOMPOK UMUR & REKAPITULASI PEMERIKSAAN POSYANDU';
-      sumTitleCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF065F46' } };
+      sumTitleCell.value = 'REKAPITULASI PELAYANAN KESEHATAN LANSIA';
+      sumTitleCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
       sumTitleCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
       sheet.getRow(sRow).height = 22;
 
       // Group Subtitles
-      sheet.mergeCells(`B${sRow + 1}:F${sRow + 1}`);
+      sheet.mergeCells(`B${sRow + 1}:G${sRow + 1}`);
       const g1 = sheet.getCell(`B${sRow + 1}`);
-      g1.value = 'Rentang Umur Lansia:';
-      g1.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF0F172A' } };
+      g1.value = 'Distribusi Sasaran Usia Lansia:';
+      g1.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF334155' } };
 
-      sheet.mergeCells(`I${sRow + 1}:N${sRow + 1}`);
+      sheet.mergeCells(`I${sRow + 1}:Q${sRow + 1}`);
       const g2 = sheet.getCell(`I${sRow + 1}`);
-      g2.value = 'Ringkasan Kesehatan & Hasil Lab Lansia:';
-      g2.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF0F172A' } };
+      g2.value = 'Hasil Skrining Fisik & Laboratorium:';
+      g2.font = { name: 'Arial', size: 9, bold: true, color: { argb: 'FF334155' } };
 
       // Row 1 Values
       sheet.mergeCells(`B${sRow + 2}:D${sRow + 2}`);
-      sheet.getCell(`B${sRow + 2}`).value = '• 45 - 59 Tahun (Pra-Lansia)';
-      sheet.mergeCells(`E${sRow + 2}:F${sRow + 2}`);
+      sheet.getCell(`B${sRow + 2}`).value = '• Pra-Lansia (45 - 59 Tahun)';
+      sheet.mergeCells(`E${sRow + 2}:G${sRow + 2}`);
       sheet.getCell(`E${sRow + 2}`).value = `:  ${age45_59} Orang`;
 
-      sheet.mergeCells(`I${sRow + 2}:K${sRow + 2}`);
-      sheet.getCell(`I${sRow + 2}`).value = '• Hipertensi (TD ≥ 140/90)';
-      sheet.mergeCells(`L${sRow + 2}:P${sRow + 2}`);
-      sheet.getCell(`L${sRow + 2}`).value = `:  ${totalHt} Orang`;
+      sheet.mergeCells(`I${sRow + 2}:L${sRow + 2}`);
+      sheet.getCell(`I${sRow + 2}`).value = '• Tekanan Darah (TD)';
+      sheet.mergeCells(`M${sRow + 2}:Q${sRow + 2}`);
+      sheet.getCell(`M${sRow + 2}`).value = `:  ${totalTdNormal} Normal | ${totalHt} Hipertensi (>= 140/90)`;
 
       // Row 2 Values
       sheet.mergeCells(`B${sRow + 3}:D${sRow + 3}`);
-      sheet.getCell(`B${sRow + 3}`).value = '• 60 - 69 Tahun (Lansia)';
-      sheet.mergeCells(`E${sRow + 3}:F${sRow + 3}`);
+      sheet.getCell(`B${sRow + 3}`).value = '• Lansia (60 - 69 Tahun)';
+      sheet.mergeCells(`E${sRow + 3}:G${sRow + 3}`);
       sheet.getCell(`E${sRow + 3}`).value = `:  ${age60_69} Orang`;
 
-      sheet.mergeCells(`I${sRow + 3}:K${sRow + 3}`);
-      sheet.getCell(`I${sRow + 3}`).value = '• Diabetes (GDS ≥ 200 mg/dL)';
-      sheet.mergeCells(`L${sRow + 3}:P${sRow + 3}`);
-      sheet.getCell(`L${sRow + 3}`).value = `:  ${totalDm} Orang`;
+      sheet.mergeCells(`I${sRow + 3}:L${sRow + 3}`);
+      sheet.getCell(`I${sRow + 3}`).value = '• Gula Darah Sewaktu (GDS)';
+      sheet.mergeCells(`M${sRow + 3}:Q${sRow + 3}`);
+      sheet.getCell(`M${sRow + 3}`).value = `:  ${totalGdsNormal} Normal | ${totalDm} Tinggi (>= 200 mg/dL)`;
 
       // Row 3 Values
       sheet.mergeCells(`B${sRow + 4}:D${sRow + 4}`);
-      sheet.getCell(`B${sRow + 4}`).value = '• ≥ 70 Tahun (Lansia Risiko)';
-      sheet.mergeCells(`E${sRow + 4}:F${sRow + 4}`);
+      sheet.getCell(`B${sRow + 4}`).value = '• Lansia Risti (>= 70 Tahun)';
+      sheet.mergeCells(`E${sRow + 4}:G${sRow + 4}`);
       sheet.getCell(`E${sRow + 4}`).value = `:  ${age70Plus} Orang`;
 
-      sheet.mergeCells(`I${sRow + 4}:K${sRow + 4}`);
-      sheet.getCell(`I${sRow + 4}`).value = '• Kolesterol Tinggi (≥ 200) / Asam Urat (≥ 7)';
-      sheet.mergeCells(`L${sRow + 4}:P${sRow + 4}`);
-      sheet.getCell(`L${sRow + 4}`).value = `:  Kolest(${totalKolest}) | Asam Urat(${totalAsamUrat})`;
+      sheet.mergeCells(`I${sRow + 4}:L${sRow + 4}`);
+      sheet.getCell(`I${sRow + 4}`).value = '• Kolesterol Total';
+      sheet.mergeCells(`M${sRow + 4}:Q${sRow + 4}`);
+      sheet.getCell(`M${sRow + 4}`).value = `:  ${totalKolestNormal} Normal (< 200) | ${totalKolest} Tinggi (>= 200 mg/dL)`;
 
-      for (let r = sRow + 2; r <= sRow + 4; r++) {
-        for (let c = 1; c <= 16; c++) {
+      // Row 4 Values
+      sheet.mergeCells(`B${sRow + 5}:D${sRow + 5}`);
+      sheet.getCell(`B${sRow + 5}`).value = '• Total Kunjungan Lansia';
+      sheet.mergeCells(`E${sRow + 5}:G${sRow + 5}`);
+      sheet.getCell(`E${sRow + 5}`).value = `:  ${items.length} Orang (L: ${lansiaPria} / P: ${lansiaWanita})`;
+
+      sheet.mergeCells(`I${sRow + 5}:L${sRow + 5}`);
+      sheet.getCell(`I${sRow + 5}`).value = '• Asam Urat';
+      sheet.mergeCells(`M${sRow + 5}:Q${sRow + 5}`);
+      sheet.getCell(`M${sRow + 5}`).value = `:  ${totalAsamUratNormal} Normal (< 7) | ${totalAsamUrat} Tinggi (>= 7 mg/dL)`;
+
+      for (let r = sRow + 2; r <= sRow + 5; r++) {
+        for (let c = 1; c <= 17; c++) {
           const cell = sheet.getCell(r, c);
           if (cell.value) {
             cell.font = { name: 'Arial', size: 8.5, color: { argb: 'FF0F172A' } };
@@ -1026,37 +1073,37 @@ export const riwayatService = {
 
       // Border luar Summary Box
       const summaryBorder: Partial<ExcelJS.Borders> = {
-        top: { style: 'thin', color: { argb: 'FF0F766E' } },
-        left: { style: 'thin', color: { argb: 'FF0F766E' } },
-        bottom: { style: 'thin', color: { argb: 'FF0F766E' } },
-        right: { style: 'thin', color: { argb: 'FF0F766E' } },
+        top: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        left: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        bottom: { style: 'thin', color: { argb: 'FF94A3B8' } },
+        right: { style: 'thin', color: { argb: 'FF94A3B8' } },
       };
-      applyBordersToRange(sheet, sRow, 1, sRow + 4, 16, summaryBorder);
+      applyBordersToRange(sheet, sRow, 1, sRow + 5, 17, summaryBorder);
 
       // ─────────────────────────────────────────────────────────────
       // SIGNATURE BLOCK (PERSIS FORMAT PDF)
       // ─────────────────────────────────────────────────────────────
-      const sigRow = sRow + 6;
-      sheet.mergeCells(`L${sigRow}:P${sigRow}`);
-      const sigDate = sheet.getCell(`L${sigRow}`);
+      const sigRow = sRow + 7;
+      sheet.mergeCells(`M${sigRow}:Q${sigRow}`);
+      const sigDate = sheet.getCell(`M${sigRow}`);
       sigDate.value = `${posyandu.desa || 'Desa'}, ${todayFormatted}`;
       sigDate.font = { name: 'Arial', size: 9 };
       sigDate.alignment = { horizontal: 'center' };
 
-      sheet.mergeCells(`L${sigRow + 1}:P${sigRow + 1}`);
-      const sigMengetahui = sheet.getCell(`L${sigRow + 1}`);
+      sheet.mergeCells(`M${sigRow + 1}:Q${sigRow + 1}`);
+      const sigMengetahui = sheet.getCell(`M${sigRow + 1}`);
       sigMengetahui.value = 'Mengetahui,';
       sigMengetahui.font = { name: 'Arial', size: 9 };
       sigMengetahui.alignment = { horizontal: 'center' };
 
-      sheet.mergeCells(`L${sigRow + 2}:P${sigRow + 2}`);
-      const sigKader = sheet.getCell(`L${sigRow + 2}`);
+      sheet.mergeCells(`M${sigRow + 2}:Q${sigRow + 2}`);
+      const sigKader = sheet.getCell(`M${sigRow + 2}`);
       sigKader.value = 'Ketua / Kader Posyandu';
       sigKader.font = { name: 'Arial', size: 9, bold: true };
       sigKader.alignment = { horizontal: 'center' };
 
-      sheet.mergeCells(`L${sigRow + 6}:P${sigRow + 6}`);
-      const sigName = sheet.getCell(`L${sigRow + 6}`);
+      sheet.mergeCells(`M${sigRow + 6}:Q${sigRow + 6}`);
+      const sigName = sheet.getCell(`M${sigRow + 6}`);
       sigName.value = '( ............................................ )';
       sigName.font = { name: 'Arial', size: 9, bold: true };
       sigName.alignment = { horizontal: 'center' };
@@ -1433,153 +1480,185 @@ export const riwayatService = {
 
     const renderLansiaTable = (items: ItemRiwayat[]) => {
       // Definition of column X coordinates and widths (Total = 781.89 pt)
-      const cNo = startX;              // 30  (w: 18)
-      const cNama = startX + 18;       // 48  (w: 88)
-      const cTglLahir = startX + 106;  // 136 (w: 58)
-      const cNik = startX + 164;       // 194 (w: 80)
-      const cJK = startX + 244;        // 274 (w: 18)
-      const cUsia = startX + 262;      // 292 (w: 30)
-      const cRiwHt = startX + 292;     // 322 (w: 32)
-      const cRiwDm = startX + 324;     // 354 (w: 32)
-      const cBB = startX + 356;        // 386 (w: 32)
-      const cTB = startX + 388;        // 418 (w: 32)
-      const cTD = startX + 420;        // 450 (w: 60)
-      const cGds = startX + 480;       // 510 (w: 48)
-      const cKolest = startX + 528;    // 558 (w: 48)
-      const cAsamUrat = startX + 576;  // 606 (w: 48)
-      const cLPerut = startX + 624;    // 654 (w: 44)
-      const cKeluhan = startX + 668;   // 698 (w: 113.89)
+      const cNo = startX;              // 30  (w: 16)
+      const cNama = startX + 16;       // 46  (w: 84)
+      const cTglLahir = startX + 100;  // 130 (w: 54)
+      const cNik = startX + 154;       // 184 (w: 76)
+      const cJK = startX + 230;        // 260 (w: 16)
+      const cUsia = startX + 246;      // 276 (w: 28)
+
+      const cRiwHt = startX + 274;     // 304 (w: 24)
+      const cRiwDm = startX + 298;     // 328 (w: 24)
+
+      const cBB = startX + 322;        // 352 (w: 26)
+      const cTB = startX + 348;        // 378 (w: 26)
+      const cTD = startX + 374;        // 404 (w: 46)
+
+      const cGds = startX + 420;       // 450 (w: 38)
+      const cKolest = startX + 458;    // 488 (w: 40)
+      const cAsamUrat = startX + 498;  // 528 (w: 40)
+      const cLPerut = startX + 538;    // 568 (w: 36)
+
+      const cKeluhan = startX + 574;   // 604 (w: 88)
+      const cTindakan = startX + 662;  // 692 (w: 119.89)
 
       const lansiaCols = [
-        cNama, cTglLahir, cNik, cJK, cUsia, cRiwHt, cRiwDm, cBB, cTB, cTD, cGds, cKolest, cAsamUrat, cLPerut, cKeluhan
+        cNama, cTglLahir, cNik, cJK, cUsia,
+        cRiwHt, cRiwDm,
+        cBB, cTB, cTD,
+        cGds, cKolest, cAsamUrat, cLPerut,
+        cKeluhan, cTindakan
       ];
 
       const drawTableHeader = (y: number) => {
-        // Multi-level Header: Height = 28pt (Row 1: 13pt, Row 2: 15pt)
-        const headerHeight = 28;
-        doc.rect(startX, y, printableWidth, headerHeight).fillAndStroke('#4338ca', '#3730a3');
-        doc.fillColor('#ffffff').fontSize(6.5).font('Helvetica-Bold');
+        // Multi-level Header: Height = 30pt (Row 1: 12pt, Row 2: 18pt) - Style Senada Balita (Teal Emerald)
+        const headerHeight = 30;
+        doc.rect(startX, y, printableWidth, headerHeight).fillAndStroke('#0f766e', '#0d9488');
+        doc.fillColor('#ffffff').fontSize(6).font('Helvetica-Bold');
 
+        // Vertical divider lines for main sections (full height 30pt)
         const fullHeightCols = [cNama, cRiwHt, cBB, cGds, cKeluhan];
         fullHeightCols.forEach(x => {
-          doc.moveTo(x, y).lineTo(x, y + headerHeight).strokeColor('#3730a3').lineWidth(0.5).stroke();
+          doc.moveTo(x, y).lineTo(x, y + headerHeight).strokeColor('#0d9488').lineWidth(0.5).stroke();
         });
 
+        // Vertical divider lines for Row 2 sub-headers (from y+12 to y+30)
         [
           cTglLahir, cNik, cJK, cUsia,
           cRiwDm,
           cTB, cTD,
-          cKolest, cAsamUrat, cLPerut
+          cKolest, cAsamUrat, cLPerut,
+          cTindakan
         ].forEach(x => {
-          doc.moveTo(x, y + 13).lineTo(x, y + headerHeight).strokeColor('#3730a3').lineWidth(0.5).stroke();
+          doc.moveTo(x, y + 12).lineTo(x, y + headerHeight).strokeColor('#0d9488').lineWidth(0.5).stroke();
         });
 
-        doc.moveTo(cNama, y + 13).lineTo(cKeluhan, y + 13).strokeColor('#3730a3').lineWidth(0.5).stroke();
+        // Horizontal line separating Row 1 group header and Row 2
+        doc.moveTo(cNama, y + 12).lineTo(endX, y + 12).strokeColor('#0d9488').lineWidth(0.5).stroke();
 
-        // Row 1 Grouping
-        doc.text('NO', cNo, y + 10, { width: 18, align: 'center' });
-        doc.text('IDENTITAS LANSIA', cNama, y + 4, { width: 274, align: 'center' });
-        doc.text('RIWAYAT PENYAKIT', cRiwHt, y + 4, { width: 64, align: 'center' });
-        doc.text('PEMERIKSAAN FISIK & VITAL', cBB, y + 4, { width: 124, align: 'center' });
-        doc.text('PEMERIKSAAN LAB & LINGKAR PERUT', cGds, y + 4, { width: 188, align: 'center' });
-        doc.text('KELUHAN & TINDAKAN MEDIS', cKeluhan, y + 10, { width: 113.89, align: 'center' });
+        // Row 1 Grouping Titles
+        doc.text('NO', cNo, y + 11, { width: 16, align: 'center' });
+        doc.text('IDENTITAS LANSIA', cNama, y + 3, { width: 258, align: 'center' });
+        doc.text('RIWAYAT PENYAKIT', cRiwHt, y + 3, { width: 48, align: 'center' });
+        doc.text('PEMERIKSAAN FISIK & VITAL', cBB, y + 3, { width: 98, align: 'center' });
+        doc.text('PEMERIKSAAN LAB & LINGKAR PERUT', cGds, y + 3, { width: 154, align: 'center' });
+        doc.text('KELUHAN & TINDAKAN MEDIS', cKeluhan, y + 3, { width: 207.89, align: 'center' });
 
         // Row 2 Sub-headers
-        doc.fontSize(6);
-        doc.text('Nama Lansia', cNama + 2, y + 16, { width: 84 });
-        doc.text('Tgl Lahir', cTglLahir, y + 16, { width: 58, align: 'center' });
-        doc.text('NIK', cNik, y + 16, { width: 80, align: 'center' });
-        doc.text('JK', cJK, y + 16, { width: 18, align: 'center' });
-        doc.text('Usia', cUsia, y + 16, { width: 30, align: 'center' });
+        doc.fontSize(5.5);
+        doc.text('Nama Lansia', cNama + 2, y + 16, { width: 80, align: 'left' });
+        doc.text('Tgl Lahir', cTglLahir, y + 16, { width: 54, align: 'center' });
+        doc.text('NIK', cNik, y + 16, { width: 76, align: 'center' });
+        doc.text('JK', cJK, y + 16, { width: 16, align: 'center' });
+        doc.text('Usia', cUsia, y + 16, { width: 28, align: 'center' });
 
-        doc.text('Riw HT', cRiwHt, y + 16, { width: 32, align: 'center' });
-        doc.text('Riw DM', cRiwDm, y + 16, { width: 32, align: 'center' });
+        doc.text('Riw HT', cRiwHt, y + 16, { width: 24, align: 'center' });
+        doc.text('Riw DM', cRiwDm, y + 16, { width: 24, align: 'center' });
 
-        doc.text('BB(kg)', cBB, y + 16, { width: 32, align: 'center' });
-        doc.text('TB(cm)', cTB, y + 16, { width: 32, align: 'center' });
-        doc.text('TD (mmHg)', cTD, y + 16, { width: 60, align: 'center' });
+        doc.text('BB(kg)', cBB, y + 16, { width: 26, align: 'center' });
+        doc.text('TB(cm)', cTB, y + 16, { width: 26, align: 'center' });
+        doc.text('TD(mmHg)', cTD, y + 16, { width: 46, align: 'center' });
 
-        doc.text('GDS(mg/dL)', cGds, y + 16, { width: 48, align: 'center' });
-        doc.text('Kolesterol', cKolest, y + 16, { width: 48, align: 'center' });
-        doc.text('Asam Urat', cAsamUrat, y + 16, { width: 48, align: 'center' });
-        doc.text('L.Perut(cm)', cLPerut, y + 16, { width: 44, align: 'center' });
+        doc.text('GDS', cGds, y + 16, { width: 38, align: 'center' });
+        doc.text('Kolest', cKolest, y + 16, { width: 40, align: 'center' });
+        doc.text('As.Urat', cAsamUrat, y + 16, { width: 40, align: 'center' });
+        doc.text('L.Perut', cLPerut, y + 16, { width: 36, align: 'center' });
+
+        doc.text('Keluhan', cKeluhan + 2, y + 16, { width: 84, align: 'left' });
+        doc.text('Tindakan Medis', cTindakan + 2, y + 16, { width: 115, align: 'left' });
 
         doc.fillColor('#000000');
       };
 
       let yPos = doc.y;
       drawTableHeader(yPos);
-      yPos += 28;
+      yPos += 30;
 
-      const rowHeight = 18;
+      const rowHeight = 20;
 
-      items.forEach((item, idx) => {
-        if (yPos > doc.page.height - 120) {
-          doc.addPage();
-          yPos = 30;
-          drawTableHeader(yPos);
-          yPos += 28;
-        }
-
-        const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
-        doc.rect(startX, yPos, printableWidth, rowHeight).fillAndStroke(bg, '#cbd5e1');
-
-        lansiaCols.forEach(x => {
-          doc.moveTo(x, yPos).lineTo(x, yPos + rowHeight).strokeColor('#cbd5e1').lineWidth(0.5).stroke();
-        });
-
-        doc.font('Helvetica').fontSize(6.5);
-
-        const usiaText = getUsiaText(item.tanggalLahir, item.tanggal, 'Lansia');
-        const tdText = item.tekananDarahSistol ? `${item.tekananDarahSistol}/${item.tekananDarahDiastol}` : '-';
-
-        doc.fillColor('#0f172a');
-
-        doc.text(String(idx + 1), cNo, yPos + 5, { width: 18, align: 'center' });
-        doc.font('Helvetica-Bold').text((item.nama || '-').substring(0, 20), cNama + 2, yPos + 5, { width: 84 });
-
-        // Tgl Lahir & NIK dipisahkan
-        doc.font('Helvetica').fontSize(6);
-        const tglStr = item.tanggalLahir ? item.tanggalLahir.substring(0, 10) : '-';
-        const nikStr = item.nik || '-';
-        doc.text(tglStr, cTglLahir, yPos + 5, { width: 58, align: 'center' });
-        doc.text(nikStr, cNik, yPos + 5, { width: 80, align: 'center' });
-        doc.fontSize(6.5);
-
-        doc.text(item.jenisKelamin || '-', cJK, yPos + 5, { width: 18, align: 'center' });
-        doc.text(usiaText, cUsia, yPos + 5, { width: 30, align: 'center' });
-
-        // Riwayat HT & DM
-        doc.text(item.riwayatHt ? 'Ya' : 'Tdk', cRiwHt, yPos + 5, { width: 32, align: 'center' });
-        doc.text(item.riwayatDm ? 'Ya' : 'Tdk', cRiwDm, yPos + 5, { width: 32, align: 'center' });
-
-        // Pengukuran Fisik (BB, TB, TD)
-        doc.text(item.beratBadan !== undefined ? String(item.beratBadan) : '-', cBB, yPos + 5, { width: 32, align: 'center' });
-        doc.text(item.tinggiBadan !== undefined ? String(item.tinggiBadan) : '-', cTB, yPos + 5, { width: 32, align: 'center' });
-        doc.font('Helvetica-Bold').text(tdText, cTD, yPos + 5, { width: 60, align: 'center' });
-        doc.font('Helvetica');
-
-        // Laboratorium & Lingkar Perut
-        const gdsStr = item.gulaDarahSewaktu !== undefined ? String(item.gulaDarahSewaktu) : '-';
-        const kolestStr = item.kolesterol !== undefined ? String(item.kolesterol) : '-';
-        const asamUratStr = item.asamUrat !== undefined ? String(item.asamUrat) : '-';
-        const lpStr = item.lingkarPerut !== undefined ? String(item.lingkarPerut) : '-';
-
-        doc.text(gdsStr, cGds, yPos + 5, { width: 48, align: 'center' });
-        doc.text(kolestStr, cKolest, yPos + 5, { width: 48, align: 'center' });
-        doc.text(asamUratStr, cAsamUrat, yPos + 5, { width: 48, align: 'center' });
-        doc.text(lpStr, cLPerut, yPos + 5, { width: 44, align: 'center' });
-
-        // Keluhan / Tindakan
-        const keluhanStr = item.keluhan ? `Keluhan: ${item.keluhan}` : '';
-        const tindakanStr = item.tindakan ? `Tindakan: ${item.tindakan}` : '';
-        const combinedDesc = [keluhanStr, tindakanStr].filter(Boolean).join(' | ') || '-';
-
-        doc.fontSize(6).text(combinedDesc.substring(0, 48), cKeluhan + 2, yPos + 5, { width: 156 });
-
+      if (items.length === 0) {
+        doc.rect(startX, yPos, printableWidth, 24).fillAndStroke('#ffffff', '#cbd5e1');
+        doc.fontSize(7).font('Helvetica-Oblique').fillColor('#64748b').text('Tidak ada data pemeriksaan lansia pada periode ini', startX, yPos + 8, { width: printableWidth, align: 'center' });
         doc.fillColor('#000000');
-        yPos += rowHeight;
-      });
+        yPos += 24;
+      } else {
+        items.forEach((item, idx) => {
+          if (yPos > doc.page.height - 120) {
+            doc.addPage();
+            yPos = 30;
+            drawTableHeader(yPos);
+            yPos += 30;
+          }
+
+          const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
+          doc.rect(startX, yPos, printableWidth, rowHeight).fillAndStroke(bg, '#cbd5e1');
+
+          lansiaCols.forEach(x => {
+            doc.moveTo(x, yPos).lineTo(x, yPos + rowHeight).strokeColor('#cbd5e1').lineWidth(0.5).stroke();
+          });
+
+          doc.font('Helvetica').fontSize(5.5);
+
+          const usiaText = getUsiaText(item.tanggalLahir, item.tanggal, 'Lansia');
+          const tdText = item.tekananDarahSistol ? `${item.tekananDarahSistol}/${item.tekananDarahDiastol}` : '-';
+
+          doc.fillColor('#0f172a');
+
+          doc.text(String(idx + 1), cNo, yPos + 6, { width: 16, align: 'center' });
+          doc.font('Helvetica-Bold').text((item.nama || '-').substring(0, 22), cNama + 2, yPos + 6, { width: 80, lineBreak: false });
+
+          // Tgl Lahir & NIK dipisahkan
+          doc.font('Helvetica').fontSize(5.5);
+          const tglStr = item.tanggalLahir ? item.tanggalLahir.substring(0, 10) : '-';
+          const nikStr = item.nik || '-';
+          doc.text(tglStr, cTglLahir, yPos + 6, { width: 54, align: 'center' });
+          doc.text(nikStr, cNik, yPos + 6, { width: 76, align: 'center' });
+
+          doc.text(item.jenisKelamin || '-', cJK, yPos + 6, { width: 16, align: 'center' });
+          doc.font('Helvetica-Bold').text(usiaText, cUsia, yPos + 6, { width: 28, align: 'center' });
+          doc.font('Helvetica');
+
+          // Riwayat HT & DM
+          doc.text(item.riwayatHt ? 'Ya' : 'Tdk', cRiwHt, yPos + 6, { width: 24, align: 'center' });
+          doc.text(item.riwayatDm ? 'Ya' : 'Tdk', cRiwDm, yPos + 6, { width: 24, align: 'center' });
+
+          // Pengukuran Fisik (BB, TB, TD)
+          doc.text(item.beratBadan !== undefined ? String(item.beratBadan) : '-', cBB, yPos + 6, { width: 26, align: 'center' });
+          doc.text(item.tinggiBadan !== undefined ? String(item.tinggiBadan) : '-', cTB, yPos + 6, { width: 26, align: 'center' });
+          doc.font('Helvetica-Bold').text(tdText, cTD, yPos + 6, { width: 46, align: 'center' });
+          doc.font('Helvetica');
+
+          // Laboratorium & Lingkar Perut
+          const gdsStr = item.gulaDarahSewaktu !== undefined ? String(item.gulaDarahSewaktu) : '-';
+          const kolestStr = item.kolesterol !== undefined ? String(item.kolesterol) : '-';
+          const asamUratStr = item.asamUrat !== undefined ? String(item.asamUrat) : '-';
+          const lpStr = item.lingkarPerut !== undefined ? String(item.lingkarPerut) : '-';
+
+          doc.text(gdsStr, cGds, yPos + 6, { width: 38, align: 'center' });
+          doc.text(kolestStr, cKolest, yPos + 6, { width: 40, align: 'center' });
+          doc.text(asamUratStr, cAsamUrat, yPos + 6, { width: 40, align: 'center' });
+          doc.text(lpStr, cLPerut, yPos + 6, { width: 36, align: 'center' });
+
+          // Keluhan & Tindakan Medis - Terpisah, Efisien, & Bounded tanpa overflow
+          const keluhan = item.keluhan?.trim() || '-';
+          const tindakan = item.tindakan?.trim() || '-';
+
+          if (keluhan === '-') {
+            doc.text('-', cKeluhan, yPos + 6, { width: 88, align: 'center' });
+          } else {
+            doc.fontSize(5.5).text(keluhan, cKeluhan + 2, yPos + 3.5, { width: 84, height: 14, ellipsis: true });
+          }
+
+          if (tindakan === '-') {
+            doc.text('-', cTindakan, yPos + 6, { width: 119.89, align: 'center' });
+          } else {
+            doc.fontSize(5.5).text(tindakan, cTindakan + 2, yPos + 3.5, { width: 115, height: 14, ellipsis: true });
+          }
+
+          doc.fillColor('#000000');
+          yPos += rowHeight;
+        });
+      }
 
       doc.y = yPos;
     };
@@ -1620,21 +1699,50 @@ export const riwayatService = {
       const age60_69 = lansiaItems.filter(i => getAgeInfo(i).years >= 60 && getAgeInfo(i).years <= 69).length;
       const age70Plus = lansiaItems.filter(i => getAgeInfo(i).years >= 70).length;
 
-      const boxHeight = 84;
-      doc.rect(startX, yPos, printableWidth, boxHeight).fillAndStroke('#f0fdf4', '#0f766e');
+      const lansiaPria = lansiaItems.filter(i => (i.jenisKelamin || '').toUpperCase().startsWith('L')).length;
+      const lansiaWanita = lansiaItems.filter(i => (i.jenisKelamin || '').toUpperCase().startsWith('P')).length;
 
-      doc.fillColor('#065f46').fontSize(9).font('Helvetica-Bold');
-      doc.text('SUMMARY KELOMPOK UMUR & REKAPITULASI PEMERIKSAAN POSYANDU', startX + 10, yPos + 8);
+      const totalHt = lansiaItems.filter(i => (i.tekananDarahSistol || 0) >= 140 || (i.tekananDarahDiastol || 0) >= 90).length;
+      const totalTdNormal = lansiaItems.filter(i => (i.tekananDarahSistol || 0) > 0 && (i.tekananDarahSistol || 0) < 140 && (i.tekananDarahDiastol || 0) < 90).length;
+
+      const totalDm = lansiaItems.filter(i => (i.gulaDarahSewaktu || 0) >= 200).length;
+      const totalGdsNormal = lansiaItems.filter(i => (i.gulaDarahSewaktu || 0) > 0 && (i.gulaDarahSewaktu || 0) < 200).length;
+
+      const totalKolest = lansiaItems.filter(i => (i.kolesterol || 0) >= 200).length;
+      const totalKolestNormal = lansiaItems.filter(i => (i.kolesterol || 0) > 0 && (i.kolesterol || 0) < 200).length;
+
+      const totalAsamUrat = lansiaItems.filter(i => (i.asamUrat || 0) >= 7).length;
+      const totalAsamUratNormal = lansiaItems.filter(i => (i.asamUrat || 0) > 0 && (i.asamUrat || 0) < 7).length;
+
+      const vitACount = balitaItems.filter(i => i.vitaminA).length;
+      const asiCount = balitaItems.filter(i => i.asiEksklusif).length;
+      const obatCacingCount = balitaItems.filter(i => i.obatCacing).length;
+      const pemberianLainCount = balitaItems.filter(i => i.statusImunisasi && i.statusImunisasi.trim() !== '').length;
+
+      const boxHeight = 84;
+      // Background Putih Bersih & Border Formal Slate (Standar Laporan Profesional)
+      doc.rect(startX, yPos, printableWidth, boxHeight).fillAndStroke('#ffffff', '#94a3b8');
+
+      // Garis pemisah tipis bawah judul
+      doc.moveTo(startX, yPos + 18).lineTo(startX + printableWidth, yPos + 18).strokeColor('#e2e8f0').lineWidth(0.75).stroke();
+
+      doc.fillColor('#0f172a').fontSize(8.5).font('Helvetica-Bold');
+      const boxTitle = isBalitaOnly
+        ? 'REKAPITULASI PELAYANAN KESEHATAN BALITA'
+        : isLansiaOnly
+        ? 'REKAPITULASI PELAYANAN KESEHATAN LANSIA'
+        : 'REKAPITULASI PELAYANAN KESEHATAN POSYANDU (BALITA & LANSIA)';
+      doc.text(boxTitle, startX + 10, yPos + 5.5);
 
       doc.fontSize(7.5).font('Helvetica').fillColor('#0f172a');
 
       if (isBalitaOnly) {
         // Kolom 1: Rentang Umur Balita
         const col1LabelX = startX + 12;
-        const col1ColonX = startX + 110;
+        const col1ColonX = startX + 105;
 
-        doc.font('Helvetica-Bold').text('Rentang Umur Balita:', col1LabelX, yPos + 22);
-        doc.font('Helvetica');
+        doc.font('Helvetica-Bold').fillColor('#334155').text('Rentang Usia Balita:', col1LabelX, yPos + 22);
+        doc.font('Helvetica').fillColor('#0f172a');
 
         doc.text('• 0 - 6 Bulan', col1LabelX, yPos + 34);
         doc.text(`:  ${age0_6} Anak`, col1ColonX, yPos + 34);
@@ -1648,88 +1756,107 @@ export const riwayatService = {
         doc.text('• 25 - 60 Bulan', col1LabelX, yPos + 70);
         doc.text(`:  ${age25_60} Anak`, col1ColonX, yPos + 70);
 
-        // Kolom 2: Status Gizi Balita
-        const col2LabelX = startX + 260;
-        const col2ColonX = startX + 380;
+        // Kolom 2: Status Gizi Balita (BB/U, TB/U, TB/BB)
+        const col2LabelX = startX + 225;
+        const col2ColonX = startX + 315;
 
         const bbUNormal = balitaItems.filter(i => i.statusBbU === 'N').length;
         const bbUKurang = balitaItems.filter(i => i.statusBbU === 'K').length;
         const bbUSgKurang = balitaItems.filter(i => i.statusBbU === 'SK').length;
-        const tbUPendek = balitaItems.filter(i => i.statusTbU === 'P' || i.statusTbU === 'SP').length;
 
-        doc.font('Helvetica-Bold').text('Status Gizi & Perkembangan:', col2LabelX, yPos + 22);
-        doc.font('Helvetica');
+        const tbUNormal = balitaItems.filter(i => i.statusTbU === 'N').length;
+        const tbUPendek = balitaItems.filter(i => i.statusTbU === 'P').length;
+        const tbUSgPendek = balitaItems.filter(i => i.statusTbU === 'SP').length;
+        const tbUStunting = tbUPendek + tbUSgPendek;
 
-        doc.text('• BB/U Normal', col2LabelX, yPos + 34);
-        doc.text(`:  ${bbUNormal} Anak`, col2ColonX, yPos + 34);
+        const bbTbNormal = balitaItems.filter(i => i.statusBbTb === 'N').length;
+        const bbTbKurus = balitaItems.filter(i => i.statusBbTb === 'K').length;
+        const bbTbSgKurus = balitaItems.filter(i => i.statusBbTb === 'SK').length;
+        const bbTbGemuk = balitaItems.filter(i => i.statusBbTb === 'G' || i.statusBbTb === 'L').length;
+        const bbTbWasting = bbTbKurus + bbTbSgKurus;
 
-        doc.text('• BB/U Kurang / Sangat Kurang', col2LabelX, yPos + 46);
-        doc.text(`:  ${bbUKurang} Kurang / ${bbUSgKurang} S.Kurang`, col2ColonX, yPos + 46);
+        doc.font('Helvetica-Bold').fillColor('#334155').text('Status Gizi Antropometri (BB/U, TB/U, TB/BB):', col2LabelX, yPos + 22);
+        doc.font('Helvetica').fillColor('#0f172a');
 
-        doc.text('• TB/U Stunting (P / SP)', col2LabelX, yPos + 58);
-        doc.text(`:  ${tbUPendek} Anak`, col2ColonX, yPos + 58);
+        // Row 1: BB/U
+        doc.text('• BB/U', col2LabelX, yPos + 34);
+        doc.text(`:  ${bbUNormal} Normal | ${bbUKurang} Kurang | ${bbUSgKurang} S.Kurang`, col2ColonX, yPos + 34);
 
-        // Kolom 3: Intervensi & Pemberian Lain Balita
-        const col3LabelX = startX + 530;
+        // Row 2: TB/U
+        doc.text('• TB/U', col2LabelX, yPos + 46);
+        doc.text(`:  ${tbUNormal} Normal | ${tbUPendek} Pendek | ${tbUSgPendek} S.Pendek`, col2ColonX, yPos + 46);
+
+        // Row 3: TB/BB
+        doc.text('• TB/BB', col2LabelX, yPos + 58);
+        doc.text(`:  ${bbTbNormal} Normal | ${bbTbKurus} Kurus | ${bbTbGemuk} Gemuk`, col2ColonX, yPos + 58);
+
+        // Row 4: Rekap Masalah Gizi
+        doc.text('• Rekap Masalah Gizi', col2LabelX, yPos + 70);
+        doc.text(`:  ${tbUStunting} Stunting (TB/U) | ${bbTbWasting} Wasting (TB/BB)`, col2ColonX, yPos + 70);
+
+        // Kolom 3: Pelayanan Kesehatan & Suplementasi
+        const col3LabelX = startX + 540;
         const col3ColonX = startX + 665;
 
-        const vitACount = balitaItems.filter(i => i.vitaminA).length;
-        const asiCount = balitaItems.filter(i => i.asiEksklusif).length;
-        const obatCacingCount = balitaItems.filter(i => i.obatCacing).length;
-        const pemberianLainCount = balitaItems.filter(i => i.statusImunisasi && i.statusImunisasi.trim() !== '').length;
+        doc.font('Helvetica-Bold').fillColor('#334155').text('Pelayanan Kesehatan & Suplementasi:', col3LabelX, yPos + 22);
+        doc.font('Helvetica').fillColor('#0f172a');
 
-        doc.font('Helvetica-Bold').text('Intervensi & Pemberian Lain:', col3LabelX, yPos + 22);
-        doc.font('Helvetica');
+        doc.text('• Vitamin A (Kapsul)', col3LabelX, yPos + 34);
+        doc.text(`:  ${vitACount} Balita`, col3ColonX, yPos + 34);
 
-        doc.text('• Vit A / ASI SKS / Obat Cacing', col3LabelX, yPos + 34);
-        doc.text(`:  VitA(${vitACount}) | ASI(${asiCount}) | Cacing(${obatCacingCount})`, col3ColonX, yPos + 34);
+        doc.text('• ASI Eksklusif (0-6 Bln)', col3LabelX, yPos + 46);
+        doc.text(`:  ${asiCount} Bayi`, col3ColonX, yPos + 46);
 
-        doc.text('• Pemberian Lain / Imunisasi', col3LabelX, yPos + 46);
-        doc.text(`:  ${pemberianLainCount} Balita`, col3ColonX, yPos + 46);
+        doc.text('• Pemberian Obat Cacing', col3LabelX, yPos + 58);
+        doc.text(`:  ${obatCacingCount} Balita`, col3ColonX, yPos + 58);
+
+        doc.text('• Imunisasi / Tambahan', col3LabelX, yPos + 70);
+        doc.text(`:  ${pemberianLainCount} Balita`, col3ColonX, yPos + 70);
       } else if (isLansiaOnly) {
-        // Kolom 1: Rentang Umur Lansia
+        // Kolom 1: Rentang Umur Lansia & Demografi
         const col1LabelX = startX + 12;
-        const col1ColonX = startX + 165;
+        const col1ColonX = startX + 175;
 
-        doc.font('Helvetica-Bold').text('Rentang Umur Lansia:', col1LabelX, yPos + 22);
-        doc.font('Helvetica');
+        doc.font('Helvetica-Bold').fillColor('#334155').text('Distribusi Sasaran Usia Lansia:', col1LabelX, yPos + 22);
+        doc.font('Helvetica').fillColor('#0f172a');
 
-        doc.text('• 45 - 59 Tahun (Pra-Lansia)', col1LabelX, yPos + 34);
+        doc.text('• Pra-Lansia (45 - 59 Tahun)', col1LabelX, yPos + 34);
         doc.text(`:  ${age45_59} Orang`, col1ColonX, yPos + 34);
 
-        doc.text('• 60 - 69 Tahun (Lansia)', col1LabelX, yPos + 46);
+        doc.text('• Lansia (60 - 69 Tahun)', col1LabelX, yPos + 46);
         doc.text(`:  ${age60_69} Orang`, col1ColonX, yPos + 46);
 
-        doc.text('• ≥ 70 Tahun (Lansia Risiko)', col1LabelX, yPos + 58);
+        doc.text('• Lansia Risti (>= 70 Tahun)', col1LabelX, yPos + 58);
         doc.text(`:  ${age70Plus} Orang`, col1ColonX, yPos + 58);
 
-        // Kolom 2: Ringkasan Kesehatan Lansia
-        const col2LabelX = startX + 380;
-        const col2ColonX = startX + 520;
+        doc.text('• Total Kunjungan Lansia', col1LabelX, yPos + 70);
+        doc.text(`:  ${lansiaItems.length} Orang (L: ${lansiaPria} / P: ${lansiaWanita})`, col1ColonX, yPos + 70);
 
-        const totalHt = lansiaItems.filter(i => (i.tekananDarahSistol || 0) >= 140 || (i.tekananDarahDiastol || 0) >= 90).length;
-        const totalDm = lansiaItems.filter(i => (i.gulaDarahSewaktu || 0) >= 200).length;
-        const totalKolest = lansiaItems.filter(i => (i.kolesterol || 0) >= 200).length;
-        const totalAsamUrat = lansiaItems.filter(i => (i.asamUrat || 0) >= 7).length;
+        // Kolom 2: Hasil Skrining Fisik & Laboratorium
+        const col2LabelX = startX + 350;
+        const col2ColonX = startX + 480;
 
-        doc.font('Helvetica-Bold').text('Ringkasan Kesehatan & Hasil Lab Lansia:', col2LabelX, yPos + 22);
-        doc.font('Helvetica');
+        doc.font('Helvetica-Bold').fillColor('#334155').text('Hasil Skrining Fisik & Pemeriksaan Lab:', col2LabelX, yPos + 22);
+        doc.font('Helvetica').fillColor('#0f172a');
 
-        doc.text('• Hipertensi (TD ≥ 140/90)', col2LabelX, yPos + 34);
-        doc.text(`:  ${totalHt} Orang`, col2ColonX, yPos + 34);
+        doc.text('• Tekanan Darah (TD)', col2LabelX, yPos + 34);
+        doc.text(`:  ${totalTdNormal} Normal  |  ${totalHt} Hipertensi (>= 140/90 mmHg)`, col2ColonX, yPos + 34);
 
-        doc.text('• Diabetes (GDS ≥ 200 mg/dL)', col2LabelX, yPos + 46);
-        doc.text(`:  ${totalDm} Orang`, col2ColonX, yPos + 46);
+        doc.text('• Gula Darah Sewaktu (GDS)', col2LabelX, yPos + 46);
+        doc.text(`:  ${totalGdsNormal} Normal  |  ${totalDm} Tinggi (>= 200 mg/dL)`, col2ColonX, yPos + 46);
 
-        doc.text('• Kolesterol Tinggi (≥ 200) / Asam Urat (≥ 7)', col2LabelX, yPos + 58);
-        doc.text(`:  Kolest(${totalKolest}) | Asam Urat(${totalAsamUrat})`, col2ColonX, yPos + 58);
+        doc.text('• Kolesterol Total', col2LabelX, yPos + 58);
+        doc.text(`:  ${totalKolestNormal} Normal (< 200)  |  ${totalKolest} Tinggi (>= 200 mg/dL)`, col2ColonX, yPos + 58);
+
+        doc.text('• Asam Urat', col2LabelX, yPos + 70);
+        doc.text(`:  ${totalAsamUratNormal} Normal (< 7)  |  ${totalAsamUrat} Tinggi (>= 7 mg/dL)`, col2ColonX, yPos + 70);
       } else {
         // Rekap Semua (Balita + Lansia)
         const col1LabelX = startX + 12;
-        const col1ColonX = startX + 85;
+        const col1ColonX = startX + 90;
 
-        doc.font('Helvetica-Bold').text('Rentang Umur Balita:', col1LabelX, yPos + 22);
-        doc.font('Helvetica');
+        doc.font('Helvetica-Bold').fillColor('#334155').text('Rentang Usia Balita:', col1LabelX, yPos + 22);
+        doc.font('Helvetica').fillColor('#0f172a');
 
         doc.text('• 0 - 6 Bulan', col1LabelX, yPos + 34);
         doc.text(`:  ${age0_6} Anak`, col1ColonX, yPos + 34);
@@ -1746,40 +1873,38 @@ export const riwayatService = {
         const col2LabelX = startX + 180;
         const col2ColonX = startX + 315;
 
-        doc.font('Helvetica-Bold').text('Rentang Umur Lansia:', col2LabelX, yPos + 22);
-        doc.font('Helvetica');
+        doc.font('Helvetica-Bold').fillColor('#334155').text('Rentang Usia Lansia:', col2LabelX, yPos + 22);
+        doc.font('Helvetica').fillColor('#0f172a');
 
-        doc.text('• 45 - 59 Tahun (Pra-Lansia)', col2LabelX, yPos + 34);
+        doc.text('• Pra-Lansia (45 - 59 Th)', col2LabelX, yPos + 34);
         doc.text(`:  ${age45_59} Orang`, col2ColonX, yPos + 34);
 
-        doc.text('• 60 - 69 Tahun (Lansia)', col2LabelX, yPos + 46);
+        doc.text('• Lansia (60 - 69 Th)', col2LabelX, yPos + 46);
         doc.text(`:  ${age60_69} Orang`, col2ColonX, yPos + 46);
 
-        doc.text('• ≥ 70 Tahun (Lansia Risiko)', col2LabelX, yPos + 58);
+        doc.text('• Lansia Risti (>= 70 Th)', col2LabelX, yPos + 58);
         doc.text(`:  ${age70Plus} Orang`, col2ColonX, yPos + 58);
+
+        doc.text('• Total Lansia', col2LabelX, yPos + 70);
+        doc.text(`:  ${lansiaItems.length} Orang (L:${lansiaPria}/P:${lansiaWanita})`, col2ColonX, yPos + 70);
 
         const col3LabelX = startX + 440;
         const col3ColonX = startX + 575;
 
-        const vitACount = balitaItems.filter(i => i.vitaminA).length;
-        const asiCount = balitaItems.filter(i => i.asiEksklusif).length;
-        const obatCacingCount = balitaItems.filter(i => i.obatCacing).length;
-        const pemberianLainCount = balitaItems.filter(i => i.statusImunisasi && i.statusImunisasi.trim() !== '').length;
+        doc.font('Helvetica-Bold').fillColor('#334155').text('Rekap Layanan & Skrining Kesehatan:', col3LabelX, yPos + 22);
+        doc.font('Helvetica').fillColor('#0f172a');
 
-        const totalHt = lansiaItems.filter(i => (i.tekananDarahSistol || 0) >= 140 || (i.tekananDarahDiastol || 0) >= 90).length;
-        const totalDm = lansiaItems.filter(i => (i.gulaDarahSewaktu || 0) >= 200).length;
+        doc.text('• Layanan Balita (Vit A/ASI/Cacing)', col3LabelX, yPos + 34);
+        doc.text(`:  ${vitACount} Vit A | ${asiCount} ASI | ${obatCacingCount} Cacing`, col3ColonX, yPos + 34);
 
-        doc.font('Helvetica-Bold').text('Ringkasan Intervensi & Kesehatan:', col3LabelX, yPos + 22);
-        doc.font('Helvetica');
-
-        doc.text('• Vit A / ASI SKS / Obat Cacing', col3LabelX, yPos + 34);
-        doc.text(`:  VitA(${vitACount}) | ASI(${asiCount}) | Cacing(${obatCacingCount})`, col3ColonX, yPos + 34);
-
-        doc.text('• Pemberian Lain / Imunisasi', col3LabelX, yPos + 46);
+        doc.text('• Imunisasi / Tambahan Balita', col3LabelX, yPos + 46);
         doc.text(`:  ${pemberianLainCount} Balita`, col3ColonX, yPos + 46);
 
-        doc.text('• Lansia Hipertensi / Diabetes', col3LabelX, yPos + 58);
-        doc.text(`:  HT(${totalHt}) | GDS >200(${totalDm})`, col3ColonX, yPos + 58);
+        doc.text('• Lansia: TD & GDS Tinggi', col3LabelX, yPos + 58);
+        doc.text(`:  ${totalHt} Hipertensi (>= 140/90) | ${totalDm} GDS >= 200`, col3ColonX, yPos + 58);
+
+        doc.text('• Lansia: Kolesterol & Asam Urat', col3LabelX, yPos + 70);
+        doc.text(`:  ${totalKolest} Kolesterol >= 200 | ${totalAsamUrat} Asam Urat >= 7`, col3ColonX, yPos + 70);
       }
 
       doc.fillColor('#000000');
@@ -1803,7 +1928,7 @@ export const riwayatService = {
       if (lansiaList.length > 0) {
         if (doc.y > doc.page.height - 140) doc.addPage();
         else doc.moveDown(1);
-        doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#4338ca').text('B. DATA PEMERIKSAAN & REGISTER LANSIA', startX, doc.y);
+        doc.fontSize(9.5).font('Helvetica-Bold').fillColor('#0f766e').text('B. DATA PEMERIKSAAN & REGISTER LANSIA', startX, doc.y);
         doc.fillColor('#000000');
         doc.moveDown(0.3);
         renderLansiaTable(lansiaList);
