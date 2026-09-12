@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { riwayatApi, ItemRiwayat } from "@/lib/api";
+import { createPortal } from "react-dom";
+import { riwayatApi, ItemRiwayat, PeriodePelayanan, periodeApi } from "@/lib/api";
 import {
   Download,
   Loader2,
@@ -15,13 +16,17 @@ import {
   HeartHandshake,
   Heart,
   Droplet,
-  Scale
+  Scale,
+  Eye,
+  X,
+  Printer
 } from "lucide-react";
 import PageHelmet from "@/components/PageHelmet";
 import { LaporanSkeleton } from "@/components/Skeleton";
 
 interface LaporanModuleProps {
   posyanduId: string;
+  activePeriode?: PeriodePelayanan | null;
   onNavigate?: (module: string, itemId?: string) => void;
 }
 
@@ -78,13 +83,36 @@ function extractPemberianLain(statusImunisasi?: string | null): string {
   return clean || "-";
 }
 
-export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleProps) {
+export default function LaporanModule({ posyanduId, activePeriode, onNavigate }: LaporanModuleProps) {
+  const now = new Date();
+  const defaultMonth = activePeriode?.bulan
+    ? String(activePeriode.bulan).padStart(2, "0")
+    : String(now.getMonth() + 1).padStart(2, "0");
+  const defaultYear = activePeriode?.tahun
+    ? String(activePeriode.tahun)
+    : String(now.getFullYear());
+
   const [logs, setLogs] = useState<ItemRiwayat[]>([]);
-  const [filterMonth, setFilterMonth] = useState<string>("");
-  const [filterYear, setFilterYear] = useState<string>("");
+  const [filterMonth, setFilterMonth] = useState<string>(defaultMonth);
+  const [filterYear, setFilterYear] = useState<string>(defaultYear);
   const [filterCategory, setFilterCategory] = useState<"Balita" | "Lansia">("Balita");
   const [filterFromDate, setFilterFromDate] = useState<string>("");
   const [filterToDate, setFilterToDate] = useState<string>("");
+
+  // Sync saat activePeriode berubah atau jika belum ada prop aktif
+  useEffect(() => {
+    if (activePeriode?.bulan && activePeriode?.tahun) {
+      setFilterMonth(String(activePeriode.bulan).padStart(2, "0"));
+      setFilterYear(String(activePeriode.tahun));
+    } else if (posyanduId && !activePeriode) {
+      periodeApi.getActive(posyanduId).then((res) => {
+        if (res.success && res.data?.bulan && res.data?.tahun) {
+          setFilterMonth(String(res.data.bulan).padStart(2, "0"));
+          setFilterYear(String(res.data.tahun));
+        }
+      }).catch(() => {});
+    }
+  }, [posyanduId, activePeriode]);
   const [rekapanBalita, setRekapanBalita] = useState<RekapanBalita | null>(null);
   const [rekapanLansia, setRekapanLansia] = useState<RekapanLansia | null>(null);
   const [rekapanLoading, setRekapanLoading] = useState(false);
@@ -96,6 +124,36 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
   const [pageBalita, setPageBalita] = useState<number>(1);
   const [pageSizeLansia, setPageSizeLansia] = useState<number>(10);
   const [pageLansia, setPageLansia] = useState<number>(1);
+
+  // State Pratinjau Laporan (PDF Modal Preview)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [previewPdfBlob, setPreviewPdfBlob] = useState<Blob | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isPreviewOpen) {
+      document.body.style.overflow = "hidden";
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          handleClosePreview();
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = "unset";
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [isPreviewOpen]);
 
   const fetchRiwayat = async () => {
     if (!posyanduId) return;
@@ -152,6 +210,66 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
       alert("Gagal mengunduh Excel. Silakan coba lagi.");
     } finally {
       setExportingExcel(false);
+    }
+  };
+
+  const handleOpenPreview = async () => {
+    setIsPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewError(null);
+
+    if (previewPdfUrl) {
+      window.URL.revokeObjectURL(previewPdfUrl);
+      setPreviewPdfUrl(null);
+    }
+    setPreviewPdfBlob(null);
+
+    try {
+      const activeSearch = filterCategory === "Balita" ? searchBalita : searchLansia;
+      const { url, blob } = await riwayatApi.getPdfBlobUrl(posyanduId, {
+        tipe: filterCategory,
+        bulan: filterMonth || undefined,
+        tahun: filterYear || undefined,
+        search: activeSearch || undefined,
+      });
+      setPreviewPdfUrl(url);
+      setPreviewPdfBlob(blob);
+    } catch (err: any) {
+      console.error("Gagal memuat pratinjau PDF:", err);
+      setPreviewError(err.message || "Gagal memuat pratinjau dokumen. Silakan coba lagi.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleClosePreview = () => {
+    setIsPreviewOpen(false);
+    if (previewPdfUrl) {
+      window.URL.revokeObjectURL(previewPdfUrl);
+      setPreviewPdfUrl(null);
+    }
+    setPreviewPdfBlob(null);
+    setPreviewError(null);
+  };
+
+  const handleDownloadFromPreview = () => {
+    if (previewPdfBlob) {
+      const filename = `Laporan_${filterCategory}_Posyandu_${new Date().toISOString().slice(0, 10)}.pdf`;
+      riwayatApi.downloadPdfBlob(previewPdfBlob, filename);
+    } else {
+      handleExportPdf();
+    }
+  };
+
+  const handlePrintPdf = () => {
+    if (previewPdfUrl) {
+      const iframe = document.getElementById("preview-pdf-frame") as HTMLIFrameElement;
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } else {
+        window.open(previewPdfUrl, "_blank");
+      }
     }
   };
 
@@ -301,7 +419,14 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
     });
 
   const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: 6 }, (_, i) => currentYear - i);
+  const baseYear = activePeriode?.tahun ? Math.max(currentYear, activePeriode.tahun) : currentYear;
+  const yearOptions = Array.from({ length: 6 }, (_, i) => baseYear - i);
+
+  const periodeText = filterMonth
+    ? `${new Date(2000, parseInt(filterMonth) - 1).toLocaleString("id-ID", { month: "long" })} ${filterYear || new Date().getFullYear()}`
+    : filterYear
+    ? `Tahun ${filterYear}`
+    : "Semua Periode";
 
   if (rekapanLoading && logs.length === 0) {
     return (
@@ -439,7 +564,32 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
         {/* Baris 2: Tombol Reset Filter & Tombol Unduh Laporan */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100">
           <div className="flex items-center gap-2">
-            {/* Tombol Reset Filter */}
+            {/* Tombol Reset ke Periode Ini */}
+            <button
+              type="button"
+              onClick={() => {
+                const now = new Date();
+                const curM = activePeriode?.bulan
+                  ? String(activePeriode.bulan).padStart(2, "0")
+                  : String(now.getMonth() + 1).padStart(2, "0");
+                const curY = activePeriode?.tahun
+                  ? String(activePeriode.tahun)
+                  : String(now.getFullYear());
+                setFilterMonth(curM);
+                setFilterYear(curY);
+                setFilterFromDate("");
+                setFilterToDate("");
+                setSearchBalita("");
+                setSearchLansia("");
+              }}
+              className="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold rounded-lg border border-teal-200/80 transition-colors flex items-center gap-1.5 shadow-xs"
+              title="Set filter kembali ke periode ini"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Periode Ini
+            </button>
+
+            {/* Tombol Tampilkan Semua Periode */}
             <button
               type="button"
               onClick={() => {
@@ -450,10 +600,10 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
                 setSearchBalita("");
                 setSearchLansia("");
               }}
-              className="px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg border border-gray-300 transition-colors flex items-center gap-2 shadow-xs"
+              className="px-3 py-2 bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg border border-gray-300 transition-colors flex items-center gap-1.5 shadow-xs"
+              title="Tampilkan semua data tanpa filter bulan dan tahun"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset Filter
+              Semua Periode
             </button>
 
             {rekapanLoading && (
@@ -463,36 +613,46 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
             )}
           </div>
 
-          {/* Tombol Unduh Laporan */}
+          {/* Tombol Aksi Laporan */}
           <div className="flex items-center gap-2">
+            {/* Tombol Pratinjau Dokumen */}
             <button
               type="button"
-              onClick={handleExportPdf}
-              disabled={exportingPdf || (filterCategory === "Balita" ? filteredBalitaLogs.length === 0 : filteredLansiaLogs.length === 0)}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
-              title="Unduh format PDF"
+              onClick={handleOpenPreview}
+              disabled={rekapanLoading || (filterCategory === "Balita" ? filteredBalitaLogs.length === 0 : filteredLansiaLogs.length === 0)}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+              title="Pratinjau dokumen PDF sebelum diunduh atau dicetak"
             >
-              {exportingPdf ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Download className="w-3.5 h-3.5" />
-              )}
-              <span>{exportingPdf ? "Mengunduh PDF..." : "Cetak PDF (.pdf)"}</span>
+              <Eye className="w-3.5 h-3.5" />
+              <span>Pratinjau Laporan</span>
             </button>
 
+            {/* Tombol Unduh PDF (Buka Pratinjau Terlebih Dahulu) */}
+            <button
+              type="button"
+              onClick={handleOpenPreview}
+              disabled={exportingPdf || (filterCategory === "Balita" ? filteredBalitaLogs.length === 0 : filteredLansiaLogs.length === 0)}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+              title="Pratinjau & Unduh format PDF"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Unduh PDF</span>
+            </button>
+
+            {/* Tombol Unduh Excel */}
             <button
               type="button"
               onClick={handleExportExcel}
               disabled={exportingExcel || (filterCategory === "Balita" ? filteredBalitaLogs.length === 0 : filteredLansiaLogs.length === 0)}
               className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
-              title="Unduh format Excel"
+              title="Unduh format spreadsheet Excel (.xlsx)"
             >
               {exportingExcel ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
                 <Download className="w-3.5 h-3.5" />
               )}
-              <span>{exportingExcel ? "Mengunduh Excel..." : "Export Excel (.xlsx)"}</span>
+              <span>{exportingExcel ? "Mengunduh Excel..." : "Unduh Excel"}</span>
             </button>
           </div>
         </div>
@@ -1329,6 +1489,134 @@ export default function LaporanModule({ posyanduId, onNavigate }: LaporanModuleP
             )}
           </div>
         </div>
+      )}
+
+      {/* MODAL PRATINJAU DOKUMEN LAPORAN */}
+      {mounted && isPreviewOpen && createPortal(
+        <div
+          onClick={handleClosePreview}
+          style={{ margin: 0 }}
+          className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] !m-0 !mt-0 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-5 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white w-full max-w-6xl h-[92vh] rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden relative"
+          >
+            {/* Modal Header */}
+            <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50/90">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                    Pratinjau Laporan Register Posyandu
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                      {filterCategory}
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-gray-500">
+                    Periode: <span className="font-semibold text-gray-700">{periodeText}</span> • Format A4 Landscape Register Resmi
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleClosePreview}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Tutup pratinjau (Esc / klik di luar)"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body / Viewer */}
+            <div className="flex-1 bg-gray-100 p-2 sm:p-3 overflow-hidden relative">
+              {previewLoading ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
+                  <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
+                  <p className="text-sm font-semibold text-gray-700">Mempersiapkan pratinjau dokumen PDF...</p>
+                  <p className="text-xs text-gray-500 max-w-sm">Menyusun register format landscape resmi Posyandu...</p>
+                </div>
+              ) : previewError ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
+                  <AlertTriangle className="w-10 h-10 text-amber-500" />
+                  <p className="text-sm font-bold text-gray-900">Gagal Memuat Pratinjau</p>
+                  <p className="text-xs text-gray-600 max-w-md">{previewError}</p>
+                  <button
+                    type="button"
+                    onClick={handleOpenPreview}
+                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all"
+                  >
+                    Coba Lagi
+                  </button>
+                </div>
+              ) : previewPdfUrl ? (
+                <iframe
+                  id="preview-pdf-frame"
+                  src={`${previewPdfUrl}#toolbar=1&navpanes=0`}
+                  title="Pratinjau PDF Laporan"
+                  className="w-full h-full rounded-xl border border-gray-300 shadow-sm bg-white"
+                />
+              ) : null}
+            </div>
+
+            {/* Modal Footer / Actions */}
+            <div className="px-5 py-3 border-t border-gray-200 bg-white flex flex-wrap items-center justify-between gap-3">
+              <div className="text-xs text-gray-500 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Dokumen siap dicetak atau diunduh</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleClosePreview}
+                  className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  Tutup
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handlePrintPdf}
+                  disabled={!previewPdfUrl || previewLoading}
+                  className="px-3.5 py-2 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+                  title="Cetak langsung melalui browser"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Cetak</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportExcel}
+                  disabled={exportingExcel}
+                  className="px-3.5 py-2 text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+                  title="Unduh laporan dalam format Excel"
+                >
+                  {exportingExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  <span>Unduh Excel</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDownloadFromPreview}
+                  disabled={!previewPdfUrl || previewLoading}
+                  className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                  title="Simpan dokumen PDF ke perangkat"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Unduh PDF</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

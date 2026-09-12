@@ -556,6 +556,42 @@ export const riwayatApi = {
     a.remove();
     window.URL.revokeObjectURL(url);
   },
+
+  getPdfBlobUrl: async (
+    posyanduId: string,
+    params?: { tipe?: string; search?: string; status?: string; bulan?: string; tahun?: string }
+  ): Promise<{ url: string; blob: Blob }> => {
+    const token = getToken();
+    const cleanParams: Record<string, string> = {};
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v && v !== 'semua') cleanParams[k] = v;
+      });
+    }
+    const q = new URLSearchParams(cleanParams).toString();
+    const res = await fetch(`${BASE_URL}/api/posyandu/${posyanduId}/export-pdf${q ? `?${q}` : ''}`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!res.ok) throw new Error('Gagal memuat pratinjau file PDF');
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    return { url, blob };
+  },
+
+  downloadPdfBlob: (blob: Blob, filename?: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || `Laporan_Posyandu_${new Date().toISOString().slice(0, 10)}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };
 
 // ─────────────────────────────────────────────────────────────

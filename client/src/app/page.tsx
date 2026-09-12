@@ -667,7 +667,7 @@ export default function Home() {
       case "Riwayat":
         return <RiwayatModule posyanduId={posyanduId} activePeriode={activePeriode} onNavigate={handleDashboardNavigate} />;
       case "Laporan":
-        return <LaporanModule posyanduId={posyanduId} onNavigate={handleDashboardNavigate} />;
+        return <LaporanModule posyanduId={posyanduId} activePeriode={activePeriode} onNavigate={handleDashboardNavigate} />;
       case "Manajemen Akun":
         return <ManajemenAkunModule posyanduId={posyanduId} />;
       case "Pengaturan":
