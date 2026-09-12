@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Modal from "../../components/Modal";
 import PageHelmet from "../../components/PageHelmet";
 import {
@@ -29,7 +29,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
+  Legend
 } from "recharts";
 import { hitungStatusBbU, hitungStatusTbU, hitungStatusBbTb, convertStatusBbUToCode, convertStatusTbUToCode, convertStatusBbTbToCode } from "../../lib/zScoreCalculator";
 import { formatTanggalIndonesia, formatTanggalInput } from "../../lib/dateUtils";
@@ -53,6 +53,8 @@ export interface PemeriksaanBalita {
   vitaminA: boolean;
   asiEksklusif?: boolean;
   obatCacing?: boolean;
+  vitB1?: boolean;
+  vitB6?: boolean;
   statusImunisasi?: string;
 }
 
@@ -70,6 +72,8 @@ export interface Balita {
 
 import { TableSkeleton, DetailViewSkeleton } from "../../components/Skeleton";
 import { balitaApi, PeriodePelayanan } from "../../lib/api";
+import { SearchIndex } from "../../lib/searchIndex";
+import { clientDataCache } from "../../lib/dataCache";
 
 // Initial Mock Data
 const initialBalitas: Balita[] = [
@@ -201,12 +205,47 @@ function extractPemberianLain(statusImunisasi?: string | null): string {
 
 export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPelayanan, selectedId, searchQuery, onBack, backLabel }: BalitaModuleProps) {
   const { user } = useAuth();
-  const [balitas, setBalitas] = useState<Balita[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const initialCacheKey = `balitas_${posyanduId}_p1_lim10`;
+  const [balitas, setBalitas] = useState<Balita[]>(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<Balita[]>(initialCacheKey);
+      if (cached && cached.length > 0) return cached;
+    }
+    return [];
+  });
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window !== "undefined" && posyanduId) {
+      const cached = clientDataCache.get<Balita[]>(initialCacheKey);
+      if (cached && cached.length > 0) return false;
+    }
+    return true;
+  });
+  const [isFetching, setIsFetching] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [view, setView] = useState<"list" | "detail" | "add">("list");
   const [selectedBalitaId, setSelectedBalitaId] = useState<string | null>(selectedId || null);
+
+  // In-Memory Search Index for instant O(1) query lookups by token/prefix
+  const balitaIndexRef = useRef<SearchIndex<Balita>>(
+    new SearchIndex<Balita>((b) => [
+      b.nama,
+      b.nik,
+      b.noHp,
+      b.namaIbu,
+      b.alamat,
+      b.jenisKelamin === "L" ? "laki-laki l" : "perempuan p",
+    ])
+  );
+  const balitasPoolRef = useRef<Map<string, Balita>>(new Map());
+
+  // Keep in-memory search index updated with all discovered items
+  useEffect(() => {
+    balitas.forEach((b) => {
+      balitasPoolRef.current.set(b.id, b);
+    });
+    balitaIndexRef.current.setSource(Array.from(balitasPoolRef.current.values()));
+  }, [balitas]);
 
   // Search, Filter & Pagination State
   const [query, setQuery] = useState(searchQuery);
@@ -305,13 +344,30 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
 
   // Fetch balita from API
   const fetchBalitas = useCallback(() => {
-    setIsLoading(true);
-    setApiError(null);
     const kelompokUsiaParam =
       ageFilter === "0-6" ? "0-6 bulan" :
       ageFilter === "7-12" ? "7-12 bulan" :
       ageFilter === "13-24" ? "13-24 bulan" :
       ageFilter === "25-60" ? "25-60 bulan" : undefined;
+
+    const pageCacheKey = `balitas_${posyanduId}_p${currentPage}_q${debouncedQuery || ""}_a${ageFilter}_lim${limit}`;
+    const cachedPage = clientDataCache.get<{ data: Balita[]; total: number; totalPages: number }>(pageCacheKey);
+
+    if (cachedPage) {
+      setBalitas(cachedPage.data);
+      setTotalItems(cachedPage.total);
+      setTotalPages(cachedPage.totalPages);
+      setIsLoading(false);
+      return;
+    }
+
+    // Only show skeleton on initial cold load when there is no data to show
+    if (balitas.length === 0) {
+      setIsLoading(true);
+    } else {
+      setIsFetching(true);
+    }
+    setApiError(null);
 
     balitaApi
       .getAll(posyanduId, {
@@ -335,33 +391,45 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
             })),
           }));
           setBalitas(mapped);
-          if (res.meta) {
-            setTotalItems(res.meta.total);
-            setTotalPages(res.meta.totalPages);
-          } else {
-            setTotalItems(mapped.length);
-            setTotalPages(1);
+          const total = res.meta ? res.meta.total : mapped.length;
+          const totPages = res.meta ? res.meta.totalPages : 1;
+          setTotalItems(total);
+          setTotalPages(totPages);
+
+          // Save page in cache
+          clientDataCache.set(pageCacheKey, { data: mapped, total, totalPages: totPages });
+          if (currentPage === 1 && !debouncedQuery && ageFilter === "semua" && limit === 10) {
+            clientDataCache.set(initialCacheKey, mapped);
           }
         }
       })
       .catch((err) => setApiError(err.message))
-      .finally(() => setIsLoading(false));
-  }, [posyanduId, debouncedQuery, ageFilter, currentPage, limit]);
+      .finally(() => {
+        setIsLoading(false);
+        setIsFetching(false);
+      });
+  }, [posyanduId, debouncedQuery, ageFilter, currentPage, limit, balitas.length, initialCacheKey]);
 
   useEffect(() => {
     fetchBalitas();
   }, [fetchBalitas]);
 
-  // Filter List Balita (client-side age filter)
-  const filteredBalitas = balitas.filter((b) => {
-    const ageMonths = calculateAgeInMonths(b.tanggalLahir);
-    let matchesAge = true;
-    if (ageFilter === "0-6") matchesAge = ageMonths >= 0 && ageMonths <= 6;
-    else if (ageFilter === "7-12") matchesAge = ageMonths >= 7 && ageMonths <= 12;
-    else if (ageFilter === "13-24") matchesAge = ageMonths >= 13 && ageMonths <= 24;
-    else if (ageFilter === "25-60") matchesAge = ageMonths >= 25 && ageMonths <= 60;
-    return matchesAge;
-  });
+  // Filter List Balita (Search by Index + Client-side age filter)
+  const filteredBalitas = useMemo(() => {
+    const source = query && query.trim()
+      ? balitaIndexRef.current.search(query)
+      : balitas;
+
+    return source.filter((b) => {
+      const ageMonths = calculateAgeInMonths(b.tanggalLahir);
+      let matchesAge = true;
+      if (ageFilter === "0-6") matchesAge = ageMonths >= 0 && ageMonths <= 6;
+      else if (ageFilter === "7-12") matchesAge = ageMonths >= 7 && ageMonths <= 12;
+      else if (ageFilter === "13-24") matchesAge = ageMonths >= 13 && ageMonths <= 24;
+      else if (ageFilter === "25-60") matchesAge = ageMonths >= 25 && ageMonths <= 60;
+      return matchesAge;
+    });
+  }, [query, balitas, ageFilter]);
   const [formNama, setFormNama] = useState("");
   const [formNik, setFormNik] = useState("");
   const [formNoHp, setFormNoHp] = useState("");
@@ -564,6 +632,7 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
         namaIbu: editNamaIbu,
         alamat: editAlamat,
       });
+      clientDataCache.invalidate("balitas_" + posyanduId);
       fetchBalitas();
       setIsEditModalOpen(false);
       toast.success("Profil balita berhasil diperbarui!");
@@ -582,6 +651,7 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
     setIsSaving(true);
     try {
       await balitaApi.delete(posyanduId, selectedBalitaId);
+      clientDataCache.invalidate("balitas_" + posyanduId);
       fetchBalitas();
       setIsDeleteModalOpen(false);
       setSelectedBalitaId(null);
@@ -792,6 +862,7 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
         namaIbu: formNamaIbu,
         alamat: formAlamat,
       });
+      clientDataCache.invalidate("balitas_" + posyanduId);
       // Refresh list
       fetchBalitas();
       setFormNama("");
