@@ -269,11 +269,19 @@ export interface TrenGiziItem {
   avgZScoreTBU: number;
 }
 
+export interface DistribusiKehadiranDetail {
+  total: number;
+  hadir: number;
+  persentase: number;
+}
+
 export interface DistribusiKehadiran {
   rtRw: string;
   total: number;
   hadir: number;
   persentase: number;
+  balita?: DistribusiKehadiranDetail;
+  lansia?: DistribusiKehadiranDetail;
 }
 
 export interface ItemAktivitasKunjungan {
@@ -303,8 +311,10 @@ export const dashboardApi = {
     request<ApiResponse<DashboardSummary>>(`/api/dashboard/${posyanduId}`),
   getTrenGizi: (posyanduId: string, period: 'bulanan' | 'tahunan' = 'bulanan') =>
     request<ApiResponse<TrenGiziItem[]>>(`/api/dashboard/${posyanduId}/tren-gizi?period=${period}`),
-  getDistribusiKehadiran: (posyanduId: string) =>
-    request<ApiResponse<DistribusiKehadiran[]>>(`/api/dashboard/${posyanduId}/distribusi-kehadiran`),
+  getDistribusiKehadiran: (posyanduId: string, kategori?: string) =>
+    request<ApiResponse<DistribusiKehadiran[]>>(
+      `/api/dashboard/${posyanduId}/distribusi-kehadiran${kategori ? `?kategori=${kategori}` : ''}`
+    ),
   getAktivitasKunjungan: (posyanduId: string) =>
     request<ApiResponse<AktivitasKunjunganData>>(`/api/dashboard/${posyanduId}/aktivitas-kunjungan`),
 };

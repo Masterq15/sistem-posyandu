@@ -90,6 +90,49 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
   // ── Action Menu & Detail Modals ──
   const [showDetailAktivitas, setShowDetailAktivitas] = useState(false);
   const [showDetailDistribusi, setShowDetailDistribusi] = useState(false);
+  const [distribusiTab, setDistribusiTab] = useState<"Semua" | "Balita" | "Lansia">("Semua");
+
+  const modalDistribusiList = useMemo(() => {
+    return (distribusiKehadiran || [])
+      .map((row) => {
+        if (distribusiTab === "Balita") {
+          const bTotal = row.balita?.total ?? 0;
+          const bHadir = row.balita?.hadir ?? 0;
+          const bPersen = bTotal > 0 ? Math.round((bHadir / bTotal) * 100) : 0;
+          return {
+            rtRw: row.rtRw,
+            total: bTotal,
+            hadir: bHadir,
+            persentase: bPersen,
+            label: "Balita",
+          };
+        }
+        if (distribusiTab === "Lansia") {
+          const lTotal = row.lansia?.total ?? 0;
+          const lHadir = row.lansia?.hadir ?? 0;
+          const lPersen = lTotal > 0 ? Math.round((lHadir / lTotal) * 100) : 0;
+          return {
+            rtRw: row.rtRw,
+            total: lTotal,
+            hadir: lHadir,
+            persentase: lPersen,
+            label: "Lansia",
+          };
+        }
+        return {
+          rtRw: row.rtRw,
+          total: row.total,
+          hadir: row.hadir,
+          persentase: isNaN(Number(row.persentase)) ? 0 : Number(row.persentase),
+          label: "Warga",
+        };
+      })
+      .sort((a, b) => {
+        if (a.total > 0 && b.total === 0) return -1;
+        if (a.total === 0 && b.total > 0) return 1;
+        return b.persentase - a.persentase;
+      });
+  }, [distribusiKehadiran, distribusiTab]);
 
   const handleDetailAktivitas = (tab?: "balita" | "lansia" | "belum_balita" | "belum_lansia") => {
     if (tab) setAktivitasTab(tab);
@@ -720,6 +763,9 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
         totalPages={totalPages}
         isDistribusiLoading={isDistribusiLoading}
         distribusiKehadiran={distribusiKehadiran}
+        distribusiTab={distribusiTab}
+        setDistribusiTab={setDistribusiTab}
+        onOpenDetailDistribusi={() => setShowDetailDistribusi(true)}
       />
 
       {/* 4. Quick Examination Input Modal */}
@@ -812,20 +858,40 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
         onClose={() => setShowDetailDistribusi(false)}
         title="Detail Distribusi Kehadiran per RT/RW"
       >
+        <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-gray-100">
+          <span className="text-xs font-bold text-saas-dark">Filter Kategori:</span>
+          <select
+            value={distribusiTab}
+            onChange={(e) => setDistribusiTab(e.target.value as "Semua" | "Balita" | "Lansia")}
+            className="text-xs font-bold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-saas-dark hover:bg-gray-100/70 transition-colors focus:outline-none focus:border-saas-primary cursor-pointer"
+          >
+            <option value="Semua">Semua (Gabungan)</option>
+            <option value="Balita">Balita</option>
+            <option value="Lansia">Lansia</option>
+          </select>
+        </div>
+
         <div className="space-y-3 max-h-96 overflow-y-auto">
-          {distribusiKehadiran.length > 0 ? (
-            distribusiKehadiran.map((item, i) => {
+          {modalDistribusiList.length > 0 ? (
+            modalDistribusiList.map((item, i) => {
               const persentase = isNaN(Number(item.persentase)) ? 0 : Number(item.persentase);
               return (
                 <div key={i} className="border border-gray-200 rounded-lg p-3 text-xs">
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="font-semibold text-saas-dark">{item.rtRw}</span>
-                    <span className="bg-saas-primary/10 text-saas-primary px-2.5 py-0.5 rounded-full text-xs font-bold">{persentase}%</span>
+                    <span className="font-bold text-saas-dark">{item.rtRw}</span>
+                    <span className="bg-saas-primary/10 text-saas-primary px-2.5 py-0.5 rounded-full text-xs font-bold">
+                      {persentase}%
+                    </span>
                   </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
-                    <div style={{ width: `${persentase}%` }} className="h-full bg-saas-primary rounded-full"></div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-1">
+                    <div
+                      style={{ width: `${persentase}%` }}
+                      className="h-full bg-saas-primary rounded-full"
+                    ></div>
                   </div>
-                  <div className="text-[11px] text-saas-muted text-right font-medium">{item.hadir} dari {item.total} Warga Hadir</div>
+                  <div className="text-[11px] text-saas-dark text-right font-semibold">
+                    {item.hadir} dari {item.total} {item.label} Hadir
+                  </div>
                 </div>
               );
             })
