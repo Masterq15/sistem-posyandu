@@ -29,7 +29,7 @@ interface BalitaModuleProps {
   backLabel?: string;
 }
 
-export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPelayanan, selectedId, searchQuery, onBack, backLabel }: BalitaModuleProps) {
+export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPelayanan, selectedId, searchQuery = "", onBack, backLabel }: BalitaModuleProps) {
   const { user } = useAuth();
   const initialCacheKey = `balitas_${posyanduId}_p1_lim10`;
   const [balitas, setBalitas] = useState<Balita[]>(() => {
@@ -74,12 +74,12 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
   }, [balitas]);
 
   // Search, Filter & Pagination State
-  const [query, setQuery] = useState(searchQuery);
-  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+  const [query, setQuery] = useState(searchQuery || "");
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery || "");
 
   useEffect(() => {
     if (searchQuery !== undefined) {
-      setQuery(searchQuery);
+      setQuery(searchQuery || "");
     }
   }, [searchQuery]);
 
@@ -1064,7 +1064,7 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
         onEditBalitaSubmit={handleEditBalitaSubmit}
         isDeleteModalOpen={isDeleteModalOpen}
         setIsDeleteModalOpen={setIsDeleteModalOpen}
-        activeBalita={activeBalita}
+        activeBalita={activeBalita || null}
         onDeleteBalita={handleDeleteBalita}
         isEditExamModalOpen={isEditExamModalOpen}
         setIsEditExamModalOpen={setIsEditExamModalOpen}

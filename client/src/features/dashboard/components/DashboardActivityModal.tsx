@@ -5,7 +5,7 @@ import { Search, X, Eye, Plus } from "lucide-react";
 import Modal from "@/components/Modal";
 import BalitaIcon from "@/components/BalitaIcon";
 import LansiaIcon from "@/components/LansiaIcon";
-import { AktivitasKunjunganDetailResponse } from "@/lib/api";
+import { AktivitasKunjunganData } from "@/lib/api";
 
 
 export interface DashboardActivityModalProps {
@@ -13,7 +13,7 @@ export interface DashboardActivityModalProps {
   onClose: () => void;
   aktivitasTab: "balita" | "lansia" | "belum_balita" | "belum_lansia";
   setAktivitasTab: (tab: "balita" | "lansia" | "belum_balita" | "belum_lansia") => void;
-  aktivitasData: AktivitasKunjunganDetailResponse | null;
+  aktivitasData: AktivitasKunjunganData | null;
   aktivitasSearch: string;
   setAktivitasSearch: (val: string) => void;
   onNavigate: (menu: string, patientId?: string) => void;

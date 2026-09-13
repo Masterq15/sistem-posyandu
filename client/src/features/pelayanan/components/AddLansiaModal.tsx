@@ -64,18 +64,17 @@ export default function AddLansiaModal({
       setIsSubmitting(true);
       setLError("");
       const res = await lansiaApi.create(posyanduId, {
-        posyanduId,
         nama: lNama,
         nik: lNik,
         noBpjs: lBpjs || undefined,
         tanggalLahir: lTglLahir,
         jenisKelamin: lJk,
         alamat: lAlamat,
-        rtRw: lRtRw || undefined,
-        statusKemandirian: lKemandirian,
-        riwayatPenyakitKeluargaHt: lHt,
-        riwayatPenyakitKeluargaDm: lDm,
-        catatanSkriningMental: lMental || undefined,
+        rtRw: lRtRw || "01/01",
+        tingkatKemandirian: lKemandirian,
+        riwayatHt: lHt,
+        riwayatDm: lDm,
+        gangguanMentalEmosional: lMental || undefined,
       });
 
       if (res.data) {

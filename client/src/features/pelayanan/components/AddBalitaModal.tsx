@@ -49,15 +49,12 @@ export default function AddBalitaModal({
       setIsSubmitting(true);
       setBError("");
       const res = await balitaApi.create(posyanduId, {
-        posyanduId,
         nama: bNama,
         nik: bNik || undefined,
         tanggalLahir: bTglLahir,
         jenisKelamin: bJk,
         namaIbu: bNamaIbu,
         alamat: bAlamat,
-        bbLahir: 3.0,
-        tbLahir: 48.0,
       });
 
       if (res.data) {
