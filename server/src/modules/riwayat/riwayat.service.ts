@@ -782,8 +782,8 @@ export const riwayatService = {
       sigKader.font = { name: 'Arial', size: 9, bold: true };
       sigKader.alignment = { horizontal: 'center' };
 
-      sheet.mergeCells(`V${sigRow + 6}:AC${sigRow + 6}`);
-      const sigName = sheet.getCell(`V${sigRow + 6}`);
+      sheet.mergeCells(`V${sigRow + 7}:AC${sigRow + 7}`);
+      const sigName = sheet.getCell(`V${sigRow + 7}`);
       sigName.value = '( ............................................ )';
       sigName.font = { name: 'Arial', size: 9, bold: true };
       sigName.alignment = { horizontal: 'center' };
@@ -1102,8 +1102,8 @@ export const riwayatService = {
       sigKader.font = { name: 'Arial', size: 9, bold: true };
       sigKader.alignment = { horizontal: 'center' };
 
-      sheet.mergeCells(`M${sigRow + 6}:Q${sigRow + 6}`);
-      const sigName = sheet.getCell(`M${sigRow + 6}`);
+      sheet.mergeCells(`M${sigRow + 7}:Q${sigRow + 7}`);
+      const sigName = sheet.getCell(`M${sigRow + 7}`);
       sigName.value = '( ............................................ )';
       sigName.font = { name: 'Arial', size: 9, bold: true };
       sigName.alignment = { horizontal: 'center' };
@@ -1938,20 +1938,20 @@ export const riwayatService = {
 
     // Signature Block di bagian kanan bawah
     let finalY = doc.y;
-    if (finalY > doc.page.height - 120) {
+    if (finalY > doc.page.height - 145) {
       doc.addPage();
-      finalY = 30;
+      finalY = 35;
     }
 
-    finalY += 6;
+    finalY += 8;
     const signX = endX - 220;
 
     doc.fontSize(8.5).font('Helvetica').fillColor('#0f172a');
     doc.text(`${posyandu.desa || 'Desa'}, ${todayFormatted}`, signX, finalY, { align: 'center', width: 220, lineBreak: false });
-    doc.text('Mengetahui,', signX, finalY + 10, { align: 'center', width: 220, lineBreak: false });
-    doc.font('Helvetica-Bold').text('Ketua / Kader Posyandu', signX, finalY + 20, { align: 'center', width: 220, lineBreak: false });
+    doc.text('Mengetahui,', signX, finalY + 11, { align: 'center', width: 220, lineBreak: false });
+    doc.font('Helvetica-Bold').text('Ketua / Kader Posyandu', signX, finalY + 22, { align: 'center', width: 220, lineBreak: false });
 
-    doc.font('Helvetica-Bold').text('( ............................................ )', signX, finalY + 52, { align: 'center', width: 220, lineBreak: false });
+    doc.font('Helvetica-Bold').text('( ............................................ )', signX, finalY + 82, { align: 'center', width: 220, lineBreak: false });
 
     // Page Numbers Footer
     const pages = doc.bufferedPageRange().count;
