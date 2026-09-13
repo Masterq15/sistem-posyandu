@@ -166,13 +166,13 @@ export default function PuskesmasPreviewModal({
                   <div>
                     <span className="text-gray-500 font-semibold block text-[10px] uppercase">Tekanan Darah Normal</span>
                     <strong className="text-base text-emerald-700">
-                      {Math.max(0, rekapanLansia.totalPemeriksaan - rekapanLansia.statusHipertensi)}
+                      {rekapanLansia.statusTd.normal}
                     </strong>
                   </div>
                   <div>
                     <span className="text-gray-500 font-semibold block text-[10px] uppercase">Hipertensi / GDS &ge;200</span>
                     <strong className="text-base text-red-700">
-                      {rekapanLansia.statusHipertensi} HT / {rekapanLansia.statusGdsTinggi} DM
+                      {rekapanLansia.kasusHipertensi} HT / {rekapanLansia.kasusDiabetes} DM
                     </strong>
                   </div>
                 </>
