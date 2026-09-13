@@ -875,8 +875,8 @@ export default function PelayananModule({
     return (
       <div className="space-y-6">
         <PageHelmet
-          title={activeTab === "Balita" ? "Pelayanan Balita — PosyanduKita" : "Pelayanan Lansia — PosyanduKita"}
-          description="Pencatatan pelayanan dan pemeriksaan PosyanduKita."
+          title={activeTab === "Balita" ? "Pelayanan Balita — SIPANDU" : "Pelayanan Lansia — SIPANDU"}
+          description="Pencatatan pelayanan dan pemeriksaan SIPANDU."
         />
         <PelayananSkeleton />
       </div>
@@ -886,11 +886,11 @@ export default function PelayananModule({
   return (
     <div className="space-y-6">
       <PageHelmet
-        title={activeTab === "Balita" ? "Pelayanan Balita — PosyanduKita" : "Pelayanan Lansia — PosyanduKita"}
+        title={activeTab === "Balita" ? "Pelayanan Balita — SIPANDU" : "Pelayanan Lansia — SIPANDU"}
         description={
           activeTab === "Balita"
-            ? "Pencatatan pelayanan dan pemeriksaan tumbuh kembang balita PosyanduKita."
-            : "Pencatatan pelayanan dan skrining kesehatan fisik lansia PosyanduKita."
+            ? "Pencatatan pelayanan dan pemeriksaan tumbuh kembang balita SIPANDU."
+            : "Pencatatan pelayanan dan skrining kesehatan fisik lansia SIPANDU."
         }
       />
 

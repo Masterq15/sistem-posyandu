@@ -33,9 +33,9 @@ function createTransporter() {
  */
 export async function sendResetPasswordEmail({ to, nama, resetUrl }: SendResetEmailOptions): Promise<boolean> {
   const transporter = createTransporter();
-  const from = process.env.SMTP_FROM || '"PosyanduKita" <noreply@posyandukita.com>';
+  const from = process.env.SMTP_FROM || '"SIPANDU" <noreply@sipandu.id>';
 
-  const subject = 'Atur Ulang Kata Sandi - PosyanduKita';
+  const subject = 'Atur Ulang Kata Sandi - SIPANDU';
 
   const html = `
     <!DOCTYPE html>
@@ -57,10 +57,10 @@ export async function sendResetPasswordEmail({ to, nama, resetUrl }: SendResetEm
     </head>
     <body>
       <div class="container">
-        <div class="logo">❤️ PosyanduKita</div>
+        <div class="logo">🌿 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu</div>
         <h1>Atur Ulang Kata Sandi</h1>
         <p>Halo <strong>${nama}</strong>,</p>
-        <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Kader PosyanduKita Anda. Silakan klik tombol di bawah ini untuk melanjutkan:</p>
+        <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Kader SIPANDU Anda. Silakan klik tombol di bawah ini untuk melanjutkan:</p>
         
         <div style="text-align: center;">
           <a href="${resetUrl}" class="btn" target="_blank">Atur Ulang Kata Sandi Saya</a>
@@ -74,7 +74,7 @@ export async function sendResetPasswordEmail({ to, nama, resetUrl }: SendResetEm
         </p>
 
         <div class="footer">
-          &copy; 2026 PosyanduKita — Sistem Informasi Manajemen Posyandu.
+          &copy; 2026 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu.
         </div>
       </div>
     </body>
@@ -125,7 +125,7 @@ export async function sendPosyanduReminderEmail({
   pesanKhusus,
 }: SendPosyanduReminderOptions): Promise<boolean> {
   const transporter = createTransporter();
-  const from = process.env.SMTP_FROM || '"PosyanduKita" <noreply@posyandukita.com>';
+  const from = process.env.SMTP_FROM || '"SIPANDU" <noreply@sipandu.id>';
   const subject = `📅 Pengingat Kegiatan Posyandu - ${namaPosyandu}`;
 
   const html = `
@@ -149,7 +149,7 @@ export async function sendPosyanduReminderEmail({
     </head>
     <body>
       <div class="container">
-        <div class="logo">❤️ PosyanduKita <span class="badge">JADWAL POSYANDU</span></div>
+        <div class="logo">🌿 SIPANDU <span class="badge">JADWAL POSYANDU</span></div>
         <h2>Pengingat Jadwal Kegiatan Posyandu</h2>
         <p>Halo Kader <strong>${namaKader}</strong>,</p>
         <p>Email ini dikirimkan secara otomatis oleh sistem untuk mengingatkan pelaksanaan kegiatan Posyandu rutin mendatang:</p>
@@ -177,7 +177,7 @@ export async function sendPosyanduReminderEmail({
         <p>Mohon mempersiapkan alat penimbangan, pita LiLA, media KMS, serta buku registrasi Balita & Lansia sebelum acara dimulai.</p>
         
         <div class="footer">
-          &copy; 2026 PosyanduKita Email Notification Worker Service.
+          &copy; 2026 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu.
         </div>
       </div>
     </body>

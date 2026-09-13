@@ -13,8 +13,11 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "PosyanduKita — Sistem Informasi Posyandu",
-  description: "Digitalisasi Pencatatan Tumbuh Kembang Anak & Pelayanan Lansia Mandiri",
+  title: "SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu",
+  description: "Digitalisasi Pencatatan Tumbuh Kembang Anak & Pelayanan Lansia Mandiri — SIPANDU",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

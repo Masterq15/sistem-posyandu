@@ -38,7 +38,7 @@ export const ownerService = {
 
     const backupPayload = {
       meta: {
-        appName: 'PosyanduKita',
+        appName: 'SIPANDU',
         version: '1.0.0',
         exportedAt: new Date().toISOString(),
         posyanduId: posyandu.id,

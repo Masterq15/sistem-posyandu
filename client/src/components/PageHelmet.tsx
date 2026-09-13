@@ -12,11 +12,11 @@ export interface PageHelmetProps {
 
 export default function PageHelmet({
   title,
-  description = "Digitalisasi Pencatatan Tumbuh Kembang Anak & Pelayanan Lansia Mandiri — PosyanduKita",
-  keywords = "posyandu, kesehatan balita, lansia, stunting, z-score, imunisasi, posyandu digital",
+  description = "Digitalisasi Pencatatan Tumbuh Kembang Anak & Pelayanan Lansia Mandiri — SIPANDU (Sistem Informasi Pelayanan dan Data Posyandu)",
+  keywords = "posyandu, kesehatan balita, lansia, stunting, z-score, imunisasi, posyandu digital, sipandu",
   ogType = "website",
 }: PageHelmetProps) {
-  const fullTitle = title ? `${title} | PosyanduKita` : "PosyanduKita — Sistem Informasi Posyandu";
+  const fullTitle = title ? `${title} | SIPANDU` : "SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu";
 
   return (
     <Helmet>

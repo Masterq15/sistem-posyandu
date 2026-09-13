@@ -1,8 +1,8 @@
-﻿# 🏥 PosyanduKita — Sistem Informasi Posyandu
+# 🏥 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu
 
 > Platform digital pencatatan tumbuh kembang balita & pelayanan kesehatan lansia untuk Posyandu Indonesia.
 
-![PosyanduKita](https://img.shields.io/badge/status-development-blue?style=flat-square)
+![SIPANDU](https://img.shields.io/badge/status-development-blue?style=flat-square)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![Express](https://img.shields.io/badge/Express-5-green?style=flat-square&logo=express)
 ![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma)
@@ -28,7 +28,7 @@
 
 ## 🌟 Tentang Proyek
 
-**PosyanduKita** adalah sistem informasi berbasis web yang dirancang untuk membantu kader posyandu dalam:
+**SIPANDU** (Sistem Informasi Pelayanan dan Data Posyandu) adalah sistem informasi berbasis web yang dirancang untuk membantu kader posyandu dalam:
 
 - Mencatat **tumbuh kembang balita** (berat badan, tinggi badan, lingkar kepala, status gizi)
 - Memantau **kesehatan lansia** (tekanan darah, gula darah, berat badan, lingkar perut)
@@ -443,5 +443,5 @@ MIT License — bebas digunakan untuk keperluan pendidikan dan non-komersial.
 ---
 
 <div align="center">
-  <p>© 2026 PosyanduKita</p>
+  <p>© 2026 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu</p>
 </div>

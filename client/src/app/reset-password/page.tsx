@@ -4,7 +4,6 @@ import { useState, useEffect, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/lib/api";
 import {
-  HeartPulse,
   Lock,
   Eye,
   EyeOff,
@@ -92,7 +91,7 @@ function ResetPasswordFormContent() {
     <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/40 flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <PageHelmet
         title="Reset Kata Sandi"
-        description="Atur ulang kata sandi akun kader PosyanduKita Anda dengan aman."
+        description="Atur ulang kata sandi akun kader SIPANDU Anda dengan aman."
       />
       {/* Ambient Glow */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -104,13 +103,18 @@ function ResetPasswordFormContent() {
 
       <div className="relative w-full max-w-md bg-white rounded-[28px] p-6 sm:p-8 shadow-xl shadow-teal-900/5 border border-teal-100/30">
         {/* Header Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-saas-primary flex items-center justify-center shadow-md shadow-teal-500/20 text-white">
-            <HeartPulse className="w-6 h-6 stroke-[2.5]" />
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1.5 shadow-2xs">
+            <img src="/logo.svg" alt="Logo SIPANDU" className="w-8 h-8 object-contain" />
           </div>
-          <span className="font-extrabold text-teal-950 text-xl tracking-tight">
-            PosyanduKita
-          </span>
+          <div>
+            <span className="font-black text-teal-950 text-xl tracking-tight leading-none block">
+              SIPANDU
+            </span>
+            <span className="text-[9px] text-teal-700 font-bold uppercase tracking-wider block mt-0.5">
+              Sistem Informasi Pelayanan dan Data Posyandu
+            </span>
+          </div>
         </div>
 
         {/* Loading state */}

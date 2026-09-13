@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { Building2, ChevronRight } from "lucide-react";
+import { ChevronRight, Globe } from "lucide-react";
 import PageHelmet from "@/components/PageHelmet";
 import { publicPuskesmasApi, PublicPemeriksaanItem, PublicPosyanduInfo, ItemRiwayat } from "@/lib/api";
 import { SearchIndex } from "@/lib/searchIndex";
@@ -402,7 +402,7 @@ export default function PuskesmasPublicPage() {
       link.setAttribute("href", url);
       link.setAttribute(
         "download",
-        `Laporan_Rekapan_Puskesmas_${activeTab}_${periodeText.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.csv`
+        `Laporan_Rekapitulasi_${activeTab}_${periodeText.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.csv`
       );
       document.body.appendChild(link);
       link.click();
@@ -452,31 +452,40 @@ export default function PuskesmasPublicPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 space-y-6 print:p-0 print:bg-white">
       <PageHelmet
-        title={`Laporan Rekapan ${activeTab} — UPTD Puskesmas`}
-        description={`Laporan rekapitulasi data pemeriksaan ${activeTab} seluruh posyandu wilayah kerja Puskesmas.`}
+        title={`Laporan Rekapitulasi ${activeTab} — SIPANDU`}
+        description={`Portal publik rekapitulasi data pemeriksaan kesehatan ${activeTab} seluruh Posyandu terintegrasi SIPANDU.`}
       />
 
       {/* Header Halaman */}
-      <div className="print:hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-100 text-teal-800">
-              <Building2 className="w-3.5 h-3.5" /> UPTD Puskesmas
-            </span>
+      <div className="print:hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-gray-200/80 shadow-2xs">
+        <div className="flex items-start gap-4">
+          {/* Logo SIPANDU (Clean White Box) */}
+          <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-2 shrink-0 mt-0.5">
+            <img src="/logo.svg" alt="Logo SIPANDU" className="w-8 h-8 object-contain" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Laporan Rekapan Puskesmas</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Laporan rekapitulasi data pemeriksaan Balita &amp; Lansia seluruh posyandu wilayah kerja Puskesmas berdasarkan periode waktu.
-          </p>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 border border-teal-200/80 text-teal-800">
+                <Globe className="w-3.5 h-3.5 text-teal-600" /> Portal Publik
+              </span>
+            </div>
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+              SIPANDU — Laporan Rekapitulasi Pelayanan Posyandu
+            </h2>
+            <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+              Sistem Informasi Pelayanan dan Data Posyandu — Portal publik rekapitulasi dan pemantauan data pemeriksaan kesehatan Balita &amp; Lansia seluruh Posyandu secara terbuka dan transparan.
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0 sm:self-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all shadow-sm hover:shadow"
           >
-            <span>Menu Utama</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <span>Aplikasi Posyandu</span>
+            <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
       </div>

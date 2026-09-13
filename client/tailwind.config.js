@@ -22,7 +22,7 @@ module.exports = {
           elevated: '#16181C',   // Dark mode card elevation
         },
         saas: {
-          primary: '#14B8A6',        // Toska utama (Posyandu Kita Brand)
+          primary: '#14B8A6',        // Toska utama (SIPANDU Brand)
           'primary-active': '#0D9488', // Darker Toska press state
           'primary-light': '#CCFBF1',  // Soft Toska fill/badge
           dark: '#0A0B0D',           // Coinbase Ink text

@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
 import { authApi } from "../../lib/api";
 import {
-  HeartPulse,
   Eye,
   EyeOff,
   Loader2,
@@ -82,13 +81,13 @@ function LeftPanel() {
 
       {/* Brand Header */}
       <div className="relative z-10 flex items-center gap-3">
-        <div className="w-10 h-10 bg-saas-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
-          <HeartPulse className="w-5 h-5 stroke-[2.5]" />
+        <div className="w-10 h-10 bg-white border border-slate-200/90 rounded-xl flex items-center justify-center p-1.5 shadow-2xs">
+          <img src="/logo.svg" alt="Logo SIPANDU" className="w-7 h-7 object-contain" />
         </div>
         <div>
-          <p className="text-teal-900 font-extrabold text-base tracking-tight leading-none">PosyanduKita</p>
-          <span className="inline-block mt-1 px-2.5 py-0.5 bg-teal-600/10 text-teal-800 rounded-pill text-[9px] tracking-wider font-bold">
-            APLIKASI KADER POSYANDU
+          <p className="text-teal-950 font-black text-base tracking-tight leading-none">SIPANDU</p>
+          <span className="inline-block mt-1 px-2.5 py-0.5 bg-teal-600/10 text-teal-800 rounded-pill text-[8.5px] tracking-wider font-bold">
+            SISTEM INFORMASI PELAYANAN DAN DATA POSYANDU
           </span>
         </div>
       </div>
@@ -770,7 +769,7 @@ export default function LoginPage() {
             ? "Lupa Kata Sandi"
             : "Pendaftaran Posyandu Baru"
         }
-        description="Portal masuk dan pendaftaran Posyandu digital untuk Kader dan Pengelola PosyanduKita."
+        description="Portal masuk dan pendaftaran Posyandu digital untuk Kader dan Pengelola SIPANDU."
       />
       {/* Inject float animation */}
       <style>{`
@@ -797,10 +796,13 @@ export default function LoginPage() {
           <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 py-6 sm:py-10 min-w-0">
             {/* Mobile logo */}
             <div className="md:hidden flex items-center gap-2.5 mb-8">
-              <div className="w-9 h-9 rounded-xl bg-saas-primary flex items-center justify-center shadow-md shadow-teal-500/20">
-                <HeartPulse className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1.5 shadow-2xs">
+                <img src="/logo.svg" alt="Logo SIPANDU" className="w-6 h-6 object-contain" />
               </div>
-              <span className="font-extrabold text-teal-950 text-base">PosyanduKita</span>
+              <div>
+                <span className="font-black text-teal-950 text-base leading-none block">SIPANDU</span>
+                <span className="text-[8px] text-teal-700 font-bold uppercase tracking-wider block mt-0.5">Sistem Informasi Pelayanan dan Data Posyandu</span>
+              </div>
             </div>
 
             {/* Form switch animation */}
@@ -817,7 +819,7 @@ export default function LoginPage() {
 
             {/* Footer */}
             <p className="text-center text-[11px] text-saas-muted font-medium mt-8">
-              © 2026 PosyanduKita · Sistem Informasi Posyandu
+              © 2026 SIPANDU · Sistem Informasi Pelayanan dan Data Posyandu
             </p>
           </div>
         </div>
