@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Search,
 } from "lucide-react";
+import AnimatedNumber from "./AnimatedNumber";
 
 interface BalitaLaporanViewProps {
   rekapanBalita: RekapanBalita | null;
@@ -28,6 +29,8 @@ interface BalitaLaporanViewProps {
   setSearchBalita: (search: string) => void;
   onNavigate?: (module: string, itemId?: string) => void;
   onSelectLog?: (log: ItemRiwayat) => void;
+  triggerKey?: string | number;
+  isUpdating?: boolean;
 }
 
 export default function BalitaLaporanView({
@@ -41,11 +44,15 @@ export default function BalitaLaporanView({
   setSearchBalita,
   onNavigate,
   onSelectLog,
+  triggerKey,
+  isUpdating,
 }: BalitaLaporanViewProps) {
   const totalPages = Math.max(1, Math.ceil(filteredBalitaLogs.length / pageSizeBalita));
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-5">
+    <div className={`bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-5 transition-all duration-300 ${
+      isUpdating ? "opacity-75" : "opacity-100"
+    }`}>
       {/* Header & Cakupan Keseluruhan */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-100 pb-4">
         <div>
@@ -56,17 +63,25 @@ export default function BalitaLaporanView({
             </span>
           </div>
           <p className="text-xs text-saas-muted mt-1 font-medium flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-gray-700">{rekapanBalita?.totalTerdaftar || 0} Terdaftar</span>
+            <span className="font-bold text-gray-700">
+              <AnimatedNumber value={rekapanBalita?.totalTerdaftar || 0} triggerKey={triggerKey} /> Terdaftar
+            </span>
             <span>•</span>
-            <span className="font-bold text-teal-700">{rekapanBalita?.totalAnak || 0} Diperiksa</span>
+            <span className="font-bold text-teal-700">
+              <AnimatedNumber value={rekapanBalita?.totalAnak || 0} triggerKey={triggerKey} /> Diperiksa
+            </span>
             <span>•</span>
-            <span>Cakupan <strong className="text-gray-900">{rekapanBalita?.cakupanPersen || 0}%</strong></span>
+            <span>
+              Cakupan <strong className="text-gray-900"><AnimatedNumber value={rekapanBalita?.cakupanPersen || 0} decimals={1} suffix="%" triggerKey={triggerKey} /></strong>
+            </span>
             <span>•</span>
-            <span className="text-amber-700 font-semibold">{rekapanBalita?.tidakHadir || 0} Tidak Hadir</span>
+            <span className="text-amber-700 font-semibold">
+              <AnimatedNumber value={rekapanBalita?.tidakHadir || 0} triggerKey={triggerKey} /> Tidak Hadir
+            </span>
           </p>
         </div>
         <div className="text-xs font-semibold text-saas-muted bg-gray-50 border border-gray-200/80 px-3 py-1.5 rounded-lg w-fit">
-          Total Data: <strong className="text-saas-dark font-extrabold">{filteredBalitaLogs.length}</strong> Pemeriksaan ({rekapanBalita?.totalAnak || 0} Anak)
+          Total Data: <strong className="text-saas-dark font-extrabold"><AnimatedNumber value={filteredBalitaLogs.length} triggerKey={triggerKey} /></strong> Pemeriksaan (<AnimatedNumber value={rekapanBalita?.totalAnak || 0} triggerKey={triggerKey} /> Anak)
         </div>
       </div>
 
@@ -84,10 +99,10 @@ export default function BalitaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                {rekapanBalita?.totalAnak || 0} <span className="text-sm font-semibold text-gray-500">Anak</span>
+                <AnimatedNumber value={rekapanBalita?.totalAnak || 0} triggerKey={triggerKey} /> <span className="text-sm font-semibold text-gray-500">Anak</span>
               </div>
               <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200/60 inline-block">
-                {rekapanBalita?.totalPemeriksaan || 0} Kali Pemeriksaan
+                <AnimatedNumber value={rekapanBalita?.totalPemeriksaan || 0} triggerKey={triggerKey} /> Kali Pemeriksaan
               </span>
             </div>
           </div>
@@ -102,10 +117,10 @@ export default function BalitaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                {rekapanBalita?.cakupanPersen || 0}%
+                <AnimatedNumber value={rekapanBalita?.cakupanPersen || 0} decimals={1} suffix="%" triggerKey={triggerKey} />
               </div>
               <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/60 inline-block">
-                {rekapanBalita?.totalAnak || 0} dari {rekapanBalita?.totalTerdaftar || 0} Terdaftar
+                <AnimatedNumber value={rekapanBalita?.totalAnak || 0} triggerKey={triggerKey} /> dari {rekapanBalita?.totalTerdaftar || 0} Terdaftar
               </span>
             </div>
           </div>
@@ -120,7 +135,7 @@ export default function BalitaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-rose-700 tracking-tight">
-                {rekapanBalita?.perluTindakLanjut || 0} <span className="text-sm font-semibold text-rose-600">Anak</span>
+                <AnimatedNumber value={rekapanBalita?.perluTindakLanjut || 0} triggerKey={triggerKey} /> <span className="text-sm font-semibold text-rose-600">Anak</span>
               </div>
               <span className={`mt-1 px-2 py-0.5 rounded text-[10px] font-bold border inline-block ${
                 (rekapanBalita?.perluTindakLanjut || 0) > 0
@@ -142,12 +157,15 @@ export default function BalitaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                {rekapanBalita?.kasusStunting || 0} <span className="text-sm font-semibold text-gray-500">Anak</span>
+                <AnimatedNumber value={rekapanBalita?.kasusStunting || 0} triggerKey={triggerKey} /> <span className="text-sm font-semibold text-gray-500">Anak</span>
               </div>
               <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200/60 inline-block">
-                {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                  ? ((rekapanBalita.kasusStunting / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                  : "0"}% Pendek &amp; S. Pendek
+                <AnimatedNumber
+                  value={rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? (rekapanBalita.kasusStunting / rekapanBalita.totalPemeriksaan) * 100 : 0}
+                  decimals={1}
+                  suffix="%"
+                  triggerKey={triggerKey}
+                /> Pendek &amp; S. Pendek
               </span>
             </div>
           </div>
@@ -162,12 +180,15 @@ export default function BalitaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                {rekapanBalita?.kasusWasting || 0} <span className="text-sm font-semibold text-gray-500">Anak</span>
+                <AnimatedNumber value={rekapanBalita?.kasusWasting || 0} triggerKey={triggerKey} /> <span className="text-sm font-semibold text-gray-500">Anak</span>
               </div>
               <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60 inline-block">
-                {rekapanBalita && rekapanBalita.totalPemeriksaan > 0
-                  ? ((rekapanBalita.kasusWasting / rekapanBalita.totalPemeriksaan) * 100).toFixed(1)
-                  : "0"}% Kurus &amp; Gizi Buruk
+                <AnimatedNumber
+                  value={rekapanBalita && rekapanBalita.totalPemeriksaan > 0 ? (rekapanBalita.kasusWasting / rekapanBalita.totalPemeriksaan) * 100 : 0}
+                  decimals={1}
+                  suffix="%"
+                  triggerKey={triggerKey}
+                /> Kurus &amp; Gizi Buruk
               </span>
             </div>
           </div>
@@ -579,7 +600,7 @@ export default function BalitaLaporanView({
                 Tier 4 — Balita Perlu Tindak Lanjut &amp; Perhatian Khusus
               </h4>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800">
-                {rekapanBalita?.balitaPerluPerhatianList?.length || 0} Kasus
+                <AnimatedNumber value={rekapanBalita?.balitaPerluPerhatianList?.length || 0} triggerKey={triggerKey} /> Kasus
               </span>
             </div>
             <p className="text-[11px] text-gray-500 mt-0.5">

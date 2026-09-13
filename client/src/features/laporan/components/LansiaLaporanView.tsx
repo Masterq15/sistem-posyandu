@@ -17,6 +17,8 @@ import {
   Search,
 } from "lucide-react";
 
+import AnimatedNumber from "./AnimatedNumber";
+
 interface LansiaLaporanViewProps {
   rekapanLansia: RekapanLansia | null;
   filteredLansiaLogs: ItemRiwayat[];
@@ -28,6 +30,8 @@ interface LansiaLaporanViewProps {
   setSearchLansia: (search: string) => void;
   onNavigate?: (module: string, itemId?: string) => void;
   onSelectLog?: (log: ItemRiwayat) => void;
+  triggerKey?: string | number;
+  isUpdating?: boolean;
 }
 
 export default function LansiaLaporanView({
@@ -41,11 +45,15 @@ export default function LansiaLaporanView({
   setSearchLansia,
   onNavigate,
   onSelectLog,
+  triggerKey,
+  isUpdating,
 }: LansiaLaporanViewProps) {
   const totalPages = Math.max(1, Math.ceil(filteredLansiaLogs.length / pageSizeLansia));
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-5">
+    <div className={`bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-5 transition-all duration-300 ${
+      isUpdating ? "opacity-75" : "opacity-100"
+    }`}>
       {/* Header & Cakupan Keseluruhan */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-gray-100 pb-4">
         <div>
@@ -56,17 +64,25 @@ export default function LansiaLaporanView({
             </span>
           </div>
           <p className="text-xs text-saas-muted mt-1 font-medium flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-gray-700">{rekapanLansia?.totalTerdaftar || 0} Terdaftar</span>
+            <span className="font-bold text-gray-700">
+              <AnimatedNumber value={rekapanLansia?.totalTerdaftar || 0} triggerKey={triggerKey} /> Terdaftar
+            </span>
             <span>•</span>
-            <span className="font-bold text-teal-700">{rekapanLansia?.totalOrang || 0} Diperiksa</span>
+            <span className="font-bold text-teal-700">
+              <AnimatedNumber value={rekapanLansia?.totalOrang || 0} triggerKey={triggerKey} /> Diperiksa
+            </span>
             <span>•</span>
-            <span>Cakupan <strong className="text-gray-900">{rekapanLansia?.cakupanPersen ?? 0}%</strong></span>
+            <span>
+              Cakupan <strong className="text-gray-900"><AnimatedNumber value={rekapanLansia?.cakupanPersen ?? 0} decimals={1} suffix="%" triggerKey={triggerKey} /></strong>
+            </span>
             <span>•</span>
-            <span className="text-amber-700 font-semibold">{rekapanLansia?.tidakHadir || 0} Tidak Hadir</span>
+            <span className="text-amber-700 font-semibold">
+              <AnimatedNumber value={rekapanLansia?.tidakHadir || 0} triggerKey={triggerKey} /> Tidak Hadir
+            </span>
           </p>
         </div>
         <div className="text-xs font-semibold text-saas-muted bg-gray-50 border border-gray-200/80 px-3 py-1.5 rounded-lg w-fit">
-          Total Data: <strong className="text-saas-dark font-extrabold">{filteredLansiaLogs.length}</strong> Pemeriksaan ({rekapanLansia?.totalOrang || 0} Lansia)
+          Total Data: <strong className="text-saas-dark font-extrabold"><AnimatedNumber value={filteredLansiaLogs.length} triggerKey={triggerKey} /></strong> Pemeriksaan (<AnimatedNumber value={rekapanLansia?.totalOrang || 0} triggerKey={triggerKey} /> Lansia)
         </div>
       </div>
 
@@ -84,10 +100,10 @@ export default function LansiaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-saas-dark tracking-tight">
-                {rekapanLansia?.totalOrang || 0} <span className="text-xs font-normal text-saas-muted">Lansia</span>
+                <AnimatedNumber value={rekapanLansia?.totalOrang || 0} triggerKey={triggerKey} /> <span className="text-xs font-normal text-saas-muted">Lansia</span>
               </div>
               <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200/60 inline-block">
-                {rekapanLansia?.totalPemeriksaan || 0} Kunjungan
+                <AnimatedNumber value={rekapanLansia?.totalPemeriksaan || 0} triggerKey={triggerKey} /> Kunjungan
               </span>
             </div>
           </div>
@@ -102,10 +118,10 @@ export default function LansiaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-emerald-700 tracking-tight">
-                {rekapanLansia?.cakupanPersen ?? 0}%
+                <AnimatedNumber value={rekapanLansia?.cakupanPersen ?? 0} decimals={1} suffix="%" triggerKey={triggerKey} />
               </div>
               <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/60 inline-block">
-                Target Wilayah Tercapai
+                <AnimatedNumber value={rekapanLansia?.totalOrang || 0} triggerKey={triggerKey} /> dari {rekapanLansia?.totalTerdaftar || 0} Terdaftar
               </span>
             </div>
           </div>
@@ -124,7 +140,7 @@ export default function LansiaLaporanView({
               <div className={`text-2xl font-extrabold tracking-tight ${
                 (rekapanLansia?.perluFollowUp || 0) > 0 ? "text-rose-600" : "text-saas-dark"
               }`}>
-                {rekapanLansia?.perluFollowUp || 0} <span className="text-xs font-normal text-saas-muted">Lansia</span>
+                <AnimatedNumber value={rekapanLansia?.perluFollowUp || 0} triggerKey={triggerKey} /> <span className="text-xs font-normal text-saas-muted">Lansia</span>
               </div>
               <span className={`mt-1 px-2 py-0.5 rounded text-[10px] font-bold inline-block border ${
                 (rekapanLansia?.perluFollowUp || 0) > 0
@@ -146,12 +162,15 @@ export default function LansiaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-amber-700 tracking-tight">
-                {rekapanLansia?.kasusHipertensi || 0} <span className="text-xs font-normal text-saas-muted">Kasus</span>
+                <AnimatedNumber value={rekapanLansia?.kasusHipertensi || 0} triggerKey={triggerKey} /> <span className="text-xs font-normal text-saas-muted">Kasus</span>
               </div>
               <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/60 inline-block">
-                {rekapanLansia && rekapanLansia.totalPemeriksaan > 0
-                  ? ((rekapanLansia.kasusHipertensi / rekapanLansia.totalPemeriksaan) * 100).toFixed(1)
-                  : "0"}% Derajat 1 &amp; 2
+                <AnimatedNumber
+                  value={rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? (rekapanLansia.kasusHipertensi / rekapanLansia.totalPemeriksaan) * 100 : 0}
+                  decimals={1}
+                  suffix="%"
+                  triggerKey={triggerKey}
+                /> Derajat 1 &amp; 2
               </span>
             </div>
           </div>
@@ -166,12 +185,15 @@ export default function LansiaLaporanView({
             </div>
             <div className="mt-2">
               <div className="text-2xl font-extrabold text-purple-700 tracking-tight">
-                {rekapanLansia?.kasusDiabetes || 0} <span className="text-xs font-normal text-saas-muted">Kasus</span>
+                <AnimatedNumber value={rekapanLansia?.kasusDiabetes || 0} triggerKey={triggerKey} /> <span className="text-xs font-normal text-saas-muted">Kasus</span>
               </div>
               <span className="mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200/60 inline-block">
-                {rekapanLansia && rekapanLansia.totalPemeriksaan > 0
-                  ? ((rekapanLansia.kasusDiabetes / rekapanLansia.totalPemeriksaan) * 100).toFixed(1)
-                  : "0"}% GDS ≥ 200 mg/dL
+                <AnimatedNumber
+                  value={rekapanLansia && rekapanLansia.totalPemeriksaan > 0 ? (rekapanLansia.kasusDiabetes / rekapanLansia.totalPemeriksaan) * 100 : 0}
+                  decimals={1}
+                  suffix="%"
+                  triggerKey={triggerKey}
+                /> GDS ≥ 200 mg/dL
               </span>
             </div>
           </div>
@@ -548,7 +570,7 @@ export default function LansiaLaporanView({
                 <h5 className="text-xs font-bold text-gray-900">Tindakan Medis &amp; Edukasi</h5>
               </div>
               <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
-                {rekapanLansia?.totalMendapatTindakan || 0} Ditindaklanjuti
+                <AnimatedNumber value={rekapanLansia?.totalMendapatTindakan || 0} triggerKey={triggerKey} /> Ditindaklanjuti
               </span>
             </div>
 
@@ -591,7 +613,7 @@ export default function LansiaLaporanView({
                 Tier 4 — Lansia Perlu Follow-Up &amp; Perhatian Khusus
               </h4>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800">
-                {rekapanLansia?.lansiaPerluPerhatianList?.length || 0} Kasus
+                <AnimatedNumber value={rekapanLansia?.lansiaPerluPerhatianList?.length || 0} triggerKey={triggerKey} /> Kasus
               </span>
             </div>
             <p className="text-[11px] text-gray-500 mt-0.5">

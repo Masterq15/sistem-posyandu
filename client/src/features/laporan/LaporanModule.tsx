@@ -142,6 +142,7 @@ export default function LaporanModule({
     }
     return false;
   });
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
@@ -171,6 +172,7 @@ export default function LaporanModule({
       setRekapanLoading(true);
     }
 
+    setIsFetchingData(true);
     try {
       const res = await riwayatApi.getAll(posyanduId, {
         tipe: "semua",
@@ -188,6 +190,7 @@ export default function LaporanModule({
       if (!cached) setLogs([]);
     } finally {
       setRekapanLoading(false);
+      setIsFetchingData(false);
     }
   };
 
@@ -339,6 +342,8 @@ export default function LaporanModule({
     );
   }
 
+  const filterKey = `${filterCategory}_${filterMonth}_${filterYear}_${filterFromDate}_${filterToDate}_${logs.length}`;
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 space-y-6">
       <PageHelmet
@@ -389,7 +394,7 @@ export default function LaporanModule({
           setSearchBalita("");
           setSearchLansia("");
         }}
-        isLoading={rekapanLoading}
+        isLoading={rekapanLoading || isFetchingData}
         hasData={hasData}
         onOpenPreview={handleOpenPreview}
         onExportExcel={handleExportExcel}
@@ -409,6 +414,8 @@ export default function LaporanModule({
           searchBalita={searchBalita}
           setSearchBalita={setSearchBalita}
           onNavigate={onNavigate}
+          triggerKey={filterKey}
+          isUpdating={isFetchingData}
         />
       )}
 
@@ -424,6 +431,8 @@ export default function LaporanModule({
           searchLansia={searchLansia}
           setSearchLansia={setSearchLansia}
           onNavigate={onNavigate}
+          triggerKey={filterKey}
+          isUpdating={isFetchingData}
         />
       )}
 
