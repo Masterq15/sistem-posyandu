@@ -2,10 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { formatTanggalIndonesia, formatTanggalInput } from "../../lib/dateUtils";
-import Modal from "../../components/Modal";
-import LansiaIcon from "../../components/LansiaIcon";
-import BalitaIcon from "../../components/BalitaIcon";
-import { RiwayatTableSkeleton } from "../../components/Skeleton";
 import { riwayatApi, ItemRiwayat, balitaApi, lansiaApi, PeriodePelayanan } from "@/lib/api";
 import { SearchIndex } from "../../lib/searchIndex";
 import { clientDataCache } from "../../lib/dataCache";
@@ -17,40 +13,13 @@ import {
   convertStatusTbUToCode,
   convertStatusBbTbToCode,
 } from "../../lib/zScoreCalculator";
-import {
-  Search,
-  Heart,
-  CheckCircle2,
-  AlertCircle,
-  Clock,
-  Calendar,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  FileSpreadsheet,
-  LineChart as LineChartIcon,
-  Edit2,
-  Trash2,
-  Eye,
-  Activity,
-  User,
-  Users,
-  RotateCcw,
-  X,
-  Filter
-} from "lucide-react";
-import ActionMenu from "@/components/ActionMenu";
 import PageHelmet from "@/components/PageHelmet";
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend
-} from "recharts";
+import RiwayatFilterBar from "./components/RiwayatFilterBar";
+import RiwayatTrendChart from "./components/RiwayatTrendChart";
+import RiwayatTable from "./components/RiwayatTable";
+import RiwayatDetailModal from "./components/RiwayatDetailModal";
+import RiwayatModals from "./components/RiwayatModals";
+
 
 interface RiwayatModuleProps {
   posyanduId: string;
@@ -378,13 +347,19 @@ export default function RiwayatModule({ posyanduId, activePeriode, onNavigate }:
   const prevRecord = participantHistory.length > 1 ? participantHistory[participantHistory.length - 2] : null;
 
   // Trend Kenaikan / Penurunan BB & TB
-  const bbLatest = latestRecord?.beratBadan ?? 0;
-  const bbPrev = prevRecord?.beratBadan ?? 0;
-  const bbDiff = prevRecord && latestRecord ? Number((bbLatest - bbPrev).toFixed(2)) : 0;
+  const rawBbLatest = Number(latestRecord?.beratBadan);
+  const bbLatest = isNaN(rawBbLatest) ? 0 : rawBbLatest;
+  const rawBbPrev = Number(prevRecord?.beratBadan);
+  const bbPrev = isNaN(rawBbPrev) ? 0 : rawBbPrev;
+  const rawBbDiff = prevRecord && latestRecord ? bbLatest - bbPrev : 0;
+  const bbDiff = isNaN(rawBbDiff) ? 0 : Number(rawBbDiff.toFixed(2));
 
-  const tbLatest = latestRecord?.tinggiBadan ?? 0;
-  const tbPrev = prevRecord?.tinggiBadan ?? 0;
-  const tbDiff = prevRecord && latestRecord ? Number((tbLatest - tbPrev).toFixed(2)) : 0;
+  const rawTbLatest = Number(latestRecord?.tinggiBadan);
+  const tbLatest = isNaN(rawTbLatest) ? 0 : rawTbLatest;
+  const rawTbPrev = Number(prevRecord?.tinggiBadan);
+  const tbPrev = isNaN(rawTbPrev) ? 0 : rawTbPrev;
+  const rawTbDiff = prevRecord && latestRecord ? tbLatest - tbPrev : 0;
+  const tbDiff = isNaN(rawTbDiff) ? 0 : Number(rawTbDiff.toFixed(2));
 
   const monthNames = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -426,1059 +401,120 @@ export default function RiwayatModule({ posyanduId, activePeriode, onNavigate }:
         title="Riwayat & Laporan"
         description="Laporan riwayat pemeriksaan bulanan terpadu dengan fitur cetak Excel dan PDF."
       />
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-saas-dark tracking-tight">Riwayat Pemeriksaan Bulanan</h2>
-          <p className="text-xs sm:text-sm text-saas-muted mt-0.5">
-            Data terpadu perkembangan kesehatan Balita &amp; Lansia beserta statistik grafik bulanan.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-          {/* Switch Mode Tabel / Grafik */}
-          <div className="bg-gray-100 p-1 rounded-xl flex gap-1 w-full sm:w-auto">
-            <button
-              onClick={() => setViewMode("tabel")}
-              className={`flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                viewMode === "tabel"
-                  ? "bg-white text-saas-dark shadow-sm"
-                  : "text-saas-muted hover:text-saas-dark"
-              }`}
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" /> Tabel Riwayat
-            </button>
-            <button
-              onClick={() => setViewMode("grafik")}
-              className={`flex-1 sm:flex-none justify-center px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                viewMode === "grafik"
-                  ? "bg-white text-saas-dark shadow-sm"
-                  : "text-saas-muted hover:text-saas-dark"
-              }`}
-            >
-              <LineChartIcon className="w-3.5 h-3.5 shrink-0" /> Grafik Trend
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* 1. Header & Filters */}
+      <RiwayatFilterBar
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        query={query}
+        setQuery={setQuery}
+        typeFilter={typeFilter}
+        setTypeFilter={setTypeFilter}
+        selectedBulan={selectedBulan}
+        setSelectedBulan={setSelectedBulan}
+        selectedTahun={selectedTahun}
+        setSelectedTahun={setSelectedTahun}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        monthNames={monthNames}
+        yearOptions={yearOptions}
+        activePeriode={activePeriode}
+        handleSetCurrentPeriod={handleSetCurrentPeriod}
+        handleResetFilters={handleResetFilters}
+        isFilterActive={isFilterActive}
+      />
 
-      {/* Filters Card - Clean & Intuitive Layout */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100/80 shadow-soft-card space-y-3.5">
-        {/* Row 1: Search Utama + Kategori Segmented Control */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-          {/* Search Input dengan Clear Button */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-saas-muted w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Cari nama warga, parameter, atau petugas..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-10 pr-9 py-2 bg-gray-50/90 hover:bg-gray-50 focus:bg-white border border-gray-200/80 focus:border-saas-primary rounded-xl text-sm text-saas-dark placeholder-saas-muted focus:outline-none focus:ring-2 focus:ring-saas-primary/10 transition-all font-medium"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-saas-muted hover:text-saas-dark rounded-md transition-colors cursor-pointer"
-                title="Hapus kata pencarian"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+      {/* 2. Global Trend Chart View */}
+      {viewMode === "grafik" && <RiwayatTrendChart chartData={chartData} />}
 
-          {/* Segmented Control Kategori */}
-          <div className="inline-flex bg-gray-100/90 p-1 rounded-xl gap-1 shrink-0 self-start sm:self-auto">
-            {(["semua", "Balita", "Lansia"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTypeFilter(t)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-                  typeFilter === t
-                    ? "bg-white text-saas-dark shadow-sm"
-                    : "text-saas-muted hover:text-saas-dark"
-                }`}
-              >
-                {t === "Balita" ? (
-                  <BalitaIcon className="w-3.5 h-3.5" />
-                ) : t === "Lansia" ? (
-                  <LansiaIcon className="w-3.5 h-3.5" />
-                ) : (
-                  <Users className="w-3.5 h-3.5" />
-                )}
-                {t === "semua" ? "Semua Kategori" : t}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Row 2: Filter Refinement (Periode + Kondisi + Reset Filter) */}
-        <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            {/* Periode Selector (Bulan & Tahun) */}
-            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200/80 rounded-xl px-2.5 py-1.5">
-              <Calendar className="w-3.5 h-3.5 text-saas-muted shrink-0" />
-              <span className="font-semibold text-saas-muted mr-0.5">Periode:</span>
-              <select
-                value={selectedBulan}
-                onChange={(e) => setSelectedBulan(e.target.value === "semua" ? "semua" : Number(e.target.value))}
-                className="bg-transparent font-bold text-saas-dark focus:outline-none cursor-pointer"
-              >
-                <option value="semua">Semua Bulan</option>
-                {monthNames.map((m, idx) => (
-                  <option key={m} value={idx + 1}>{m}</option>
-                ))}
-              </select>
-              <span className="text-gray-300">/</span>
-              <select
-                value={selectedTahun}
-                onChange={(e) => setSelectedTahun(e.target.value === "semua" ? "semua" : Number(e.target.value))}
-                className="bg-transparent font-bold text-saas-dark focus:outline-none cursor-pointer"
-              >
-                <option value="semua">Semua Tahun</option>
-                {yearOptions.map((y) => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Tombol Cepat: Periode Ini */}
-            {activePeriode && (
-              <button
-                type="button"
-                onClick={handleSetCurrentPeriod}
-                className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all border cursor-pointer ${
-                  selectedBulan === activePeriode.bulan && selectedTahun === activePeriode.tahun
-                    ? "bg-saas-primary/10 text-saas-primary border-saas-primary/30"
-                    : "bg-white text-saas-muted border-gray-200/80 hover:bg-gray-50 hover:text-saas-dark"
-                }`}
-                title="Tampilkan data periode posyandu aktif saat ini"
-              >
-                Periode Ini ({monthNames[activePeriode.bulan - 1].slice(0, 3)} {activePeriode.tahun})
-              </button>
-            )}
-
-            {/* Filter Kondisi Hasil */}
-            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200/80 rounded-xl px-2.5 py-1.5">
-              <Activity className="w-3.5 h-3.5 text-saas-muted shrink-0" />
-              <span className="font-semibold text-saas-muted mr-0.5">Kondisi:</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="bg-transparent font-bold text-saas-dark focus:outline-none cursor-pointer"
-              >
-                <option value="semua">Semua Kondisi</option>
-                <option value="success">🟢 Normal / Sehat</option>
-                <option value="warning">🟡 Perlu Perhatian / Rawan</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Reset Filter Button */}
-          {isFilterActive && (
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="px-2.5 py-1.5 text-xs font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100/70 border border-rose-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ml-auto"
-              title="Kembalikan semua filter ke pengaturan awal"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Reset Filter
-            </button>
-          )}
-        </div>
-
-        {/* Row 3: Active Filter Chips */}
-        {isFilterActive && (
-          <div className="pt-2 flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="text-saas-muted font-medium text-[11px] flex items-center gap-1">
-              <Filter className="w-3 h-3" /> Filter aktif:
-            </span>
-            {query.trim() && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 text-saas-dark text-[11px] font-semibold">
-                Kata: &ldquo;{query}&rdquo;
-                <button type="button" onClick={() => setQuery("")} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-            {typeFilter !== "semua" && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 border border-teal-200/50 text-[11px] font-semibold">
-                Kategori: {typeFilter}
-                <button type="button" onClick={() => setTypeFilter("semua")} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-            {(selectedBulan !== "semua" || selectedTahun !== "semua") && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/50 text-[11px] font-semibold">
-                Periode: {selectedBulan !== "semua" ? monthNames[Number(selectedBulan) - 1] : ""} {selectedTahun !== "semua" ? selectedTahun : "Semua Tahun"}
-                <button type="button" onClick={() => { setSelectedBulan("semua"); setSelectedTahun("semua"); }} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-            {statusFilter !== "semua" && (
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${
-                statusFilter === "success" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"
-              }`}>
-                Kondisi: {statusFilter === "success" ? "Normal / Sehat" : "Perlu Perhatian / Rawan"}
-                <button type="button" onClick={() => setStatusFilter("semua")} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* VIEW: GRAFIK TREND GLOBAL */}
-      {viewMode === "grafik" && (
-        <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-base text-saas-dark flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-saas-primary" /> Trend Jumlah Pemeriksaan &amp; Temuan Risiko
-              </h3>
-              <p className="text-xs text-saas-muted mt-0.5">
-                Grafik pergerakan jumlah kunjungan Balita, Lansia, serta temuan gizi/penyakit rawan dari waktu ke waktu.
-              </p>
-            </div>
-          </div>
-
-          <div className="h-80 w-full pt-4">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                  <XAxis dataKey="tanggal" tick={{ fontSize: 12 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#FFF",
-                      borderRadius: "12px",
-                      border: "1px solid #E5E7EB",
-                      fontSize: "12px",
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="balita"
-                    name="Pemeriksaan Balita"
-                    stroke="#0D9488"
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="lansia"
-                    name="Pemeriksaan Lansia"
-                    stroke="#3B82F6"
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="warning"
-                    name="Kasus Rawan / Rujukan"
-                    stroke="#EF4444"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-xs text-saas-muted">
-                Belum ada data grafik untuk ditampilkan.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* VIEW: TABEL RIWAYAT */}
+      {/* 3. History Table View */}
       {viewMode === "tabel" && (
-        <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-4 sm:p-6 overflow-hidden">
-          {loading ? (
-            <RiwayatTableSkeleton rows={7} />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-100 text-xs font-bold text-saas-muted uppercase tracking-wider">
-                    <th className="pb-3 px-3 whitespace-nowrap">Tanggal Periksa</th>
-                    <th className="pb-3 px-3 whitespace-nowrap">Nama Lengkap</th>
-                    <th className="pb-3 px-3 whitespace-nowrap">Kategori</th>
-                    <th className="pb-3 px-3 whitespace-nowrap">Parameter Fisik &amp; Medis</th>
-                    <th className="pb-3 px-3 whitespace-nowrap">Kondisi Hasil</th>
-                    <th className="pb-3 px-3 whitespace-nowrap">Petugas</th>
-                    <th className="pb-3 px-3 text-right whitespace-nowrap">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(() => {
-                    const filteredLogs = query.trim()
-                      ? riwayatIndexRef.current.search(query)
-                      : logs;
-
-                    const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
-                    const paginatedLogs = filteredLogs.slice(
-                      (currentPage - 1) * itemsPerPage,
-                      currentPage * itemsPerPage
-                    );
-
-                    return paginatedLogs.length > 0 ? (
-                      paginatedLogs.map((log) => (
-                        <tr
-                          key={log.id}
-                          className="border-b border-gray-50 last:border-b-0 hover:bg-gray-50/40 transition-colors text-sm"
-                        >
-                          <td className="py-4 px-3 font-bold text-saas-dark whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-3.5 h-3.5 text-saas-muted shrink-0" />
-                              {formatTanggalIndonesia(log.tanggal)}
-                            </div>
-                          </td>
-                          <td className="py-4 px-3 whitespace-nowrap">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (onNavigate && log.pasienId) {
-                                  onNavigate(log.tipe, log.pasienId);
-                                } else {
-                                  openDetailModal(log);
-                                }
-                              }}
-                              className="font-extrabold text-saas-dark hover:text-saas-primary text-left transition-colors cursor-pointer hover:underline"
-                              title={`Lihat Profil ${log.nama}`}
-                            >
-                              {log.nama}
-                            </button>
-                          </td>
-                          <td className="py-4 px-3 font-semibold text-saas-muted whitespace-nowrap">
-                            <div className="flex items-center gap-1.5">
-                              {log.tipe === "Balita" ? (
-                                <BalitaIcon className="w-3.5 h-3.5 text-saas-primary shrink-0" />
-                              ) : (
-                                <LansiaIcon className="w-3.5 h-3.5 shrink-0" />
-                              )}
-                              {log.tipe}
-                            </div>
-                          </td>
-                          <td className="py-4 px-3 text-xs font-semibold text-saas-dark/95 leading-normal max-w-xs truncate whitespace-nowrap">
-                            {log.parameter}
-                          </td>
-                          <td className="py-4 px-3 whitespace-nowrap">
-                            <span
-                              className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
-                                log.statusType === "success"
-                                  ? "bg-trend-successBg text-trend-successText"
-                                  : log.statusType === "warning"
-                                  ? "bg-trend-dangerBg text-trend-dangerText"
-                                  : "bg-blue-50 text-saas-primary"
-                              }`}
-                            >
-                              {log.statusType === "success" && <CheckCircle2 className="w-3 h-3 shrink-0" />}
-                              {log.statusType === "warning" && <AlertCircle className="w-3 h-3 shrink-0" />}
-                              {log.statusType === "info" && <Clock className="w-3 h-3 shrink-0" />}
-                              {log.status}
-                            </span>
-                          </td>
-                          <td className="py-4 px-3 text-xs text-saas-muted font-bold whitespace-nowrap">{log.petugas}</td>
-                          <td className="py-4 px-3 text-right whitespace-nowrap">
-                            <ActionMenu
-                              items={[
-                                ...(onNavigate && log.pasienId ? [{
-                                  label: `Lihat Profil ${log.tipe}`,
-                                  icon: <User className="w-4 h-4" />,
-                                  onClick: () => onNavigate(log.tipe, log.pasienId)
-                                }] : []),
-                                {
-                                  label: "Grafik & Detail",
-                                  icon: <Eye className="w-4 h-4" />,
-                                  onClick: () => openDetailModal(log)
-                                },
-                                {
-                                  label: "Edit Record",
-                                  icon: <Edit2 className="w-4 h-4" />,
-                                  onClick: () => openEditModal(log)
-                                },
-                                {
-                                  label: "Hapus Record",
-                                  icon: <Trash2 className="w-4 h-4" />,
-                                  variant: "danger",
-                                  onClick: () => openDeleteModal(log)
-                                }
-                              ]}
-                            />
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="py-12 text-center text-xs text-saas-muted font-medium whitespace-nowrap">
-                          Tidak ada catatan riwayat pemeriksaan yang cocok.
-                        </td>
-                      </tr>
-                    );
-                  })()}
-                </tbody>
-              </table>
-
-              {/* Pagination Controls */}
-              {(() => {
-                const filteredLogs = logs.filter((log) => {
-                  if (!query) return true;
-                  const q = query.toLowerCase();
-                  return (
-                    log.nama.toLowerCase().includes(q) ||
-                    log.parameter.toLowerCase().includes(q) ||
-                    log.status.toLowerCase().includes(q) ||
-                    log.petugas.toLowerCase().includes(q)
-                  );
-                });
-                const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
-
-                return filteredLogs.length > 0 ? (
-                  <div className="pt-4 mt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-saas-muted font-medium">
-                    <div className="flex items-center gap-2">
-                      <span>Tampilkan</span>
-                      <select
-                        value={itemsPerPage}
-                        onChange={(e) => {
-                          setItemsPerPage(Number(e.target.value));
-                          setCurrentPage(1);
-                        }}
-                        className="px-2 py-1 bg-gray-50 border border-gray-200 rounded-md font-bold text-saas-dark focus:outline-none focus:border-saas-primary"
-                      >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={20}>20</option>
-                        <option value={50}>50</option>
-                      </select>
-                      <span>data per halaman</span>
-                      <span className="ml-2 font-medium">
-                        (Menampilkan {filteredLogs.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredLogs.length)} dari {filteredLogs.length} data)
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1.5 rounded-md border border-gray-200 font-bold hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                      >
-                        Sebelumnya
-                      </button>
-                      <span className="px-3 py-1.5 font-bold text-saas-dark">
-                        Halaman {currentPage} dari {totalPages || 1}
-                      </span>
-                      <button
-                        onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                        disabled={currentPage >= totalPages}
-                        className="px-3 py-1.5 rounded-md border border-gray-200 font-bold hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                      >
-                        Selanjutnya
-                      </button>
-                    </div>
-                  </div>
-                ) : null;
-              })()}
-            </div>
-          )}
-        </div>
+        <RiwayatTable
+          loading={loading}
+          logs={logs}
+          query={query}
+          riwayatIndexRef={riwayatIndexRef}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          itemsPerPage={itemsPerPage}
+          setItemsPerPage={setItemsPerPage}
+          formatTanggalIndonesia={formatTanggalIndonesia}
+          onNavigate={onNavigate}
+          openDetailModal={openDetailModal}
+          openEditModal={openEditModal}
+          openDeleteModal={openDeleteModal}
+        />
       )}
 
-      {/* ========================================================================= */}
-      {/* MODAL DETAIL & GRAFIK PERKEMBANGAN PESERTA (1 BALITA / LANSIA) */}
-      {/* ========================================================================= */}
-      <Modal
+      {/* 4. Patient Growth Trend & Exam Detail Modal */}
+      <RiwayatDetailModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        title={`Grafik Perkembangan & Riwayat: ${selectedDetailLog?.nama || ""}`}
-      >
-        {selectedDetailLog && (
-          <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-1">
-            {/* Header Identity Banner */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 via-teal-500/5 to-transparent border border-teal-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-md ${
-                  selectedDetailLog.tipe === "Balita" ? "bg-saas-primary shadow-teal-500/20" : "bg-indigo-600 shadow-indigo-500/20"
-                }`}>
-                  {selectedDetailLog.tipe === "Balita" ? <BalitaIcon className="w-6 h-6" gender={selectedDetailLog.jenisKelamin} /> : <LansiaIcon className="w-6 h-6" gender={selectedDetailLog.jenisKelamin} />}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-extrabold text-saas-dark">{selectedDetailLog.nama}</h3>
-                    {onNavigate && selectedDetailLog.pasienId && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsDetailModalOpen(false);
-                          onNavigate(selectedDetailLog.tipe, selectedDetailLog.pasienId);
-                        }}
-                        className="text-xs font-bold text-saas-primary hover:underline cursor-pointer"
-                        title={`Lihat Profil Lengkap ${selectedDetailLog.nama}`}
-                      >
-                        (Lihat Profil &rarr;)
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-xs text-saas-muted font-semibold mt-0.5">
-                    Kategori: <strong className="text-saas-dark">{selectedDetailLog.tipe}</strong> | Total Periksa: <strong className="text-saas-primary">{participantHistory.length}x</strong>
-                  </p>
-                </div>
-              </div>
-              <span className="px-3 py-1 bg-white border border-gray-200 text-saas-dark font-extrabold text-xs rounded-full shadow-2xs self-start sm:self-auto">
-                Status: {latestRecord?.status || selectedDetailLog.status}
-              </span>
-            </div>
+        selectedDetailLog={selectedDetailLog}
+        participantHistory={participantHistory}
+        latestRecord={latestRecord}
+        prevRecord={prevRecord}
+        bbLatest={bbLatest}
+        bbDiff={bbDiff}
+        tbLatest={tbLatest}
+        tbDiff={tbDiff}
+        onNavigate={onNavigate}
+      />
 
-            {/* TREND INDICATOR BANNER (Kenaikan / Penurunan) */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-saas-muted">
-                Ringkasan Trend Perkembangan Terakhir
-              </h4>
+      {/* 5. Edit & Delete Action Modals */}
+      <RiwayatModals
+        isEditModalOpen={isEditModalOpen}
+        setIsEditModalOpen={setIsEditModalOpen}
+        isDeleteModalOpen={isDeleteModalOpen}
+        setIsDeleteModalOpen={setIsDeleteModalOpen}
+        selectedLog={selectedLog}
+        handleEditSubmit={handleEditSubmit}
+        handleDeleteSubmit={handleDeleteSubmit}
+        formError={formError}
+        saving={saving}
+        bDate={bDate}
+        setBDate={setBDate}
+        bBB={bBB}
+        setBBB={setBBB}
+        bTB={bTB}
+        setBTB={setBTB}
+        bLK={bLK}
+        setBLK={setBLK}
+        bLiLA={bLiLA}
+        setBLiLA={setBLiLA}
+        bVitA={bVitA}
+        setBVitA={setBVitA}
+        bAsi={bAsi}
+        setBAsi={setBAsi}
+        bCacing={bCacing}
+        setBCacing={setBCacing}
+        bImunisasi={bImunisasi}
+        setBImunisasi={setBImunisasi}
+        bPetugas={bPetugas}
+        setBPetugas={setBPetugas}
+        lDate={lDate}
+        setLDate={setLDate}
+        lBB={lBB}
+        setLBB={setLBB}
+        lTB={lTB}
+        setLTB={setLTB}
+        lSistol={lSistol}
+        setLSistol={setLSistol}
+        lDiastol={lDiastol}
+        setLDiastol={setLDiastol}
+        lGds={lGds}
+        setLGds={setLGds}
+        lLp={lLp}
+        setLLp={setLLp}
+        lKol={lKol}
+        setLKol={setLKol}
+        lUrat={lUrat}
+        setLUrat={setLUrat}
+        lKeluhan={lKeluhan}
+        setLKeluhan={setLKeluhan}
+        lTindakan={lTindakan}
+        setLTindakan={setLTindakan}
+      />
 
-              {selectedDetailLog.tipe === "Balita" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Berat Badan Trend Box */}
-                  <div className="p-3.5 bg-gray-50 border border-gray-150 rounded-xl space-y-1">
-                    <span className="text-[10px] font-bold text-saas-muted uppercase">Berat Badan (BB)</span>
-                    <p className="text-base font-extrabold text-saas-dark">{bbLatest} kg</p>
-                    {prevRecord ? (
-                      <div className="pt-0.5">
-                        {bbDiff > 0 ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full">
-                            <TrendingUp className="w-3 h-3" /> Naik +{bbDiff} kg
-                          </span>
-                        ) : bbDiff < 0 ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-red-700 bg-red-100/70 px-2 py-0.5 rounded-full">
-                            <TrendingDown className="w-3 h-3" /> Turun {bbDiff} kg
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
-                            <Minus className="w-3 h-3" /> Stagnan (0 kg)
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-[10px] text-saas-muted font-bold">Pemeriksaan Pertama</span>
-                    )}
-                  </div>
-
-                  {/* Tinggi Badan Trend Box */}
-                  <div className="p-3.5 bg-gray-50 border border-gray-150 rounded-xl space-y-1">
-                    <span className="text-[10px] font-bold text-saas-muted uppercase">Tinggi Badan (TB)</span>
-                    <p className="text-base font-extrabold text-saas-dark">{tbLatest} cm</p>
-                    {prevRecord ? (
-                      <div className="pt-0.5">
-                        {tbDiff > 0 ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full">
-                            <TrendingUp className="w-3 h-3" /> Tumbuh +{tbDiff} cm
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
-                            <Minus className="w-3 h-3" /> Tetap ({tbDiff} cm)
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-[10px] text-saas-muted font-bold">Pemeriksaan Pertama</span>
-                    )}
-                  </div>
-
-                  {/* Status Z-Score Box */}
-                  <div className="p-3.5 bg-teal-50/50 border border-teal-200/80 rounded-xl space-y-1">
-                    <span className="text-[10px] font-bold text-saas-primary uppercase">Status Gizi (WHO)</span>
-                    <p className="text-xs font-extrabold text-teal-900 leading-snug">
-                      {latestRecord?.statusBbU ? `BB/U: ${latestRecord.statusBbU}` : "Normal"}
-                    </p>
-                    <p className="text-[10px] font-bold text-teal-700">
-                      TB/U: {latestRecord?.statusTbU || "N"} | BB/TB: {latestRecord?.statusBbTb || "N"}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Tekanan Darah Box */}
-                  <div className="p-3.5 bg-gray-50 border border-gray-150 rounded-xl space-y-1">
-                    <span className="text-[10px] font-bold text-saas-muted uppercase">Tekanan Darah (TD)</span>
-                    <p className="text-base font-extrabold text-saas-dark">
-                      {latestRecord?.tekananDarahSistol || 0}/{latestRecord?.tekananDarahDiastol || 0} <span className="text-xs font-normal">mmHg</span>
-                    </p>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      (latestRecord?.tekananDarahSistol || 0) >= 140 ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"
-                    }`}>
-                      {(latestRecord?.tekananDarahSistol || 0) >= 140 ? "Hipertensi" : "Normal"}
-                    </span>
-                  </div>
-
-                  {/* Gula Darah Box */}
-                  <div className="p-3.5 bg-gray-50 border border-gray-150 rounded-xl space-y-1">
-                    <span className="text-[10px] font-bold text-saas-muted uppercase">Gula Darah (GDS)</span>
-                    <p className="text-base font-extrabold text-saas-dark">
-                      {latestRecord?.gulaDarahSewaktu || 0} <span className="text-xs font-normal">mg/dL</span>
-                    </p>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      (latestRecord?.gulaDarahSewaktu || 0) >= 200 ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"
-                    }`}>
-                      {(latestRecord?.gulaDarahSewaktu || 0) >= 200 ? "GDS Tinggi" : "Normal"}
-                    </span>
-                  </div>
-
-                  {/* Kolesterol & Asam Urat Box */}
-                  <div className="p-3.5 bg-indigo-50/50 border border-indigo-200/80 rounded-xl space-y-1">
-                    <span className="text-[10px] font-bold text-indigo-700 uppercase">Kolesterol / Asam Urat</span>
-                    <p className="text-xs font-extrabold text-indigo-950">
-                      Kol: {latestRecord?.kolesterol || "-"} | Urat: {latestRecord?.asamUrat || "-"}
-                    </p>
-                    <p className="text-[10px] font-bold text-indigo-700">LP: {latestRecord?.lingkarPerut || "-"} cm</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* GRAFIK PERKEMBANGAN PESERTA (LINE CHART) */}
-            <div className="bg-gray-50/70 p-4 rounded-2xl border border-gray-200/80 space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-extrabold text-saas-dark flex items-center gap-1.5">
-                  <LineChartIcon className="w-4 h-4 text-saas-primary" />
-                  Grafik Perkembangan {selectedDetailLog.tipe === "Balita" ? "Berat & Tinggi Badan" : "Tekanan Darah & GDS"}
-                </h4>
-                <span className="text-[10px] font-bold text-saas-muted bg-white px-2 py-0.5 rounded-full border border-gray-200">
-                  {participantHistory.length} Titik Data
-                </span>
-              </div>
-
-              <div className="h-64 w-full">
-                {participantHistory.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={participantHistory}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                      <XAxis dataKey="tanggal" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#FFF",
-                          borderRadius: "12px",
-                          border: "1px solid #E5E7EB",
-                          fontSize: "12px",
-                        }}
-                      />
-                      <Legend />
-                      {selectedDetailLog.tipe === "Balita" ? (
-                        <>
-                          <Line
-                            type="monotone"
-                            dataKey="beratBadan"
-                            name="Berat Badan (kg)"
-                            stroke="#0D9488"
-                            strokeWidth={3}
-                            dot={{ r: 5 }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="tinggiBadan"
-                            name="Tinggi Badan (cm)"
-                            stroke="#3B82F6"
-                            strokeWidth={3}
-                            dot={{ r: 5 }}
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <Line
-                            type="monotone"
-                            dataKey="tekananDarahSistol"
-                            name="TD Sistol (mmHg)"
-                            stroke="#EF4444"
-                            strokeWidth={3}
-                            dot={{ r: 5 }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="tekananDarahDiastol"
-                            name="TD Diastol (mmHg)"
-                            stroke="#3B82F6"
-                            strokeWidth={2}
-                            dot={{ r: 4 }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="gulaDarahSewaktu"
-                            name="GDS (mg/dL)"
-                            stroke="#F59E0B"
-                            strokeWidth={2}
-                            strokeDasharray="4 4"
-                            dot={{ r: 4 }}
-                          />
-                        </>
-                      )}
-                    </LineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-xs text-saas-muted">
-                    Belum ada riwayat grafik untuk peserta ini.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* TABEL HISTORI PERIKSA INDIVIDUAL */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-extrabold uppercase tracking-wider text-saas-muted">
-                Riwayat Histori Pemeriksaan Lengkap ({participantHistory.length})
-              </h4>
-              <div className="overflow-x-auto border border-gray-150 rounded-xl">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-gray-100/70 border-b border-gray-200 font-bold text-saas-dark">
-                      <th className="py-2.5 px-3">Tanggal</th>
-                      <th className="py-2.5 px-3">Parameter Ukur</th>
-                      <th className="py-2.5 px-3">Kondisi / Status</th>
-                      <th className="py-2.5 px-3">Petugas</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {participantHistory.map((item) => (
-                      <tr key={item.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
-                        <td className="py-2.5 px-3 font-bold text-saas-dark">{item.tanggal}</td>
-                        <td className="py-2.5 px-3 font-medium text-saas-dark">{item.parameter}</td>
-                        <td className="py-2.5 px-3 font-bold">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                            item.statusType === "warning" ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"
-                          }`}>
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-saas-muted font-semibold">{item.petugas || "Kader Posyandu"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-3 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={() => setIsDetailModalOpen(false)}
-                className="px-5 py-2 bg-saas-primary text-white text-xs font-bold rounded-xl shadow-sm hover:bg-teal-600 transition-colors"
-              >
-                Tutup Detail
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* MODAL EDIT PEMERIKSAAN (BALITA / LANSIA) */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title={`Edit Riwayat Periksa - ${selectedLog?.nama || ""}`}
-      >
-        <form onSubmit={handleEditSubmit} className="space-y-4">
-          {formError && (
-            <div className="p-3 bg-red-50 text-trend-dangerText border border-red-100 rounded-lg text-xs font-bold flex gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" /> {formError}
-            </div>
-          )}
-
-          {selectedLog?.tipe === "Balita" ? (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Tanggal Periksa</label>
-                  <input
-                    type="date"
-                    required
-                    value={bDate}
-                    onChange={(e) => setBDate(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Berat Badan (kg)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={bBB}
-                    onChange={(e) => setBBB(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Tinggi Badan (cm)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={bTB}
-                    onChange={(e) => setBTB(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Lingkar Kepala (cm)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={bLK}
-                    onChange={(e) => setBLK(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">LiLA (cm)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={bLiLA}
-                    onChange={(e) => setBLiLA(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                <label className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-150 rounded text-xs font-semibold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={bVitA}
-                    onChange={(e) => setBVitA(e.target.checked)}
-                    className="w-4 h-4 text-saas-primary rounded"
-                  />
-                  Vitamin A
-                </label>
-                <label className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-150 rounded text-xs font-semibold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={bAsi}
-                    onChange={(e) => setBAsi(e.target.checked)}
-                    className="w-4 h-4 text-saas-primary rounded"
-                  />
-                  ASI Eksklusif
-                </label>
-                <label className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-150 rounded text-xs font-semibold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={bCacing}
-                    onChange={(e) => setBCacing(e.target.checked)}
-                    className="w-4 h-4 text-saas-primary rounded"
-                  />
-                  Obat Cacing
-                </label>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Pemberian Lain / Imunisasi..."
-                    value={bImunisasi}
-                    onChange={(e) => setBImunisasi(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-150 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-saas-muted">Nama Petugas / Kader Pemeriksa</label>
-                <input
-                  type="text"
-                  placeholder="Nama Petugas..."
-                  value={bPetugas}
-                  onChange={(e) => setBPetugas(e.target.value)}
-                  className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary mt-1"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Tanggal Periksa</label>
-                  <input
-                    type="date"
-                    required
-                    value={lDate}
-                    onChange={(e) => setLDate(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Berat Badan (kg)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={lBB}
-                    onChange={(e) => setLBB(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Tinggi Badan (cm)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={lTB}
-                    onChange={(e) => setLTB(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Sistol (mmHg)</label>
-                  <input
-                    type="number"
-                    required
-                    value={lSistol}
-                    onChange={(e) => setLSistol(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Diastol (mmHg)</label>
-                  <input
-                    type="number"
-                    required
-                    value={lDiastol}
-                    onChange={(e) => setLDiastol(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">GDS (mg/dL)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={lGds}
-                    onChange={(e) => setLGds(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Lingkar Perut (cm)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    required
-                    value={lLp}
-                    onChange={(e) => setLLp(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Kolesterol (mg/dL)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={lKol}
-                    onChange={(e) => setLKol(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Asam Urat (mg/dL)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={lUrat}
-                    onChange={(e) => setLUrat(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Keluhan</label>
-                  <textarea
-                    rows={2}
-                    value={lKeluhan}
-                    onChange={(e) => setLKeluhan(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-saas-muted">Tindakan</label>
-                  <textarea
-                    rows={2}
-                    value={lTindakan}
-                    onChange={(e) => setLTindakan(e.target.value)}
-                    className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          <div className="flex justify-end gap-2 pt-3">
-            <button
-              type="button"
-              onClick={() => setIsEditModalOpen(false)}
-              className="px-4 py-2 border border-hairline rounded-pill text-xs font-semibold text-saas-dark hover:bg-surface-soft"
-            >
-              Batal
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 bg-saas-primary text-white rounded-pill text-xs font-semibold hover:bg-saas-primary-active disabled:opacity-50"
-            >
-              {saving ? "Menyimpan..." : "Simpan Perubahan"}
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* MODAL KONFIRMASI HAPUS PEMERIKSAAN */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        title="Hapus Record Riwayat Periksa"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-saas-dark font-medium">
-            Apakah Anda yakin ingin menghapus catatan riwayat pemeriksaan untuk{" "}
-            <span className="font-bold text-trend-dangerText">{selectedLog?.nama}</span>?
-          </p>
-          <p className="text-xs text-saas-muted">
-            Catatan pemeriksaan ini akan terhapus secara permanen dari sistem Posyandu.
-          </p>
-          <div className="flex justify-end gap-2 pt-3">
-            <button
-              type="button"
-              onClick={() => setIsDeleteModalOpen(false)}
-              className="px-4 py-2 border border-hairline rounded-pill text-xs font-semibold text-saas-dark hover:bg-surface-soft"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              onClick={handleDeleteSubmit}
-              disabled={saving}
-              className="px-4 py-2 bg-trend-dangerText text-white rounded-pill text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
-            >
-              {saving ? "Menghapus..." : "Ya, Hapus Record"}
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }

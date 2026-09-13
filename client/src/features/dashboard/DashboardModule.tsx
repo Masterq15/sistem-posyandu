@@ -1,52 +1,34 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { dashboardApi, DashboardSummary, DistribusiKehadiran, balitaApi, lansiaApi, TrenGiziItem, AktivitasKunjunganData, ItemAktivitasKunjungan, periodeApi, PeriodePelayanan, riwayatApi, ItemRiwayat } from "../../lib/api";
+import {
+  dashboardApi,
+  DashboardSummary,
+  DistribusiKehadiran,
+  balitaApi,
+  lansiaApi,
+  TrenGiziItem,
+  AktivitasKunjunganData,
+  ItemAktivitasKunjungan,
+  periodeApi,
+  PeriodePelayanan,
+  riwayatApi,
+  ItemRiwayat,
+} from "../../lib/api";
 import { formatTanggalIndonesia } from "../../lib/dateUtils";
 import Modal from "../../components/Modal";
 import PageHelmet from "../../components/PageHelmet";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  Legend,
-  LineChart,
-  Line,
-  ComposedChart,
-  ReferenceLine,
-} from "recharts";
-import {
-  ArrowUpRight,
-  SlidersHorizontal,
-  Download,
-  MoreHorizontal,
-  CheckCircle2,
-  AlertCircle,
-  AlertTriangle,
-  Clock,
-  Plus,
-  Search,
-  Heart,
-  X,
-  UserCheck2,
-  TrendingUp,
-  Activity,
-  RefreshCw,
-  Filter,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import ActionMenu from "../../components/ActionMenu";
-import LansiaIcon from "../../components/LansiaIcon";
-import BalitaIcon from "../../components/BalitaIcon";
+import { Download, CheckCircle2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { hitungStatusBbU, hitungStatusTbU, hitungStatusBbTb, hitungIMT } from "../../lib/zScoreCalculator";
 import { useAuth } from "../../contexts/AuthContext";
+import { Kunjungan, Pasien } from "./types";
+import DashboardKpiGrid from "./components/DashboardKpiGrid";
+import DashboardCharts from "./components/DashboardCharts";
+import DashboardVisitsTable from "./components/DashboardVisitsTable";
+import DashboardExamModal from "./components/DashboardExamModal";
+import DashboardActivityModal from "./components/DashboardActivityModal";
+
 
 interface DashboardModuleProps {
   searchQuery: string;
@@ -55,29 +37,9 @@ interface DashboardModuleProps {
   activePeriode?: PeriodePelayanan | null;
 }
 
-interface Kunjungan {
-  id: string;
-  nama: string;
-  tipe: "Balita" | "Lansia";
-  detail: string;
-  status: string;
-  statusType: "success" | "warning" | "info";
-  waktu: string;
-}
-
-// Patient interface for modal selection
-interface Pasien {
-  id: string;
-  nama: string;
-  tipe: "Balita" | "Lansia";
-  detailInfo: string; // "12 Bulan" or "RT 02"
-  tanggalLahir?: string;
-  jenisKelamin?: "L" | "P";
-  currentPeriodExam?: any;
-}
-
-import { DashboardSkeleton, Skeleton } from "../../components/Skeleton";
+import { DashboardSkeleton } from "../../components/Skeleton";
 import { clientDataCache } from "../../lib/dataCache";
+
 
 export default function DashboardModule({ searchQuery, onNavigate, posyanduId, activePeriode }: DashboardModuleProps) {
   const { user } = useAuth();
@@ -129,10 +91,14 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
   const [showDetailAktivitas, setShowDetailAktivitas] = useState(false);
   const [showDetailDistribusi, setShowDetailDistribusi] = useState(false);
 
-  const handleDetailAktivitas = () => setShowDetailAktivitas(true);
+  const handleDetailAktivitas = (tab?: "balita" | "lansia" | "belum_balita" | "belum_lansia") => {
+    if (tab) setAktivitasTab(tab);
+    setShowDetailAktivitas(true);
+  };
   const handleExportAktivitas = () => {
     window.print();
   };
+
 
   const handleDetailDistribusi = () => setShowDetailDistribusi(true);
   const handleExportDistribusi = () => {
@@ -716,1343 +682,129 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
         </div>
       </div>
 
-      {/* 4 Summary KPI Cards Grid — Unified Coinbase Feature Card Layout (2x2 di Mobile) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-        {/* Card 1: Toska / Mint (Total Balita) */}
-        <div className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-card p-3.5 sm:p-6 relative overflow-hidden flex flex-col justify-between h-36 sm:h-44 shadow-soft-card group text-white">
-          <div className="absolute -right-4 -bottom-4 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-          <button 
-            onClick={() => onNavigate("Balita")}
-            className="absolute top-3 right-3 sm:top-5 sm:right-5 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/15 flex items-center justify-center hover:bg-white/30 transition-colors z-10"
-          >
-            <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-          </button>
-          
-          <div>
-            <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-white/80 font-medium">Total Balita</span>
-            <h3 className="text-2xl sm:text-3xl font-mono font-medium mt-0.5 sm:mt-1">
-              {isSummaryLoading ? "…" : `${summary?.totalBalita ?? 0}`}
-            </h3>
-            <span className="text-[11px] sm:text-xs text-white/70 font-sans block">Anak Terdaftar</span>
-          </div>
+      {/* 1. 4 Summary KPI Cards Grid */}
+      <DashboardKpiGrid
+        onNavigate={onNavigate}
+        isSummaryLoading={isSummaryLoading}
+        isRiwayatLoading={isRiwayatLoading}
+        summary={summary}
+        perluTindakLanjutBalita={perluTindakLanjutBalita}
+        perluFollowUpLansia={perluFollowUpLansia}
+      />
 
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-medium text-white/90 z-10">
-            <span className="px-2 py-0.5 rounded-pill bg-white/20 text-white text-[9px] sm:text-[10px] font-mono">LIVE</span>
-            <span className="hidden sm:inline">Update Hari Ini</span>
-          </div>
-        </div>
 
-        {/* Card 2: Royal Blue / Indigo (Total Lansia) */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-card p-3.5 sm:p-6 relative overflow-hidden flex flex-col justify-between h-36 sm:h-44 shadow-soft-card group text-white">
-          <div className="absolute -right-4 -bottom-4 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-          <button 
-            onClick={() => onNavigate("Lansia")}
-            className="absolute top-3 right-3 sm:top-5 sm:right-5 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/15 flex items-center justify-center hover:bg-white/30 transition-colors z-10"
-          >
-            <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-          </button>
+      {/* 2. Main Charts */}
+      <DashboardCharts
+        trenPeriod={trenPeriod}
+        setTrenPeriod={setTrenPeriod}
+        trenViewMode={trenViewMode}
+        setTrenViewMode={setTrenViewMode}
+        isTrenGiziLoading={isTrenGiziLoading}
+        trenGiziData={trenGiziData}
+        isAktivitasLoading={isAktivitasLoading}
+        aktivitasData={aktivitasData}
+        onOpenDetailAktivitas={handleDetailAktivitas}
+      />
 
-          <div>
-            <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-white/80 font-medium">Total Lansia</span>
-            <h3 className="text-2xl sm:text-3xl font-mono font-medium mt-0.5 sm:mt-1">
-              {isSummaryLoading ? "…" : `${summary?.totalLansia ?? 0}`}
-            </h3>
-            <span className="text-[11px] sm:text-xs text-white/70 font-sans block">Jiwa Terdaftar</span>
-          </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-medium text-white/90 z-10">
-            <span className="px-2 py-0.5 rounded-pill bg-white/20 text-white text-[9px] sm:text-[10px] font-mono">TERPANTAU</span>
-            <span className="hidden sm:inline">Pemeriksaan Rutin</span>
-          </div>
-        </div>
+      {/* 3. Table & RT/RW Distribution */}
+      <DashboardVisitsTable
+        onNavigate={onNavigate}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        paginatedKunjungan={paginatedKunjungan}
+        filteredKunjungan={filteredKunjungan}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        itemsPerPage={itemsPerPage}
+        totalPages={totalPages}
+        isDistribusiLoading={isDistribusiLoading}
+        distribusiKehadiran={distribusiKehadiran}
+      />
 
-        {/* Card 3: Rose / Crimson (Balita Perlu Tindak Lanjut) */}
-        <div className="bg-gradient-to-br from-rose-500 to-pink-600 rounded-card p-3.5 sm:p-6 relative overflow-hidden flex flex-col justify-between h-36 sm:h-44 shadow-soft-card group text-white">
-          <div className="absolute -right-4 -bottom-4 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-          <button 
-            onClick={() => onNavigate("Balita")}
-            title="Lihat Data Balita"
-            className="absolute top-3 right-3 sm:top-5 sm:right-5 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/15 flex items-center justify-center hover:bg-white/30 transition-colors z-10"
-          >
-            <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-          </button>
-
-          <div>
-            <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-white/80 font-medium">Perlu Tindak Lanjut</span>
-            <h3 className="text-2xl sm:text-3xl font-mono font-medium mt-0.5 sm:mt-1">
-              {isRiwayatLoading ? "…" : `${perluTindakLanjutBalita} Anak`}
-            </h3>
-            <span className="text-[11px] sm:text-xs text-white/70 font-sans block truncate">Prioritas Pantauan Kader</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-medium text-white/90 z-10">
-            <span className="px-2 py-0.5 rounded-pill bg-white/20 text-white text-[9px] sm:text-[10px] font-mono">
-              {perluTindakLanjutBalita > 0 ? "PRIORITAS" : "AMAN"}
-            </span>
-            <span className="hidden sm:inline">
-              {perluTindakLanjutBalita > 0 ? "Pantauan Balita" : "Kondisi Terkendali"}
-            </span>
-          </div>
-        </div>
-
-        {/* Card 4: Slate Dark (Lansia Perlu Follow-Up) */}
-        <div className="bg-gradient-to-br from-slate-900 to-surface-dark rounded-card p-3.5 sm:p-6 relative overflow-hidden flex flex-col justify-between h-36 sm:h-44 shadow-elevated group text-white border border-white/10">
-          <div className="absolute -right-4 -bottom-4 w-28 h-28 bg-amber-500/10 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-          <button 
-            onClick={() => onNavigate("Lansia")}
-            title="Lihat Data Lansia"
-            className="absolute top-3 right-3 sm:top-5 sm:right-5 w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors z-10"
-          >
-            <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
-          </button>
-
-          <div>
-            <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-saas-muted-soft font-medium">Perlu Follow-Up</span>
-            <h3 className="text-2xl sm:text-3xl font-mono font-medium mt-0.5 sm:mt-1 text-white">
-              {isRiwayatLoading ? "…" : `${perluFollowUpLansia} Lansia`}
-            </h3>
-            <span className="text-[11px] sm:text-xs text-saas-muted-soft font-sans block truncate">Temuan Berisiko Klinis</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-medium text-amber-300 z-10">
-            <span className="px-2 py-0.5 rounded-pill bg-amber-500/20 text-amber-300 text-[9px] sm:text-[10px] font-mono font-semibold">
-              {perluFollowUpLansia > 0 ? "FOLLOW-UP" : "STABIL"}
-            </span>
-            <span className="hidden sm:inline text-saas-muted-soft">
-              {perluFollowUpLansia > 0 ? "Temuan Klinis" : "Kondisi Terpantau"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Tren Status Gizi Balita (Recharts & WHO Z-Score) */}
-        <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6 lg:col-span-2">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-            <div>
-              <h3 className="font-bold text-base text-saas-dark flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-saas-primary" />
-                Tren Status Gizi & Z-Score Balita
-              </h3>
-              <p className="text-xs text-saas-muted mt-0.5">
-                Agregasi data historis {trenPeriod === "bulanan" ? "bulanan" : "tahunan"} & kurva presisi Z-score WHO
-              </p>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Toggle Mode Display */}
-              <div className="flex items-center gap-1 bg-gray-100/80 rounded-lg p-1">
-                <button
-                  onClick={() => setTrenViewMode("status")}
-                  className={`text-xs px-2.5 py-1 rounded-md font-semibold transition-all ${
-                    trenViewMode === "status"
-                      ? "bg-white text-saas-dark shadow-sm"
-                      : "text-saas-muted hover:text-saas-dark"
-                  }`}
-                >
-                  Status Gizi
-                </button>
-                <button
-                  onClick={() => setTrenViewMode("zscore")}
-                  className={`text-xs px-2.5 py-1 rounded-md font-semibold transition-all ${
-                    trenViewMode === "zscore"
-                      ? "bg-white text-saas-dark shadow-sm"
-                      : "text-saas-muted hover:text-saas-dark"
-                  }`}
-                >
-                  Kurva Z-Score WHO
-                </button>
-              </div>
-
-              {/* Toggle Period */}
-              <div className="flex items-center gap-1 bg-gray-100/80 rounded-lg p-1">
-                <button
-                  onClick={() => setTrenPeriod("bulanan")}
-                  className={`text-xs px-3 py-1.5 rounded-md font-bold transition-all ${
-                    trenPeriod === "bulanan"
-                      ? "bg-saas-primary text-white shadow-sm"
-                      : "text-saas-muted hover:text-saas-dark"
-                  }`}
-                >
-                  Bulanan
-                </button>
-                <button
-                  onClick={() => setTrenPeriod("tahunan")}
-                  className={`text-xs px-3 py-1.5 rounded-md font-bold transition-all ${
-                    trenPeriod === "tahunan"
-                      ? "bg-saas-primary text-white shadow-sm"
-                      : "text-saas-muted hover:text-saas-dark"
-                  }`}
-                >
-                  Tahunan
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="h-72 w-full">
-            {isTrenGiziLoading ? (
-              <div className="h-full flex items-center justify-center text-sm text-saas-muted">
-                Memuat data grafik tren gizi...
-              </div>
-            ) : trenGiziData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-sm text-saas-muted">
-                Belum ada data pemeriksaan balita untuk periode ini.
-              </div>
-            ) : trenViewMode === "status" ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={trenGiziData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748b" }} />
-                  <YAxis tick={{ fontSize: 11, fill: "#64748b" }} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: "10px", border: "none", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)", fontSize: "12px" }}
-                    formatter={(value: any, name: any) => [
-                      value,
-                      name === "normal"
-                        ? "Gizi Normal (BB/U)"
-                        : name === "kurang"
-                        ? "Gizi Kurang (BB/U)"
-                        : name === "sangatKurang"
-                        ? "Gizi Buruk/SK (BB/U)"
-                        : name === "stunting"
-                        ? "Stunting (TB/U)"
-                        : String(name || ""),
-                    ]}
-                  />
-                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }} />
-                  <Bar dataKey="normal" name="Gizi Normal" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="kurang" name="Gizi Kurang" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="sangatKurang" name="Gizi Buruk" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                  <Line type="monotone" dataKey="stunting" name="Stunting (TB/U)" stroke="#8b5cf6" strokeWidth={2} dot={{ r: 4 }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trenGiziData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748b" }} />
-                  <YAxis domain={[-4, 4]} tick={{ fontSize: 11, fill: "#64748b" }} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: "10px", border: "none", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)", fontSize: "12px" }}
-                    formatter={(val: any, name: any) => [
-                      `${val} SD`,
-                      name === "avgZScoreBBU"
-                        ? "Rata-rata Z-Score BB/U"
-                        : name === "avgZScoreTBU"
-                        ? "Rata-rata Z-Score TB/U"
-                        : String(name || ""),
-                    ]}
-                  />
-                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "10px" }} />
-                  <ReferenceLine y={0} label={{ value: "Median WHO (0 SD)", fill: "#10b981", fontSize: 10 }} stroke="#10b981" strokeDasharray="4 4" />
-                  <ReferenceLine y={-2} label={{ value: "Batas Stunting/K (-2 SD)", fill: "#ef4444", fontSize: 10 }} stroke="#ef4444" strokeDasharray="4 4" />
-                  <ReferenceLine y={2} label={{ value: "Batas Lebih (+2 SD)", fill: "#f59e0b", fontSize: 10 }} stroke="#f59e0b" strokeDasharray="4 4" />
-                  <Line type="monotone" dataKey="avgZScoreBBU" name="Rata-rata Z-Score BB/U" stroke="#0284c7" strokeWidth={2.5} dot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="avgZScoreTBU" name="Rata-rata Z-Score TB/U" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-
-        {/* Aktivitas Kunjungan (Donut Chart) */}
-        <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="font-bold text-base text-saas-dark">Aktivitas Kunjungan</h3>
-              <p className="text-xs text-saas-muted mt-0.5">Tingkat partisipasi kader & posyandu</p>
-            </div>
-            <button
-              onClick={() => handleDetailAktivitas()}
-              className="p-1.5 hover:bg-gray-100 text-saas-muted hover:text-saas-dark rounded-lg transition-colors"
-              title="Lihat Detail Aktivitas"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-          </div>
-
-          {isAktivitasLoading ? (
-            <div className="py-12 text-center text-xs text-saas-muted">Memuat data aktivitas...</div>
-          ) : (
-            <div className="flex flex-col items-center justify-center">
-              <div className="relative w-44 h-44 flex items-center justify-center">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="transparent"
-                    stroke="#F3F4F6"
-                    strokeWidth="10"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="transparent"
-                    stroke="#14B8A6"
-                    strokeWidth="10"
-                    strokeDasharray="251.2"
-                    strokeDashoffset={251.2 - (251.2 * (aktivitasData?.persentaseSelesai ?? 0)) / 100}
-                    strokeLinecap="round"
-                    className="transition-all duration-700 ease-out"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center text-center">
-                  <span className="text-2xl font-black text-saas-dark leading-none">
-                    {aktivitasData?.persentaseSelesai ?? 0}%
-                  </span>
-                  <span className="text-[10px] text-saas-muted font-bold uppercase tracking-wider mt-1">Selesai</span>
-                </div>
-              </div>
-
-              <div className="w-full space-y-2 mt-6">
-                {[
-                  {
-                    key: "balita" as const,
-                    label: "Balita Selesai Periksa",
-                    count: `${aktivitasData?.balitaSelesaiCount ?? 0} Anak`,
-                    color: "bg-sky-500",
-                  },
-                  {
-                    key: "lansia" as const,
-                    label: "Lansia Selesai Periksa",
-                    count: `${aktivitasData?.lansiaSelesaiCount ?? 0} Lansia`,
-                    color: "bg-emerald-500",
-                  },
-                  {
-                    key: "belum_balita" as const,
-                    label: "Balita Belum Periksa",
-                    count: `${(aktivitasData?.belumMengisiList ?? []).filter(i => i.tipe === 'Balita').length} Anak`,
-                    color: "bg-amber-400",
-                  },
-                  {
-                    key: "belum_lansia" as const,
-                    label: "Lansia Belum Periksa",
-                    count: `${(aktivitasData?.belumMengisiList ?? []).filter(i => i.tipe === 'Lansia').length} Lansia`,
-                    color: "bg-orange-400",
-                  },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => {
-                      setAktivitasTab(item.key);
-                      setShowDetailAktivitas(true);
-                    }}
-                    className="w-full flex items-center justify-between text-xs border-b border-gray-50 pb-2.5 pt-1.5 hover:bg-gray-50/80 px-2 rounded-lg transition-colors group cursor-pointer text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${item.color}`}></span>
-                      <span className="text-saas-muted group-hover:text-saas-dark font-semibold transition-colors">
-                        {item.label}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-saas-dark">{item.count}</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-saas-primary group-hover:translate-x-0.5 transition-all" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Bottom Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Kunjungan Terakhir Table */}
-        <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6 lg:col-span-2">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
-              <div>
-                <h3 className="font-bold text-base text-saas-dark flex items-center gap-2">
-                  Riwayat Antrean & Kunjungan Terkini
-                </h3>
-                <p className="text-xs text-saas-muted mt-0.5">Umpan aktivitas pemeriksaan pelayanan posyandu terbaru</p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => onNavigate("Riwayat")}
-                  className="text-xs font-bold text-teal-600 hover:text-teal-700 bg-teal-50 hover:bg-teal-100/70 border border-teal-200/60 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 shrink-0"
-                  title="Buka Halaman Riwayat Lengkap"
-                >
-                  Lihat Semua di Riwayat &rarr;
-                </button>
-
-                <div className="flex items-center gap-1.5 bg-gray-50 rounded-lg p-1 border border-gray-100/50">
-                  {(["Semua", "Balita", "Lansia"] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`text-xs px-3.5 py-1.5 rounded-md font-bold transition-all ${
-                        activeTab === tab 
-                          ? "bg-white text-saas-primary shadow-sm" 
-                          : "text-saas-muted hover:text-saas-dark"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-                <tr className="border-b border-gray-100 text-xs font-bold text-saas-muted uppercase tracking-wider">
-                  <th className="px-4 pb-3 text-left whitespace-nowrap">Nama</th>
-                  <th className="px-4 pb-3 text-left whitespace-nowrap">Kategori</th>
-                  <th className="px-4 pb-3 text-left whitespace-nowrap">Keterangan</th>
-                  <th className="px-4 pb-3 text-right whitespace-nowrap">Jam &amp; Tanggal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedKunjungan.length > 0 ? (
-                  paginatedKunjungan.map((item) => (
-                    <tr key={item.id} className="border-b border-gray-50 last:border-b-0 hover:bg-gray-50/40 transition-colors text-sm">
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <button
-                          onClick={() => {
-                            const realId = item.id.replace(/^(b-|l-)/, '');
-                            onNavigate(item.tipe === "Balita" ? "Balita" : "Lansia", realId);
-                          }}
-                          className="font-bold text-saas-dark hover:text-saas-primary hover:underline transition-colors text-left"
-                          title={`Lihat Profil ${item.nama}`}
-                        >
-                          {item.nama}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3.5 text-saas-muted font-medium whitespace-nowrap">{item.tipe}</td>
-                      <td className="px-4 py-3.5 text-saas-muted font-medium whitespace-nowrap">{item.detail}</td>
-                      <td className="px-4 py-3.5 text-right text-saas-muted font-semibold whitespace-nowrap">{item.waktu}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="py-8 text-center text-xs text-saas-muted font-medium">
-                      Tidak menemukan data kunjungan yang cocok
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination Controls */}
-          {filteredKunjungan.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-gray-100 mt-4 text-xs">
-              <p className="text-saas-muted font-semibold">
-                Menampilkan{" "}
-                <span className="text-saas-dark font-bold">
-                  {Math.min((currentPage - 1) * itemsPerPage + 1, filteredKunjungan.length)}
-                </span>{" "}
-                -{" "}
-                <span className="text-saas-dark font-bold">
-                  {Math.min(currentPage * itemsPerPage, filteredKunjungan.length)}
-                </span>{" "}
-                dari <span className="text-saas-dark font-bold">{filteredKunjungan.length}</span> data
-              </p>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="p-1.5 rounded-lg border border-gray-200 text-saas-dark hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  title="Halaman Sebelumnya"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-7 h-7 rounded-lg text-xs font-bold transition-all ${
-                      currentPage === page
-                        ? "bg-saas-primary text-white shadow-sm"
-                        : "text-saas-muted hover:text-saas-dark hover:bg-gray-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="p-1.5 rounded-lg border border-gray-200 text-saas-dark hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  title="Halaman Berikutnya"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Distribusi RT/RW */}
-        <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="font-bold text-base text-saas-dark">Distribusi Kehadiran RT/RW</h3>
-              <p className="text-xs text-saas-muted mt-0.5">Tingkat kehadiran per wilayah</p>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            {isDistribusiLoading ? (
-              <div className="flex items-center justify-center py-8 text-xs text-saas-muted">
-                Memuat data distribusi kehadiran...
-              </div>
-            ) : distribusiKehadiran.length === 0 ? (
-              <div className="flex items-center justify-center py-8 text-xs text-saas-muted">
-                Belum ada data kehadiran tersedia.
-              </div>
-            ) : (
-              distribusiKehadiran.map((row, i) => {
-                // Dynamic color based on percentage
-                let color = "bg-saas-primary";
-                if (row.persentase < 30) color = "bg-red-400";
-                else if (row.persentase < 50) color = "bg-yellow-400";
-                else if (row.persentase < 70) color = "bg-indigo-500";
-                else if (row.persentase < 85) color = "bg-green-500";
-
-                return (
-                  <div key={i} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-saas-dark font-bold">{row.rtRw}</span>
-                      <span className="text-saas-muted font-bold">{row.persentase}%</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-full h-2 bg-gray-50 rounded-full overflow-hidden border border-gray-100/20">
-                        <div style={{ width: `${row.persentase}%` }} className={`h-full rounded-full ${color}`}></div>
-                      </div>
-                      <span className="text-[10px] text-saas-muted font-semibold whitespace-nowrap">{row.hadir}/{row.total}</span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 5. INTERACTIVE MODAL: QUICK EXAMINATION INPUT */}
-      {/* ========================================================================= */}
-      <Modal
+      {/* 4. Quick Examination Input Modal */}
+      <DashboardExamModal
         isOpen={isOpenModal}
         onClose={() => {
           setIsOpenModal(false);
           setSelectedPasien(null);
           setModalSearch("");
         }}
-        title="Catat Pemeriksaan Cepat"
-        description="Input rekam medis bulanan langsung tanpa membuka detail profil."
-        type="modal"
-      >
-        {!selectedPasien ? (
-              <div className="space-y-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Ketik nama balita atau lansia..."
-                    value={modalSearch}
-                    onChange={(e) => setModalSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-150 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                  />
-                  <Search className="absolute left-3.5 top-3 text-saas-muted w-4 h-4" />
-                </div>
+        selectedPasien={selectedPasien}
+        setSelectedPasien={setSelectedPasien}
+        modalSearch={modalSearch}
+        setModalSearch={setModalSearch}
+        filteredPasiens={filteredPasiens}
+        handleQuickExamSubmit={handleQuickExamSubmit}
+        modalError={modalError}
+        setModalError={setModalError}
+        modalWarning={modalWarning}
+        setModalWarning={setModalWarning}
+        examDate={examDate}
+        setExamDate={setExamDate}
+        examBB={examBB}
+        setExamBB={setExamBB}
+        examTB={examTB}
+        setExamTB={setExamTB}
+        examLK={examLK}
+        setExamLK={setExamLK}
+        examLiLA={examLiLA}
+        setExamLiLA={setExamLiLA}
+        examImunisasi={examImunisasi}
+        setExamImunisasi={setExamImunisasi}
+        examVitA={examVitA}
+        setExamVitA={setExamVitA}
+        examAsi={examAsi}
+        setExamAsi={setExamAsi}
+        examCacing={examCacing}
+        setExamCacing={setExamCacing}
+        examBBU={examBBU}
+        examTBU={examTBU}
+        examBBTB={examBBTB}
+        examSistol={examSistol}
+        setExamSistol={setExamSistol}
+        examDiastol={examDiastol}
+        setExamDiastol={setExamDiastol}
+        examGds={examGds}
+        setExamGds={setExamGds}
+        examLp={examLp}
+        setExamLp={setExamLp}
+        examCholesterol={examCholesterol}
+        setExamCholesterol={setExamCholesterol}
+        examUricAcid={examUricAcid}
+        setExamUricAcid={setExamUricAcid}
+        examKeluhan={examKeluhan}
+        setExamKeluhan={setExamKeluhan}
+        examTindakan={examTindakan}
+        setExamTindakan={setExamTindakan}
+        checkWarnings={checkWarnings}
+        hitungIMT={hitungIMT}
+      />
 
-                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                  {filteredPasiens.length > 0 ? (
-                    filteredPasiens.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => setSelectedPasien(p)}
-                        className="w-full text-left p-3 border border-gray-100 hover:border-saas-primary/30 hover:bg-gray-50/50 rounded-xl flex items-center justify-between text-xs transition-all group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            p.tipe === "Balita" ? "bg-teal-50 text-saas-primary" : "bg-red-50 text-red-500"
-                          }`}>
-                            {p.tipe === "Balita" ? <BalitaIcon className="w-4 h-4" gender={p.jenisKelamin} /> : <LansiaIcon className="w-4 h-4" gender={p.jenisKelamin} />}
-                          </div>
-                          <div>
-                            <p className="font-bold text-saas-dark group-hover:text-saas-primary transition-colors">{p.nama}</p>
-                            <p className="text-[10px] text-saas-muted font-semibold mt-0.5">{p.detailInfo}</p>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-bold text-saas-muted group-hover:text-saas-primary transition-colors">Pilih & Lanjut →</span>
-                      </button>
-                    ))
-                  ) : (
-                    <p className="text-center text-xs text-saas-muted py-6 font-semibold">Nama warga tidak ditemukan.</p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              // Step 2: Show Form based on Patient Type
-              <form onSubmit={handleQuickExamSubmit} className="space-y-4">
-                {modalError && (
-                  <div className="p-3 bg-red-50 text-trend-dangerText border border-red-100 rounded-lg text-xs font-bold flex gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" /> {modalError}
-                  </div>
-                )}
-                {modalWarning && (
-                  <div className="p-3 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded-lg text-xs font-semibold flex gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" /> {modalWarning}
-                  </div>
-                )}
-
-                {/* Selected patient preview box */}
-                <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-saas-dark">Mencatat data untuk:</span>
-                    <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
-                      selectedPasien.tipe === "Balita" ? "bg-teal-50 text-saas-primary" : "bg-red-50 text-red-500"
-                    }`}>
-                      {selectedPasien.nama} ({selectedPasien.tipe})
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedPasien(null);
-                      setModalWarning("");
-                      setModalError("");
-                    }}
-                    className="text-xs text-saas-primary font-bold hover:underline"
-                  >
-                    Ganti
-                  </button>
-                </div>
-
-                <div className={`grid grid-cols-1 ${selectedPasien.tipe === "Lansia" ? "sm:grid-cols-4" : "sm:grid-cols-3"} gap-4 border-t border-gray-50 pt-3`}>
-                  {/* Tanggal */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-saas-muted uppercase">Tanggal Periksa</label>
-                    <input
-                      type="date"
-                      value={examDate}
-                      onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-                      onChange={(e) => setExamDate(e.target.value)}
-                      className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50 cursor-pointer"
-                    />
-                  </div>
-
-                  {/* BB */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-saas-muted uppercase">Berat Badan (kg)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      placeholder="Cth: 8.5"
-                      value={examBB}
-                      onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/-/g, "");
-                        setExamBB(val);
-                        checkWarnings(val, examSistol);
-                      }}
-                      className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                    />
-                  </div>
-
-                  {/* TB */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-saas-muted uppercase">Tinggi Badan (cm)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      placeholder="Cth: 72"
-                      value={examTB}
-                      onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                      onChange={(e) => setExamTB(e.target.value.replace(/-/g, ""))}
-                      className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                    />
-                  </div>
-
-                  {/* IMT - Calculated Live */}
-                  {selectedPasien.tipe === "Lansia" && (
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-teal-600 uppercase">IMT (Otomatis)</label>
-                      <input
-                        type="text"
-                        disabled
-                        value={
-                          parseFloat(examBB) > 0 && parseFloat(examTB) > 0
-                            ? hitungIMT(parseFloat(examBB), parseFloat(examTB))
-                            : "-"
-                        }
-                        className="w-full p-2 bg-teal-50/50 border border-teal-150 rounded-lg text-xs font-bold text-teal-700 cursor-not-allowed"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Balita Specific Inputs */}
-                {selectedPasien.tipe === "Balita" && (
-                  <div className="space-y-4 border-t border-gray-50 pt-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {/* Lingkar Kepala */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Lingkar Kepala (cm)</label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          placeholder="Opsional, cth: 44"
-                          value={examLK}
-                          onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                          onChange={(e) => setExamLK(e.target.value.replace(/-/g, ""))}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-
-                      {/* Lingkar Lengan (LiLA) */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Lingkar Lengan (cm)</label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          placeholder="Cth: 12.5"
-                          value={examLiLA}
-                          onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                          onChange={(e) => setExamLiLA(e.target.value.replace(/-/g, ""))}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-
-                      {/* Status Imunisasi */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Imunisasi</label>
-                        <input
-                          type="text"
-                          placeholder="Cth: BCG, Polio 1"
-                          value={examImunisasi}
-                          onChange={(e) => setExamImunisasi(e.target.value)}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-                      {/* Checkboxes: Vitamin A, ASI Eksklusif, Obat Cacing */}
-                      <div className="flex items-center pt-2">
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={examVitA}
-                            onChange={(e) => setExamVitA(e.target.checked)}
-                            className="w-4.5 h-4.5 text-saas-primary focus:ring-saas-primary/30"
-                          />
-                          <span className="text-xs font-bold text-saas-dark">Pemberian Vitamin A</span>
-                        </label>
-                      </div>
-
-                      <div className="flex items-center pt-2">
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={examAsi}
-                            onChange={(e) => setExamAsi(e.target.checked)}
-                            className="w-4.5 h-4.5 text-saas-primary focus:ring-saas-primary/30"
-                          />
-                          <span className="text-xs font-bold text-saas-dark">ASI Eksklusif</span>
-                        </label>
-                      </div>
-
-                      <div className="flex items-center pt-2">
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={examCacing}
-                            onChange={(e) => setExamCacing(e.target.checked)}
-                            className="w-4.5 h-4.5 text-saas-primary focus:ring-saas-primary/30"
-                          />
-                          <span className="text-xs font-bold text-saas-dark">Obat Cacing</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-                      {/* WHO Statuses (Calculated) */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Status BB/U (Otomatis)</label>
-                        <select
-                          value={examBBU}
-                          disabled
-                          className="w-full p-2 bg-gray-150 border border-gray-150 rounded-lg text-xs font-bold text-saas-dark focus:outline-none cursor-not-allowed"
-                        >
-                          <option value="Normal">Normal</option>
-                          <option value="Kurang">Kurang</option>
-                          <option value="Sangat Kurang">Sangat Kurang</option>
-                          <option value="Lebih">Lebih</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Status TB/U (Otomatis)</label>
-                        <select
-                          value={examTBU}
-                          disabled
-                          className="w-full p-2 bg-gray-150 border border-gray-150 rounded-lg text-xs font-bold text-saas-dark focus:outline-none cursor-not-allowed"
-                        >
-                          <option value="Normal">Normal</option>
-                          <option value="Pendek">Pendek</option>
-                          <option value="Sangat Pendek">Sangat Pendek</option>
-                          <option value="Tinggi">Tinggi</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Status BB/TB (Otomatis)</label>
-                        <select
-                          value={examBBTB}
-                          disabled
-                          className="w-full p-2 bg-gray-150 border border-gray-150 rounded-lg text-xs font-bold text-saas-dark focus:outline-none cursor-not-allowed"
-                        >
-                          <option value="Normal">Normal</option>
-                          <option value="Kurus">Kurus</option>
-                          <option value="Sangat Kurus">Sangat Kurus</option>
-                          <option value="Gemuk">Gemuk</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Lansia Specific Inputs */}
-                {selectedPasien.tipe === "Lansia" && (
-                  <div className="space-y-4 border-t border-gray-50 pt-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                      {/* Sistol */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Sistol (mmHg)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="TD atas, cth: 130"
-                          value={examSistol}
-                          onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/-/g, "");
-                            setExamSistol(val);
-                            checkWarnings(examBB, val);
-                          }}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-
-                      {/* Diastol */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Diastol (mmHg)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="TD bawah, cth: 85"
-                          value={examDiastol}
-                          onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                          onChange={(e) => setExamDiastol(e.target.value.replace(/-/g, ""))}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-
-                      {/* GDS */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">GDS (mg/dL)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="Cth: 120"
-                          value={examGds}
-                          onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                          onChange={(e) => setExamGds(e.target.value.replace(/-/g, ""))}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-
-                      {/* Lingkar Perut */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Lingkar Perut (cm)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="Cth: 90"
-                          value={examLp}
-                          onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                          onChange={(e) => setExamLp(e.target.value.replace(/-/g, ""))}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Kolesterol */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Kolesterol (mg/dL)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="cth: 180"
-                          value={examCholesterol}
-                          onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                          onChange={(e) => setExamCholesterol(e.target.value.replace(/-/g, ""))}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-
-                      {/* Asam Urat */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Asam Urat (mg/dL)</label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          placeholder="cth: 6.2"
-                          value={examUricAcid}
-                          onKeyDown={(e) => { if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault(); }}
-                          onChange={(e) => setExamUricAcid(e.target.value.replace(/-/g, ""))}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Keluhan */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Keluhan Saat Ini</label>
-                        <textarea
-                          placeholder="Tulis keluhan atau sakit yang dirasakan..."
-                          rows={2}
-                          value={examKeluhan}
-                          onChange={(e) => setExamKeluhan(e.target.value)}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50 resize-none"
-                        />
-                      </div>
-
-                      {/* Tindakan */}
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-saas-muted uppercase">Tindakan / Rujukan</label>
-                        <textarea
-                          placeholder="Tulis rujukan, obat, atau tindakan..."
-                          rows={2}
-                          value={examTindakan}
-                          onChange={(e) => setExamTindakan(e.target.value)}
-                          className="w-full p-2 bg-gray-50 border border-gray-150 rounded-lg text-xs font-semibold focus:outline-none focus:border-saas-primary/50 resize-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-end pt-4 border-t border-gray-50 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedPasien(null);
-                      setModalError("");
-                      setModalWarning("");
-                    }}
-                    className="px-4 py-2 border border-gray-200 text-saas-dark text-xs font-bold rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Kembali
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-saas-primary hover:bg-teal-600 text-white text-xs font-bold rounded-lg shadow-md shadow-teal-500/10 transition-colors"
-                  >
-                    Simpan Hasil Pemeriksaan
-                  </button>
-                </div>
-              </form>
-            )}
-      </Modal>
-
-      {/* Modal Detail Aktivitas Kunjungan */}
-      <Modal
+      {/* 5. Detail Aktivitas Modal */}
+      <DashboardActivityModal
         isOpen={showDetailAktivitas}
         onClose={() => setShowDetailAktivitas(false)}
-        title="Detail Aktivitas Kunjungan Posyandu"
-      >
-        <div className="space-y-4 max-w-xl">
-          {/* Header Stats Selector Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <button
-              onClick={() => setAktivitasTab("balita")}
-              className={`p-2.5 rounded-xl border text-left transition-all ${
-                aktivitasTab === "balita"
-                  ? "bg-sky-50 border-sky-300 ring-2 ring-sky-400/20"
-                  : "bg-gray-50/60 border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex items-center gap-1 text-sky-700 font-bold text-[11px] mb-0.5 truncate">
-                <BalitaIcon className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Balita Selesai</span>
-              </div>
-              <div className="text-base font-black text-saas-dark">
-                {aktivitasData?.balitaSelesaiCount ?? 0} <span className="text-[10px] font-normal text-saas-muted">Anak</span>
-              </div>
-            </button>
+        aktivitasTab={aktivitasTab}
+        setAktivitasTab={setAktivitasTab}
+        aktivitasData={aktivitasData}
+        aktivitasSearch={aktivitasSearch}
+        setAktivitasSearch={setAktivitasSearch}
+        onNavigate={onNavigate}
+        onQuickInputForPatient={(p) => {
+          const targetPasien = dbPasiens.find((dbP) => dbP.id === p.id) || {
+            id: p.id,
+            nama: p.nama,
+            tipe: p.tipe,
+            detailInfo: p.detailInfo,
+          };
+          setSelectedPasien(targetPasien);
+          setShowDetailAktivitas(false);
+          setIsOpenModal(true);
+        }}
+        formatTanggalIndonesia={formatTanggalIndonesia}
+      />
 
-            <button
-              onClick={() => setAktivitasTab("lansia")}
-              className={`p-2.5 rounded-xl border text-left transition-all ${
-                aktivitasTab === "lansia"
-                  ? "bg-emerald-50 border-emerald-300 ring-2 ring-emerald-400/20"
-                  : "bg-gray-50/60 border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex items-center gap-1 text-emerald-700 font-bold text-[11px] mb-0.5 truncate">
-                <LansiaIcon className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Lansia Selesai</span>
-              </div>
-              <div className="text-base font-black text-saas-dark">
-                {aktivitasData?.lansiaSelesaiCount ?? 0} <span className="text-[10px] font-normal text-saas-muted">Lansia</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setAktivitasTab("belum_balita")}
-              className={`p-2.5 rounded-xl border text-left transition-all ${
-                aktivitasTab === "belum_balita"
-                  ? "bg-amber-50 border-amber-300 ring-2 ring-amber-400/20"
-                  : "bg-gray-50/60 border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex items-center gap-1 text-amber-700 font-bold text-[11px] mb-0.5 truncate">
-                <BalitaIcon className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Balita Belum</span>
-              </div>
-              <div className="text-base font-black text-saas-dark">
-                {(aktivitasData?.belumMengisiList ?? []).filter(i => i.tipe === "Balita").length}{" "}
-                <span className="text-[10px] font-normal text-saas-muted">Anak</span>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setAktivitasTab("belum_lansia")}
-              className={`p-2.5 rounded-xl border text-left transition-all ${
-                aktivitasTab === "belum_lansia"
-                  ? "bg-orange-50 border-orange-300 ring-2 ring-orange-400/20"
-                  : "bg-gray-50/60 border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              <div className="flex items-center gap-1 text-orange-700 font-bold text-[11px] mb-0.5 truncate">
-                <LansiaIcon className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">Lansia Belum</span>
-              </div>
-              <div className="text-base font-black text-saas-dark">
-                {(aktivitasData?.belumMengisiList ?? []).filter(i => i.tipe === "Lansia").length}{" "}
-                <span className="text-[10px] font-normal text-saas-muted">Lansia</span>
-              </div>
-            </button>
-          </div>
-
-          {/* Search filter in modal */}
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Cari nama pasien atau keterangan..."
-              value={aktivitasSearch}
-              onChange={(e) => setAktivitasSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-saas-primary"
-            />
-            {aktivitasSearch && (
-              <button
-                onClick={() => setAktivitasSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* List display */}
-          <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
-            {aktivitasTab === "balita" && (
-              <>
-                {(aktivitasData?.balitaSelesaiList ?? [])
-                  .filter((item) =>
-                    item.nama.toLowerCase().includes(aktivitasSearch.toLowerCase()) ||
-                    item.detailInfo.toLowerCase().includes(aktivitasSearch.toLowerCase())
-                  )
-                  .map((item) => {
-                    const isFemale = item.jenisKelamin === "P" || item.jenisKelamin === "Perempuan";
-                    return (
-                      <div
-                        key={item.id}
-                        className="p-3 bg-white border border-gray-150 rounded-xl shadow-xs flex items-center justify-between hover:border-sky-200 transition-colors group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => {
-                              setShowDetailAktivitas(false);
-                              onNavigate("Balita", item.id);
-                            }}
-                            className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
-                              isFemale ? "bg-pink-50 border-pink-100" : "bg-blue-50 border-blue-100"
-                            }`}
-                            title="Lihat Profil Balita"
-                          >
-                            <BalitaIcon className="w-5 h-5" gender={item.jenisKelamin} />
-                          </button>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => {
-                                  setShowDetailAktivitas(false);
-                                  onNavigate("Balita", item.id);
-                                }}
-                                className="font-bold text-xs text-saas-dark hover:text-saas-primary hover:underline text-left cursor-pointer"
-                              >
-                                {item.nama}
-                              </button>
-                              <span className="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-semibold">
-                                Balita
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-saas-muted">{item.detailInfo}</p>
-                            {item.detailPemeriksaan && (
-                              <p className="text-[11px] font-semibold text-sky-700 mt-0.5">
-                                {item.detailPemeriksaan}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="text-right hidden sm:block">
-                            <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-2 py-0.5 rounded-md inline-block mb-1">
-                              Selesai Periksa
-                            </span>
-                            {item.tanggalPeriksa && (
-                              <p className="text-[10px] text-saas-muted">
-                                {formatTanggalIndonesia(item.tanggalPeriksa)}
-                              </p>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => {
-                              setShowDetailAktivitas(false);
-                              onNavigate("Balita", item.id);
-                            }}
-                            className="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-[11px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
-                            title="Buka profil lengkap balita"
-                          >
-                            <Eye className="w-3 h-3" />
-                            <span>Profil</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                {(aktivitasData?.balitaSelesaiList ?? []).filter((item) =>
-                  item.nama.toLowerCase().includes(aktivitasSearch.toLowerCase()) ||
-                  item.detailInfo.toLowerCase().includes(aktivitasSearch.toLowerCase())
-                ).length === 0 && (
-                  <div className="py-8 text-center text-xs text-saas-muted bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    Tidak ada balita selesai periksa ditemukan.
-                  </div>
-                )}
-              </>
-            )}
-
-            {aktivitasTab === "lansia" && (
-              <>
-                {(aktivitasData?.lansiaSelesaiList ?? [])
-                  .filter((item) =>
-                    item.nama.toLowerCase().includes(aktivitasSearch.toLowerCase()) ||
-                    item.detailInfo.toLowerCase().includes(aktivitasSearch.toLowerCase())
-                  )
-                  .map((item) => {
-                    const isFemale = item.jenisKelamin === "P" || item.jenisKelamin === "Perempuan";
-                    return (
-                      <div
-                        key={item.id}
-                        className="p-3 bg-white border border-gray-150 rounded-xl shadow-xs flex items-center justify-between hover:border-emerald-200 transition-colors group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => {
-                              setShowDetailAktivitas(false);
-                              onNavigate("Lansia", item.id);
-                            }}
-                            className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
-                              isFemale ? "bg-pink-50 border-pink-100" : "bg-blue-50 border-blue-100"
-                            }`}
-                            title="Lihat Profil Lansia"
-                          >
-                            <LansiaIcon className="w-5 h-5" gender={item.jenisKelamin} />
-                          </button>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => {
-                                  setShowDetailAktivitas(false);
-                                  onNavigate("Lansia", item.id);
-                                }}
-                                className="font-bold text-xs text-saas-dark hover:text-saas-primary hover:underline text-left cursor-pointer"
-                              >
-                                {item.nama}
-                              </button>
-                              <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
-                                Lansia
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-saas-muted">{item.detailInfo}</p>
-                            {item.detailPemeriksaan && (
-                              <p className="text-[11px] font-semibold text-emerald-700 mt-0.5">
-                                {item.detailPemeriksaan}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="text-right hidden sm:block">
-                            <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-2 py-0.5 rounded-md inline-block mb-1">
-                              Selesai Periksa
-                            </span>
-                            {item.tanggalPeriksa && (
-                              <p className="text-[10px] text-saas-muted">
-                                {formatTanggalIndonesia(item.tanggalPeriksa)}
-                              </p>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => {
-                              setShowDetailAktivitas(false);
-                              onNavigate("Lansia", item.id);
-                            }}
-                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-[11px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
-                            title="Buka profil lengkap lansia"
-                          >
-                            <Eye className="w-3 h-3" />
-                            <span>Profil</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                {(aktivitasData?.lansiaSelesaiList ?? []).filter((item) =>
-                  item.nama.toLowerCase().includes(aktivitasSearch.toLowerCase()) ||
-                  item.detailInfo.toLowerCase().includes(aktivitasSearch.toLowerCase())
-                ).length === 0 && (
-                  <div className="py-8 text-center text-xs text-saas-muted bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    Tidak ada lansia selesai periksa ditemukan.
-                  </div>
-                )}
-              </>
-            )}
-
-            {(aktivitasTab === "belum_balita" || aktivitasTab === "belum_lansia") && (
-              <>
-                {(aktivitasData?.belumMengisiList ?? [])
-                  .filter((item) => item.tipe === (aktivitasTab === "belum_balita" ? "Balita" : "Lansia"))
-                  .filter((item) =>
-                    item.nama.toLowerCase().includes(aktivitasSearch.toLowerCase()) ||
-                    item.detailInfo.toLowerCase().includes(aktivitasSearch.toLowerCase())
-                  )
-                  .map((item) => {
-                    const isFemale = item.jenisKelamin === "P" || item.jenisKelamin === "Perempuan";
-                    return (
-                      <div
-                        key={item.id}
-                        className="p-3 bg-white border border-amber-150 rounded-xl shadow-xs flex items-center justify-between hover:border-amber-300 transition-colors group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => {
-                              setShowDetailAktivitas(false);
-                              onNavigate(item.tipe, item.id);
-                            }}
-                            className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
-                              isFemale ? "bg-pink-50 border-pink-100" : "bg-blue-50 border-blue-100"
-                            }`}
-                            title={`Lihat Profil ${item.tipe}`}
-                          >
-                            {item.tipe === "Balita" ? <BalitaIcon className="w-5 h-5" gender={item.jenisKelamin} /> : <LansiaIcon className="w-5 h-5" gender={item.jenisKelamin} />}
-                          </button>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => {
-                                  setShowDetailAktivitas(false);
-                                  onNavigate(item.tipe, item.id);
-                                }}
-                                className="font-bold text-xs text-saas-dark hover:text-saas-primary hover:underline text-left cursor-pointer"
-                              >
-                                {item.nama}
-                              </button>
-                              <span
-                                className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                                  item.tipe === "Balita"
-                                    ? "bg-sky-100 text-sky-700"
-                                    : "bg-emerald-100 text-emerald-700"
-                                }`}
-                              >
-                                {item.tipe}
-                              </span>
-                            </div>
-                            <p className="text-[11px] text-saas-muted">{item.detailInfo}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={() => {
-                              setShowDetailAktivitas(false);
-                              onNavigate(item.tipe, item.id);
-                            }}
-                            className="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-saas-dark font-bold text-[11px] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
-                            title="Buka profil lengkap"
-                          >
-                            <Eye className="w-3 h-3" />
-                            <span>Profil</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              const targetPasien = dbPasiens.find((p) => p.id === item.id) || {
-                                id: item.id,
-                                nama: item.nama,
-                                tipe: item.tipe,
-                                detailInfo: item.detailInfo,
-                              };
-                              setSelectedPasien(targetPasien);
-                              setShowDetailAktivitas(false);
-                              setIsOpenModal(true);
-                            }}
-                            className="px-2.5 py-1 bg-saas-primary hover:bg-teal-600 text-white font-bold text-[11px] rounded-lg transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
-                          >
-                            <Plus className="w-3 h-3" />
-                            <span>Input Data</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                {(aktivitasData?.belumMengisiList ?? [])
-                  .filter((item) => item.tipe === (aktivitasTab === "belum_balita" ? "Balita" : "Lansia"))
-                  .filter((item) =>
-                    item.nama.toLowerCase().includes(aktivitasSearch.toLowerCase()) ||
-                    item.detailInfo.toLowerCase().includes(aktivitasSearch.toLowerCase())
-                  ).length === 0 && (
-                  <div className="py-8 text-center text-xs text-emerald-600 bg-emerald-50/50 rounded-xl border border-dashed border-emerald-200 font-semibold">
-                    🎉 Luar biasa! Semua {aktivitasTab === "belum_balita" ? "balita" : "lansia"} telah mengisi data pemeriksaan.
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </Modal>
 
       {/* Modal Detail Distribusi Kehadiran */}
       <Modal
@@ -2062,18 +814,21 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
       >
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {distribusiKehadiran.length > 0 ? (
-            distribusiKehadiran.map((item, i) => (
-              <div key={i} className="border border-gray-200 rounded-lg p-3 text-xs">
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="font-semibold text-saas-dark">{item.rtRw}</span>
-                  <span className="bg-saas-primary/10 text-saas-primary px-2.5 py-0.5 rounded-full text-xs font-bold">{item.persentase}%</span>
+            distribusiKehadiran.map((item, i) => {
+              const persentase = isNaN(Number(item.persentase)) ? 0 : Number(item.persentase);
+              return (
+                <div key={i} className="border border-gray-200 rounded-lg p-3 text-xs">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-semibold text-saas-dark">{item.rtRw}</span>
+                    <span className="bg-saas-primary/10 text-saas-primary px-2.5 py-0.5 rounded-full text-xs font-bold">{persentase}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
+                    <div style={{ width: `${persentase}%` }} className="h-full bg-saas-primary rounded-full"></div>
+                  </div>
+                  <div className="text-[11px] text-saas-muted text-right font-medium">{item.hadir} dari {item.total} Warga Hadir</div>
                 </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-1">
-                  <div style={{ width: `${item.persentase}%` }} className="h-full bg-saas-primary rounded-full"></div>
-                </div>
-                <div className="text-[11px] text-saas-muted text-right font-medium">{item.hadir} dari {item.total} Warga Hadir</div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <p className="text-xs text-saas-muted text-center py-4">Belum ada data distribusi kehadiran.</p>
           )}

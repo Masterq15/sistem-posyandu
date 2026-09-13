@@ -63,7 +63,20 @@ export const lansiaService = {
           const kelompok = kelompokUmurLansia(tahun);
           return { ...l, usiaTahun: tahun, kelompokUmur: kelompok };
         })
-        .filter((l) => l.kelompokUmur === kelompokUmur);
+        .filter((l) => {
+          if (!kelompokUmur || kelompokUmur === 'semua') return true;
+          const k = kelompokUmur.toLowerCase();
+          if (k.includes('45-59') || k.includes('pra')) {
+            return l.usiaTahun >= 45 && l.usiaTahun <= 59;
+          }
+          if (k.includes('60-69')) {
+            return l.usiaTahun >= 60 && l.usiaTahun <= 69;
+          }
+          if (k.includes('70') || k.includes('risti')) {
+            return l.usiaTahun >= 70;
+          }
+          return l.kelompokUmur === kelompokUmur;
+        });
 
       const total = filtered.length;
       const totalPages = Math.ceil(total / limit) || 1;

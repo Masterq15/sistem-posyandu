@@ -102,9 +102,12 @@ export function hitungStatusBbTb(
 }
 
 export function hitungIMT(beratBadan: number, tinggiBadan: number): number {
-  if (tinggiBadan <= 0) return 0;
-  const tbMeter = tinggiBadan / 100;
-  return Number((beratBadan / (tbMeter * tbMeter)).toFixed(1));
+  const bb = Number(beratBadan);
+  const tb = Number(tinggiBadan);
+  if (isNaN(bb) || isNaN(tb) || tb <= 0 || bb <= 0) return 0;
+  const tbMeter = tb / 100;
+  const imt = bb / (tbMeter * tbMeter);
+  return isNaN(imt) ? 0 : Number(imt.toFixed(1));
 }
 
 // Helper functions untuk convert label ke enum code
