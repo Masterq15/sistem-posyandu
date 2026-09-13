@@ -34,7 +34,9 @@ import {
   Calendar,
   Trash,
 } from "@phosphor-icons/react";
+import { Sun, Moon } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 import { notificationApi, authApi, balitaApi, lansiaApi, periodeApi, AppNotification, PeriodePelayanan } from "../lib/api";
 import PeriodeModal from "../components/PeriodeModal";
 import toast from "react-hot-toast";
@@ -202,6 +204,7 @@ function SwipeableNotificationItem({
 
 export default function Home() {
   const { user, posyanduId, isLoading, logout, updateUser } = useAuth();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchRecommendations, setSearchRecommendations] = useState<
     Array<{
@@ -1190,6 +1193,24 @@ export default function Home() {
               );
             })()}
 
+            {/* Quick Theme Toggle Button (Terang / Gelap) */}
+            <button
+              onClick={() => {
+                const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+                setTheme(nextTheme);
+                toast.success(nextTheme === "dark" ? "Mode Gelap diaktifkan" : "Mode Terang diaktifkan");
+              }}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-all cursor-pointer group"
+              title={resolvedTheme === "dark" ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
+              aria-label="Ubah Tema Tampilan"
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform" />
+              ) : (
+                <Moon className="w-4 h-4 text-saas-dark group-hover:-rotate-12 transition-transform" />
+              )}
+            </button>
+
             {/* Container Lonceng & Dropdown Notifikasi */}
             <div className="relative" ref={notificationRef}>
               <button
@@ -1345,6 +1366,27 @@ export default function Home() {
                     <Question className="w-4 h-4 text-saas-muted" weight="bold" />
                     Pusat Bantuan & Dokumen
                   </button>
+
+                  <div className="px-3 py-2 border-t border-gray-100 flex items-center justify-between text-xs">
+                    <span className="text-saas-muted font-semibold flex items-center gap-1.5">
+                      {resolvedTheme === "dark" ? (
+                        <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                      ) : (
+                        <Sun className="w-3.5 h-3.5 text-amber-500" />
+                      )}
+                      Tema: {theme === "dark" ? "Gelap" : theme === "light" ? "Terang" : "Sistem"}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+                        setTheme(nextTheme);
+                        toast.success(nextTheme === "dark" ? "Mode Gelap diaktifkan" : "Mode Terang diaktifkan");
+                      }}
+                      className="text-[10px] font-bold text-saas-primary hover:underline cursor-pointer"
+                    >
+                      Ubah
+                    </button>
+                  </div>
 
                   <div className="border-t border-gray-100 pt-1 mt-1">
                     <button

@@ -486,6 +486,16 @@ function TampilanSection() {
     { id: "system" as const, label: "Sistem", icon: Monitor },
   ];
 
+  const handleThemeChange = (id: "light" | "dark" | "system") => {
+    setTheme(id);
+    const labels: Record<string, string> = {
+      light: "Mode Terang diaktifkan",
+      dark: "Mode Gelap diaktifkan",
+      system: "Tema disesuaikan dengan preferensi Sistem"
+    };
+    toast.success(labels[id]);
+  };
+
   return (
     <div className="space-y-6">
       <SectionHeader
@@ -590,11 +600,11 @@ function TampilanSection() {
             return (
               <button
                 key={id}
-                onClick={() => setTheme(id)}
-                className={`flex flex-col items-center gap-2 p-4 rounded-xl border font-bold text-xs transition-all ${
+                onClick={() => handleThemeChange(id)}
+                className={`flex flex-col items-center gap-2.5 p-4 rounded-xl border font-bold text-xs transition-all ${
                   isActive
-                    ? "border-violet-600 bg-violet-50/50 text-violet-700 shadow-sm"
-                    : "border-gray-200 text-saas-muted hover:border-gray-300"
+                    ? "border-violet-600 bg-violet-500/10 text-violet-600 shadow-sm"
+                    : "border-gray-200 text-saas-muted hover:border-gray-300 hover:bg-gray-50/50"
                 }`}
               >
                 <Icon className="w-5 h-5" />

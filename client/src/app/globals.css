@@ -4,11 +4,20 @@
 
 html,
 body {
-  background-color: #F8F9FA; /* canvas color */
-  color: #0B0F19; /* saas.dark color */
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  background-color: #F8F9FA;
+  color: #0B0F19;
+}
+
+html.dark {
+  background-color: #0B0F19;
+  color: #F1F5F9;
+  color-scheme: dark;
 }
 
 /* Hilangkan spin button panah pada input type="number" */
@@ -22,7 +31,7 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Pastikan form controls selalu menggunakan warna teks gelap pekat */
+/* Base Light Mode Form Controls */
 select,
 input,
 textarea {
@@ -43,14 +52,268 @@ input[type="date"]::-webkit-datetime-edit-year-field {
   color: #0B0F19;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   KOMPREHENSIF DARK MODE (SESUAI OPSI DI MENU PENGATURAN)
+   ───────────────────────────────────────────────────────────── */
+
+/* Canvas & Base Body */
+html.dark body {
+  background-color: #0B0F19 !important;
+  color: #F1F5F9 !important;
+}
+
+html.dark .bg-canvas {
+  background-color: #0B0F19 !important;
+}
+
+/* Card, Panel, Modal, Drawer & Popover Surfaces */
+html.dark .bg-white,
+html.dark .bg-white\/95,
+html.dark .bg-white\/90,
+html.dark .bg-white\/80 {
+  background-color: #121927 !important;
+  color: #F1F5F9;
+}
+
+/* Subtle / Secondary Backgrounds */
+html.dark .bg-gray-50,
+html.dark .bg-gray-50\/40,
+html.dark .bg-gray-50\/50,
+html.dark .bg-gray-50\/60,
+html.dark .bg-gray-50\/70,
+html.dark .bg-gray-50\/80,
+html.dark .bg-gray-100,
+html.dark .bg-gray-100\/50,
+html.dark .bg-gray-100\/80,
+html.dark .bg-gray-100\/90,
+html.dark .bg-gray-200,
+html.dark .bg-gray-200\/50 {
+  background-color: #1A2333 !important;
+}
+
+/* Hover States on Gray */
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-50\/50:hover,
+html.dark .hover\:bg-gray-50\/60:hover,
+html.dark .hover\:bg-gray-50\/80:hover,
+html.dark .hover\:bg-gray-100:hover,
+html.dark .hover\:bg-gray-100\/80:hover,
+html.dark .hover\:bg-gray-200\/50:hover {
+  background-color: #243046 !important;
+}
+
+/* Dark Mode Typography */
+html.dark .text-saas-dark,
+html.dark .text-gray-900,
+html.dark .text-gray-800 {
+  color: #F8FAFC !important;
+}
+
+html.dark .text-saas-muted,
+html.dark .text-gray-700,
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+  color: #94A3B8 !important;
+}
+
+html.dark .text-gray-400 {
+  color: #64748B !important;
+}
+
+/* Dark Mode Borders & Dividers */
+html.dark .border-gray-100,
+html.dark .border-gray-100\/55,
+html.dark .border-gray-100\/70,
+html.dark .border-gray-150,
+html.dark .border-gray-200,
+html.dark .border-gray-200\/50,
+html.dark .border-gray-200\/70,
+html.dark .border-gray-200\/80,
+html.dark .border-gray-300 {
+  border-color: #1E293B !important;
+}
+
+html.dark .divide-gray-50 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1E293B !important;
+}
+
+/* Dark Mode Form Inputs & Selects */
+html.dark select,
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea {
+  background-color: #1A2333 !important;
+  color: #F8FAFC !important;
+  border-color: #2D3B52 !important;
+}
+
+html.dark select option {
+  background-color: #121927 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+html.dark input[type="date"]::-webkit-datetime-edit,
+html.dark input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+html.dark input[type="date"]::-webkit-datetime-edit-text,
+html.dark input[type="date"]::-webkit-datetime-edit-month-field,
+html.dark input[type="date"]::-webkit-datetime-edit-day-field,
+html.dark input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #F8FAFC !important;
+}
+
+/* Dark Mode Tables */
+html.dark thead,
+html.dark thead tr,
+html.dark thead th {
+  background-color: #1A2333 !important;
+  color: #F1F5F9 !important;
+  border-color: #1E293B !important;
+}
+
+html.dark tbody tr:hover {
+  background-color: rgba(30, 41, 59, 0.45) !important;
+}
+
+/* Badges & Alert Containers in Dark Mode */
+html.dark .bg-teal-50,
+html.dark .bg-teal-50\/20,
+html.dark .bg-teal-50\/30,
+html.dark .bg-teal-50\/40,
+html.dark .bg-teal-50\/50,
+html.dark .bg-teal-50\/60 {
+  background-color: rgba(20, 184, 166, 0.15) !important;
+}
+html.dark .border-teal-100,
+html.dark .border-teal-200 {
+  border-color: rgba(20, 184, 166, 0.3) !important;
+}
+html.dark .text-teal-800,
+html.dark .text-teal-900 {
+  color: #5EEAD4 !important;
+}
+
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-50\/20,
+html.dark .bg-emerald-50\/30,
+html.dark .bg-emerald-50\/50,
+html.dark .bg-emerald-50\/60 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+}
+html.dark .border-emerald-100,
+html.dark .border-emerald-200 {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+html.dark .text-emerald-800,
+html.dark .text-emerald-900,
+html.dark .text-emerald-950 {
+  color: #6EE7B7 !important;
+}
+
+html.dark .bg-indigo-50,
+html.dark .bg-indigo-50\/40,
+html.dark .bg-indigo-50\/60 {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+html.dark .border-indigo-100,
+html.dark .border-indigo-200 {
+  border-color: rgba(99, 102, 241, 0.3) !important;
+}
+html.dark .text-indigo-700,
+html.dark .text-indigo-800,
+html.dark .text-indigo-900 {
+  color: #A5B4FC !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-50\/50,
+html.dark .bg-amber-50\/60 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+html.dark .border-amber-100,
+html.dark .border-amber-200,
+html.dark .border-amber-300 {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+html.dark .text-amber-800,
+html.dark .text-amber-900,
+html.dark .text-amber-950 {
+  color: #FCD34D !important;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-rose-50\/20,
+html.dark .bg-rose-50\/60,
+html.dark .bg-red-50,
+html.dark .bg-red-50\/20,
+html.dark .bg-red-50\/50 {
+  background-color: rgba(244, 63, 94, 0.15) !important;
+}
+html.dark .border-rose-100,
+html.dark .border-rose-200,
+html.dark .border-red-100,
+html.dark .border-red-200 {
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+html.dark .text-rose-800,
+html.dark .text-rose-900,
+html.dark .text-rose-950,
+html.dark .text-red-700,
+html.dark .text-red-800 {
+  color: #FDA4AF !important;
+}
+
+html.dark .bg-blue-50,
+html.dark .bg-blue-50\/20,
+html.dark .bg-blue-50\/50,
+html.dark .bg-blue-50\/60 {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+html.dark .text-blue-700,
+html.dark .text-blue-800,
+html.dark .text-blue-900 {
+  color: #93C5FD !important;
+}
+
+html.dark .bg-purple-50,
+html.dark .bg-purple-50\/50,
+html.dark .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.15) !important;
+}
+html.dark .text-purple-700,
+html.dark .text-purple-800 {
+  color: #D8B4FE !important;
+}
+
+/* Dark Shadows */
+html.dark .shadow-soft-card,
+html.dark .shadow-md,
+html.dark .shadow-lg,
+html.dark .shadow-xl,
+html.dark .shadow-2xl {
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.55), 0 2px 6px -1px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Print Override (Tetap Putih Bersih saat Dicetak) */
 @media print {
   @page {
     size: landscape;
     margin: 8mm;
   }
+  html,
   body {
     background-color: #ffffff !important;
+    color: #000000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+  .bg-white,
+  .bg-canvas {
+    background-color: #ffffff !important;
   }
 }
