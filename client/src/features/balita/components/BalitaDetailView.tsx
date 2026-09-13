@@ -69,7 +69,7 @@ export interface BalitaDetailViewProps {
   onAddCustomPemberian: () => void;
   examError: string;
   examWarning: string;
-  checkExamWarning: (bbVal: string) => void;
+  checkExamWarning: (bbVal: string, tbVal?: string) => void;
   onAddExamSubmit: (e: React.FormEvent) => void;
   onEditExam: (exam: PemeriksaanBalita) => void;
   onDeleteExam: (examId: string) => void;
@@ -298,7 +298,7 @@ export default function BalitaDetailView({
                     onChange={(e) => {
                       const val = e.target.value.replace(/-/g, "");
                       setExamBB(val);
-                      checkExamWarning(val);
+                      checkExamWarning(val, examTB);
                     }}
                     className="w-full p-2.5 bg-white border border-gray-250 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
                   />
@@ -315,7 +315,11 @@ export default function BalitaDetailView({
                     onKeyDown={(e) => {
                       if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault();
                     }}
-                    onChange={(e) => setExamTB(e.target.value.replace(/-/g, ""))}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/-/g, "");
+                      setExamTB(val);
+                      checkExamWarning(examBB, val);
+                    }}
                     className="w-full p-2.5 bg-white border border-gray-250 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary/50"
                   />
                 </div>

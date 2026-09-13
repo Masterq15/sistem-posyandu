@@ -3,6 +3,7 @@
 import React from "react";
 import { AlertCircle } from "lucide-react";
 import Modal from "@/components/Modal";
+import { calculateAgeInMonths, getStatusBadgeStyle } from "@/features/pelayanan/types";
 import { Balita } from "../types";
 
 export interface BalitaModalsProps {
@@ -288,130 +289,243 @@ export default function BalitaModals({
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="text-xs font-bold text-saas-muted">Tanggal Periksa</label>
-              <input
-                type="date"
-                required
-                value={editExamDate}
-                onChange={(e) => setEditExamDate(e.target.value)}
-                className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-              />
+          {/* Tanggal Periksa */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-saas-dark">Tanggal Periksa</label>
+            <input
+              type="date"
+              required
+              value={editExamDate}
+              onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+              onChange={(e) => {
+                setEditExamDate(e.target.value);
+                onEditExamMeasurementsChange(editExamBB, editExamTB, e.target.value);
+              }}
+              className="w-full p-2.5 bg-gray-50 border border-gray-250 rounded-input text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary/50 cursor-pointer"
+            />
+          </div>
+
+          {/* Umur & Jenis Kelamin (Otomatis) */}
+          {activeBalita && (
+            <div className="grid grid-cols-2 gap-3 p-3 bg-teal-50/70 rounded-xl border border-teal-150">
+              <div>
+                <span className="text-[11px] font-bold text-teal-800 block">Umur:</span>
+                <span className="text-xs font-extrabold text-teal-950">
+                  {calculateAgeInMonths(
+                    activeBalita.tanggalLahir,
+                    editExamDate ? new Date(editExamDate) : new Date()
+                  )}{" "}
+                  Bulan
+                </span>
+                <span className="text-[10px] text-teal-600 ml-1 font-semibold">(otomatis)</span>
+              </div>
+              <div>
+                <span className="text-[11px] font-bold text-teal-800 block">Jenis Kelamin:</span>
+                <span className="text-xs font-extrabold text-teal-950">
+                  {activeBalita.jenisKelamin === "L" ? "Laki-laki (L)" : "Perempuan (P)"}
+                </span>
+                <span className="text-[10px] text-teal-600 ml-1 font-semibold">(otomatis)</span>
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-bold text-saas-muted">Berat Badan (kg)</label>
-              <input
-                type="number"
-                step="0.1"
-                required
-                value={editExamBB}
-                onChange={(e) =>
-                  onEditExamMeasurementsChange(e.target.value, editExamTB, editExamDate)
-                }
-                className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-              />
+          )}
+
+          {/* Layout BB, TB & Status Gizi */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50/80 p-3.5 rounded-xl border border-gray-200">
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-saas-dark">BB (Berat Badan - kg)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  required
+                  placeholder="Contoh: 9.5"
+                  value={editExamBB}
+                  onKeyDown={(e) => {
+                    if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault();
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/-/g, "");
+                    onEditExamMeasurementsChange(val, editExamTB, editExamDate);
+                  }}
+                  className="w-full p-2.5 bg-white border border-gray-250 rounded-input text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary/50"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-saas-dark">TB (Tinggi Badan - cm)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  required
+                  placeholder="Contoh: 74.2"
+                  value={editExamTB}
+                  onKeyDown={(e) => {
+                    if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault();
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/-/g, "");
+                    onEditExamMeasurementsChange(editExamBB, val, editExamDate);
+                  }}
+                  className="w-full p-2.5 bg-white border border-gray-250 rounded-input text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary/50"
+                />
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-bold text-saas-muted">Tinggi Badan (cm)</label>
-              <input
-                type="number"
-                step="0.1"
-                required
-                value={editExamTB}
-                onChange={(e) =>
-                  onEditExamMeasurementsChange(editExamBB, e.target.value, editExamDate)
-                }
-                className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
-              />
+
+            {/* Status Gizi Box */}
+            <div className="bg-white p-3 rounded-lg border border-teal-200 shadow-2xs flex flex-col justify-between space-y-2">
+              <div className="flex items-center justify-between border-b border-teal-100 pb-1.5">
+                <h4 className="text-xs font-extrabold text-teal-900 uppercase tracking-wider">
+                  Status Gizi
+                </h4>
+                <span className="text-[10px] text-teal-600 font-semibold">(otomatis)</span>
+              </div>
+              {!editExamBB || !editExamTB || parseFloat(editExamBB) <= 0 || parseFloat(editExamTB) <= 0 ? (
+                <div className="flex flex-col items-center justify-center py-4 text-center space-y-1">
+                  <p className="text-xs text-gray-400 font-semibold">Menunggu pengukuran</p>
+                  <p className="text-[10px] text-gray-400">Isi BB dan TB untuk menghitung status gizi</p>
+                </div>
+              ) : (
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-saas-muted">BB/U:</span>
+                    <span
+                      className={`px-2.5 py-1 rounded border text-[11px] ${getStatusBadgeStyle(
+                        "BBU",
+                        editExamBBU
+                      )}`}
+                    >
+                      {editExamBBU}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-saas-muted">TB/U:</span>
+                    <span
+                      className={`px-2.5 py-1 rounded border text-[11px] ${getStatusBadgeStyle(
+                        "TBU",
+                        editExamTBU
+                      )}`}
+                    >
+                      {editExamTBU}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-saas-muted">BB/TB:</span>
+                    <span
+                      className={`px-2.5 py-1 rounded border text-[11px] ${getStatusBadgeStyle(
+                        "BBTB",
+                        editExamBBTB
+                      )}`}
+                    >
+                      {editExamBBTB}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-bold text-saas-muted">Lingkar Kepala (cm)</label>
+          {/* Lingkar Kepala & Lingkar Lengan */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-saas-dark">Lingkar Kepala (LK - cm)</label>
               <input
                 type="number"
                 step="0.1"
+                min="0"
+                placeholder="Contoh: 45"
                 value={editExamLK}
-                onChange={(e) => setEditExamLK(e.target.value)}
-                className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
+                onKeyDown={(e) => {
+                  if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault();
+                }}
+                onChange={(e) => setEditExamLK(e.target.value.replace(/-/g, ""))}
+                className="w-full p-2.5 bg-gray-50 border border-gray-250 rounded-input text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary/50"
               />
             </div>
-            <div>
-              <label className="text-xs font-bold text-saas-muted">Lingkar Lengan LiLA (cm)</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-saas-dark">Lingkar Lengan (LiLA - cm)</label>
               <input
                 type="number"
                 step="0.1"
+                min="0"
+                placeholder="Contoh: 12.5"
                 value={editExamLiLA}
-                onChange={(e) => setEditExamLiLA(e.target.value)}
-                className="w-full p-2 bg-gray-50 border border-gray-200 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
+                onKeyDown={(e) => {
+                  if (e.key === "-" || e.key === "e" || e.key === "E") e.preventDefault();
+                }}
+                onChange={(e) => setEditExamLiLA(e.target.value.replace(/-/g, ""))}
+                className="w-full p-2.5 bg-gray-50 border border-gray-250 rounded-input text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary/50"
               />
             </div>
           </div>
 
-          {/* Status Gizi Auto Z-Score */}
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 space-y-2">
-            <p className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">
-              Status Gizi (Otomatis)
-            </p>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div>
-                <span className="text-saas-muted block text-[10px]">BB/U:</span>
-                <span className="font-bold text-saas-dark">{editExamBBU}</span>
-              </div>
-              <div>
-                <span className="text-saas-muted block text-[10px]">TB/U:</span>
-                <span className="font-bold text-saas-dark">{editExamTBU}</span>
-              </div>
-              <div>
-                <span className="text-saas-muted block text-[10px]">BB/TB:</span>
-                <span className="font-bold text-saas-dark">{editExamBBTB}</span>
-              </div>
+          {/* ASI Eksklusif */}
+          <div className="space-y-1.5 pt-2 border-t border-gray-100">
+            <label className="text-xs font-bold text-saas-dark block">ASI Eksklusif:</label>
+            <div className="flex items-center gap-6">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="radio"
+                  name="edit-exam-asi"
+                  checked={editExamAsi === true}
+                  onChange={() => setEditExamAsi(true)}
+                  className="w-4 h-4 text-saas-primary focus:ring-saas-primary/30"
+                />
+                <span className="text-xs font-bold text-saas-dark">Masih</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="radio"
+                  name="edit-exam-asi"
+                  checked={editExamAsi === false}
+                  onChange={() => setEditExamAsi(false)}
+                  className="w-4 h-4 text-saas-primary focus:ring-saas-primary/30"
+                />
+                <span className="text-xs font-bold text-saas-dark">Tidak</span>
+              </label>
             </div>
           </div>
 
-          {/* Intervensi Tambahan */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-            <label className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-150 rounded text-xs font-semibold cursor-pointer">
-              <input
-                type="checkbox"
-                checked={editExamVitA}
-                onChange={(e) => setEditExamVitA(e.target.checked)}
-                className="w-4 h-4 text-saas-primary rounded"
-              />
-              Vitamin A
-            </label>
-            <label className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-150 rounded text-xs font-semibold cursor-pointer">
-              <input
-                type="checkbox"
-                checked={editExamAsi}
-                onChange={(e) => setEditExamAsi(e.target.checked)}
-                className="w-4 h-4 text-saas-primary rounded"
-              />
-              ASI Eksklusif
-            </label>
-            <label className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-150 rounded text-xs font-semibold cursor-pointer">
-              <input
-                type="checkbox"
-                checked={editExamCacing}
-                onChange={(e) => setEditExamCacing(e.target.checked)}
-                className="w-4 h-4 text-saas-primary rounded"
-              />
-              Obat Cacing
-            </label>
-            <div>
+          {/* Vitamin & Pemberian Lain */}
+          <div className="space-y-2 pt-2 border-t border-gray-100">
+            <label className="text-xs font-bold text-saas-dark block">Vitamin & Pemberian Lain:</label>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <label className="flex items-center gap-2 cursor-pointer select-none bg-gray-50 px-3 py-2 rounded-md border border-gray-250 text-xs font-bold text-saas-dark hover:bg-gray-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={editExamVitA}
+                  onChange={(e) => setEditExamVitA(e.target.checked)}
+                  className="w-4 h-4 text-saas-primary rounded focus:ring-saas-primary/30"
+                />
+                <span className="text-saas-dark font-bold">Vitamin A</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer select-none bg-gray-50 px-3 py-2 rounded-md border border-gray-250 text-xs font-bold text-saas-dark hover:bg-gray-100 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={editExamCacing}
+                  onChange={(e) => setEditExamCacing(e.target.checked)}
+                  className="w-4 h-4 text-saas-primary rounded focus:ring-saas-primary/30"
+                />
+                <span className="text-saas-dark font-bold">Obat Cacing</span>
+              </label>
+            </div>
+
+            {/* Imunisasi / Catatan Pemberian Lain */}
+            <div className="space-y-1.5 pt-1.5">
+              <label className="text-xs font-bold text-saas-dark block">Imunisasi / Catatan Pemberian:</label>
               <input
                 type="text"
-                placeholder="Imunisasi..."
+                placeholder="Contoh: Polio 3, Campak, Zinc, Taburia..."
                 value={editExamImunisasi}
                 onChange={(e) => setEditExamImunisasi(e.target.value)}
-                className="w-full p-2 bg-gray-50 border border-gray-150 rounded-input text-xs font-semibold focus:outline-none focus:border-saas-primary"
+                className="w-full p-2.5 bg-gray-50 border border-gray-250 rounded-input text-xs font-semibold text-saas-dark placeholder:text-gray-400 focus:outline-none focus:border-saas-primary/50"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3">
+          <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
             <button
               type="button"
               onClick={() => setIsEditExamModalOpen(false)}

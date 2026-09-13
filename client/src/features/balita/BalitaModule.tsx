@@ -710,12 +710,12 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
   };
 
   // Handler Real-time Warning untuk input Pemeriksaan (Manusiawi)
-  const handleExamInputCheck = (bbVal: string, tbVal: string) => {
+  const checkExamWarning = (bbVal: string, tbVal?: string) => {
     setExamWarning("");
     if (!activeBalita) return;
 
     const bb = parseFloat(bbVal);
-    const tb = parseFloat(tbVal);
+    const tb = parseFloat(tbVal !== undefined ? tbVal : examTB);
     const usia = calculateAgeInMonths(activeBalita.tanggalLahir, new Date(examDate));
 
     // Warning BB tidak masuk akal untuk bayi
@@ -727,6 +727,7 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
       setExamWarning(`Apakah Tinggi Badan (${tb} cm) sudah benar untuk anak usia ${usia} bulan? Mohon cek kembali inputan Ibu.`);
     }
   };
+  const handleExamInputCheck = checkExamWarning;
 
   const targetMonth = activePeriode ? activePeriode.bulan : (new Date().getMonth() + 1);
   const targetYear = activePeriode ? activePeriode.tahun : new Date().getFullYear();
