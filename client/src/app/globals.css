@@ -336,3 +336,15 @@ html.dark .shadow-2xl {
   }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   MODAL DETAIL & PRATINJAU PUBLIK OVERRIDE
+   Meniadakan margin-top dari selector space-y parent container
+   ───────────────────────────────────────────────────────────── */
+.posyandu-participant-modal-backdrop,
+.posyandu-preview-backdrop,
+.posyandu-participant-modal-dialog,
+.posyandu-preview-dialog {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
