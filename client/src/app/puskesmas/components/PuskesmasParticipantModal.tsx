@@ -111,7 +111,7 @@ export default function PuskesmasParticipantModal({
   // Pemberian lain / vitamin / asi
   const pemberianLainStr = extractPemberianLain(selectedItem.statusImunisasi);
 
-  const isMale = selectedItem.jenisKelamin === "L" || selectedItem.jenisKelamin === "Laki-laki";
+  const isMale = (selectedItem.jenisKelamin as string) === "L" || (selectedItem.jenisKelamin as string) === "Laki-laki";
 
   const modalElement = (
     <div

@@ -250,8 +250,8 @@ export default function BalitaListTable({
 
                               {/* Indikator Tambahan jika TB/U (Stunting) atau BB/TB (Wasting) bermasalah */}
                               {(String(latestExam.statusTBU || "").toLowerCase().includes("pendek") ||
-                                latestExam.statusTBU === "SP" ||
-                                latestExam.statusTBU === "P") && (
+                                (latestExam.statusTBU as string) === "SP" ||
+                                (latestExam.statusTBU as string) === "P") && (
                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-200/60 inline-flex items-center gap-1">
                                   <AlertTriangle className="w-2.5 h-2.5 text-amber-700" />
                                   TB/U: {latestExam.statusTBU}
@@ -261,8 +261,8 @@ export default function BalitaListTable({
                               {(String(latestExam.statusBBTB || "").toLowerCase().includes("kurang") ||
                                 String(latestExam.statusBBTB || "").toLowerCase().includes("buruk") ||
                                 String(latestExam.statusBBTB || "").toLowerCase().includes("kurus") ||
-                                latestExam.statusBBTB === "SK" ||
-                                latestExam.statusBBTB === "K") && (
+                                (latestExam.statusBBTB as string) === "SK" ||
+                                (latestExam.statusBBTB as string) === "K") && (
                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-200/60 inline-flex items-center gap-1">
                                   <AlertCircle className="w-2.5 h-2.5 text-rose-700" />
                                   BB/TB: {latestExam.statusBBTB}
