@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import PageHelmet from "../../components/PageHelmet";
 import { hitungStatusBbU, hitungStatusTbU, hitungStatusBbTb, convertStatusBbUToCode, convertStatusTbUToCode, convertStatusBbTbToCode } from "../../lib/zScoreCalculator";
 import { formatTanggalInput } from "../../lib/dateUtils";
@@ -51,6 +52,8 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
   const [isSaving, setIsSaving] = useState(false);
   const [view, setView] = useState<"list" | "detail" | "add">("list");
   const [selectedBalitaId, setSelectedBalitaId] = useState<string | null>(selectedId || null);
+  const [detailBalita, setDetailBalita] = useState<Balita | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(Boolean(selectedId));
 
   // In-Memory Search Index for instant O(1) query lookups by token/prefix
   const balitaIndexRef = useRef<SearchIndex<Balita>>(
@@ -95,35 +98,50 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
     if (selectedId) {
       setSelectedBalitaId(selectedId);
       setView("detail");
+      setIsDetailLoading(true);
       if (posyanduId) {
-        balitaApi.getById(posyanduId, selectedId).then((res) => {
-          if (res.success && res.data) {
-            const b = res.data;
-            const mappedSingle: Balita = {
-              ...b,
-              tanggalLahir: typeof b.tanggalLahir === "string" ? b.tanggalLahir.split("T")[0] : new Date(b.tanggalLahir).toISOString().split("T")[0],
-              pemeriksaan: (b.pemeriksaans ?? []).map((p) => ({
-                ...p,
-                tanggalPeriksa: typeof p.tanggalPeriksa === "string" ? p.tanggalPeriksa.split("T")[0] : new Date(p.tanggalPeriksa).toISOString().split("T")[0],
-                statusBBU: (p as unknown as Record<string, string>).statusBbU as PemeriksaanBalita["statusBBU"] ?? "Normal",
-                statusTBU: (p as unknown as Record<string, string>).statusTbU as PemeriksaanBalita["statusTBU"] ?? "Normal",
-                statusBBTB: (p as unknown as Record<string, string>).statusBbTb as PemeriksaanBalita["statusBBTB"] ?? "Normal",
-              })),
-            };
-            setBalitas((prev) => {
-              const idx = prev.findIndex((item) => item.id === b.id);
-              if (idx >= 0) {
-                const next = [...prev];
-                next[idx] = mappedSingle;
-                return next;
-              }
-              return [mappedSingle, ...prev];
-            });
-          }
-        }).catch((err) => console.error("Gagal mengambil detail balita:", err));
+        balitaApi
+          .getById(posyanduId, selectedId)
+          .then((res) => {
+            if (res.success && res.data) {
+              const b = res.data;
+              const mappedSingle: Balita = {
+                ...b,
+                tanggalLahir: typeof b.tanggalLahir === "string" ? b.tanggalLahir.split("T")[0] : new Date(b.tanggalLahir).toISOString().split("T")[0],
+                pemeriksaan: (b.pemeriksaans ?? []).map((p) => ({
+                  ...p,
+                  tanggalPeriksa: typeof p.tanggalPeriksa === "string" ? p.tanggalPeriksa.split("T")[0] : new Date(p.tanggalPeriksa).toISOString().split("T")[0],
+                  statusBBU: (p as unknown as Record<string, string>).statusBbU as PemeriksaanBalita["statusBBU"] ?? "Normal",
+                  statusTBU: (p as unknown as Record<string, string>).statusTbU as PemeriksaanBalita["statusTBU"] ?? "Normal",
+                  statusBBTB: (p as unknown as Record<string, string>).statusBbTb as PemeriksaanBalita["statusBBTB"] ?? "Normal",
+                })),
+              };
+              setDetailBalita(mappedSingle);
+              setBalitas((prev) => {
+                const idx = prev.findIndex((item) => item.id === b.id);
+                if (idx >= 0) {
+                  const next = [...prev];
+                  next[idx] = mappedSingle;
+                  return next;
+                }
+                return [mappedSingle, ...prev];
+              });
+            } else {
+              setDetailBalita(null);
+            }
+          })
+          .catch((err) => {
+            console.error("Gagal mengambil detail balita:", err);
+            setDetailBalita(null);
+          })
+          .finally(() => {
+            setIsDetailLoading(false);
+          });
       }
     } else {
       setSelectedBalitaId(null);
+      setDetailBalita(null);
+      setIsDetailLoading(false);
       setView("list");
     }
   }, [selectedId, posyanduId]);
@@ -163,10 +181,25 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
 
   // Filter & Pagination State
   const [ageFilter, setAgeFilter] = useState<"semua" | "0-6" | "7-12" | "13-24" | "25-60">("semua");
+  const [tindakLanjutFilter, setTindakLanjutFilter] = useState<"semua" | "perlu_tindak_lanjut" | "normal" | "belum_periksa">("semua");
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Helper identifikasi balita berisiko / perlu tindak lanjut
+  const isPerluTindakLanjut = useCallback((b: Balita) => {
+    const latestExam = b.pemeriksaan?.[0];
+    if (!latestExam) return false;
+    const bbu = String(latestExam.statusBBU || "").toLowerCase();
+    const tbu = String(latestExam.statusTBU || "").toLowerCase();
+    const bbtb = String(latestExam.statusBBTB || "").toLowerCase();
+    return (
+      tbu.includes("pendek") || tbu === "sp" || tbu === "p" ||
+      bbtb.includes("kurus") || bbtb.includes("kurang") || bbtb.includes("buruk") || bbtb.includes("gemuk") || bbtb === "sk" || bbtb === "k" || bbtb === "g" ||
+      bbu.includes("kurang") || bbu === "sk" || bbu === "k"
+    );
+  }, []);
 
   // Fetch balita from API
   const fetchBalitas = useCallback(() => {
@@ -176,7 +209,9 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
       ageFilter === "13-24" ? "13-24 bulan" :
       ageFilter === "25-60" ? "25-60 bulan" : undefined;
 
-    const pageCacheKey = `balitas_${posyanduId}_p${currentPage}_q${debouncedQuery || ""}_a${ageFilter}_lim${limit}`;
+    const tindakLanjutParam = tindakLanjutFilter !== "semua" ? tindakLanjutFilter : undefined;
+
+    const pageCacheKey = `balitas_${posyanduId}_p${currentPage}_q${debouncedQuery || ""}_a${ageFilter}_t${tindakLanjutFilter}_lim${limit}`;
     const cachedPage = clientDataCache.get<{ data: Balita[]; total: number; totalPages: number }>(pageCacheKey);
 
     if (cachedPage) {
@@ -199,6 +234,7 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
       .getAll(posyanduId, {
         search: debouncedQuery || undefined,
         kelompokUsia: kelompokUsiaParam,
+        tindakLanjut: tindakLanjutParam,
         page: currentPage,
         limit: limit,
       })
@@ -224,7 +260,7 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
 
           // Save page in cache
           clientDataCache.set(pageCacheKey, { data: mapped, total, totalPages: totPages });
-          if (currentPage === 1 && !debouncedQuery && ageFilter === "semua" && limit === 10) {
+          if (currentPage === 1 && !debouncedQuery && ageFilter === "semua" && tindakLanjutFilter === "semua" && limit === 10) {
             clientDataCache.set(initialCacheKey, mapped);
           }
         }
@@ -234,13 +270,13 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
         setIsLoading(false);
         setIsFetching(false);
       });
-  }, [posyanduId, debouncedQuery, ageFilter, currentPage, limit, balitas.length, initialCacheKey]);
+  }, [posyanduId, debouncedQuery, ageFilter, tindakLanjutFilter, currentPage, limit, balitas.length, initialCacheKey]);
 
   useEffect(() => {
     fetchBalitas();
   }, [fetchBalitas]);
 
-  // Filter List Balita (Search by Index + Client-side age filter)
+  // Filter List Balita (Search by Index + Client-side age & tindak lanjut filter)
   const filteredBalitas = useMemo(() => {
     const source = query && query.trim()
       ? balitaIndexRef.current.search(query)
@@ -253,9 +289,22 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
       else if (ageFilter === "7-12") matchesAge = ageMonths >= 7 && ageMonths <= 12;
       else if (ageFilter === "13-24") matchesAge = ageMonths >= 13 && ageMonths <= 24;
       else if (ageFilter === "25-60") matchesAge = ageMonths >= 25 && ageMonths <= 60;
-      return matchesAge;
+      if (!matchesAge) return false;
+
+      if (tindakLanjutFilter === "perlu_tindak_lanjut") {
+        return isPerluTindakLanjut(b);
+      }
+      if (tindakLanjutFilter === "normal") {
+        const latestExam = b.pemeriksaan?.[0];
+        return Boolean(latestExam && !isPerluTindakLanjut(b));
+      }
+      if (tindakLanjutFilter === "belum_periksa") {
+        return !b.pemeriksaan || b.pemeriksaan.length === 0;
+      }
+
+      return true;
     });
-  }, [query, balitas, ageFilter]);
+  }, [query, balitas, ageFilter, tindakLanjutFilter, isPerluTindakLanjut]);
   const [formNama, setFormNama] = useState("");
   const [formNik, setFormNik] = useState("");
   const [formNoHp, setFormNoHp] = useState("");
@@ -404,7 +453,9 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
     checkedPemberianMap,
   ]);
 
-  const activeBalita = balitas.find((b) => b.id === selectedBalitaId);
+  const activeBalita = (detailBalita && detailBalita.id === selectedBalitaId)
+    ? detailBalita
+    : balitas.find((b) => b.id === selectedBalitaId);
 
   // Otomatisasi Status Gizi Balita (Z-Score)
   useEffect(() => {
@@ -952,70 +1003,131 @@ export default function BalitaModule({ posyanduId, activePeriode, onNavigateToPe
           setQuery={setQuery}
           ageFilter={ageFilter}
           setAgeFilter={setAgeFilter}
+          tindakLanjutFilter={tindakLanjutFilter}
+          setTindakLanjutFilter={setTindakLanjutFilter}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
           limit={limit}
           setLimit={setLimit}
+          totalItems={totalItems}
+          totalPages={totalPages}
           onAddNew={() => setView("add")}
           onSelectDetail={(id) => {
             setSelectedBalitaId(id);
+            const found = balitas.find((b) => b.id === id);
+            if (found) setDetailBalita(found);
             setView("detail");
           }}
         />
       )}
 
       {/* 2. VIEW: DETAIL BALITA & RIWAYAT BULANAN */}
-      {view === "detail" && activeBalita && (
-        <BalitaDetailView
-          activeBalita={activeBalita}
-          onBack={() => {
-            setView("list");
-            setSelectedBalitaId(null);
-            if (onBack) onBack();
-          }}
-          backLabel={backLabel}
-          onEditProfile={openEditModal}
-          onDeleteProfile={() => setIsDeleteModalOpen(true)}
-          currentPeriodExam={currentPeriodExam}
-          examDate={examDate}
-          setExamDate={setExamDate}
-          examBB={examBB}
-          setExamBB={setExamBB}
-          examTB={examTB}
-          setExamTB={setExamTB}
-          examBBU={examBBU}
-          examTBU={examTBU}
-          examBBTB={examBBTB}
-          examLK={examLK}
-          setExamLK={setExamLK}
-          examLiLA={examLiLA}
-          setExamLiLA={setExamLiLA}
-          examAsi={examAsi}
-          setExamAsi={setExamAsi}
-          examVitA={examVitA}
-          setExamVitA={setExamVitA}
-          examVitB1={examVitB1}
-          setExamVitB1={setExamVitB1}
-          examVitB6={examVitB6}
-          setExamVitB6={setExamVitB6}
-          examCacing={examCacing}
-          setExamCacing={setExamCacing}
-          masterPemberianOptions={masterPemberianOptions}
-          checkedPemberianMap={checkedPemberianMap}
-          setCheckedPemberianMap={setCheckedPemberianMap}
-          onDeleteMasterPemberian={handleDeleteMasterPemberian}
-          showAddPemberianInput={showAddPemberianInput}
-          setShowAddPemberianInput={setShowAddPemberianInput}
-          newPemberianInput={newPemberianInput}
-          setNewPemberianInput={setNewPemberianInput}
-          onAddCustomPemberian={handleAddCustomPemberian}
-          examError={examError}
-          examWarning={examWarning}
-          checkExamWarning={checkExamWarning}
-          onAddExamSubmit={handleAddExamSubmit}
-          onEditExam={openEditExamModal}
-          onDeleteExam={openDeleteExamModal}
-        />
+      {view === "detail" && (
+        isDetailLoading && !activeBalita ? (
+          <div className="space-y-6 animate-fadeIn">
+            <button
+              type="button"
+              onClick={() => {
+                setView("list");
+                setSelectedBalitaId(null);
+                setDetailBalita(null);
+                if (onBack) onBack();
+              }}
+              className="flex items-center gap-2 text-xs font-bold text-saas-muted hover:text-saas-dark transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> {backLabel || "Kembali ke Daftar Balita"}
+            </button>
+            <div className="bg-white rounded-card shadow-soft-card border border-gray-100 p-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-saas-primary mx-auto mb-3"></div>
+              <p className="text-sm font-semibold text-saas-dark">Memuat data profil balita...</p>
+              <p className="text-xs text-saas-muted mt-1">Mohon tunggu sebentar.</p>
+            </div>
+          </div>
+        ) : activeBalita ? (
+          <BalitaDetailView
+            activeBalita={activeBalita}
+            onBack={() => {
+              setView("list");
+              setSelectedBalitaId(null);
+              setDetailBalita(null);
+              if (onBack) onBack();
+            }}
+            backLabel={backLabel}
+            onEditProfile={openEditModal}
+            onDeleteProfile={() => setIsDeleteModalOpen(true)}
+            currentPeriodExam={currentPeriodExam}
+            examDate={examDate}
+            setExamDate={setExamDate}
+            examBB={examBB}
+            setExamBB={setExamBB}
+            examTB={examTB}
+            setExamTB={setExamTB}
+            examBBU={examBBU}
+            examTBU={examTBU}
+            examBBTB={examBBTB}
+            examLK={examLK}
+            setExamLK={setExamLK}
+            examLiLA={examLiLA}
+            setExamLiLA={setExamLiLA}
+            examAsi={examAsi}
+            setExamAsi={setExamAsi}
+            examVitA={examVitA}
+            setExamVitA={setExamVitA}
+            examVitB1={examVitB1}
+            setExamVitB1={setExamVitB1}
+            examVitB6={examVitB6}
+            setExamVitB6={setExamVitB6}
+            examCacing={examCacing}
+            setExamCacing={setExamCacing}
+            masterPemberianOptions={masterPemberianOptions}
+            checkedPemberianMap={checkedPemberianMap}
+            setCheckedPemberianMap={setCheckedPemberianMap}
+            onDeleteMasterPemberian={handleDeleteMasterPemberian}
+            showAddPemberianInput={showAddPemberianInput}
+            setShowAddPemberianInput={setShowAddPemberianInput}
+            newPemberianInput={newPemberianInput}
+            setNewPemberianInput={setNewPemberianInput}
+            onAddCustomPemberian={handleAddCustomPemberian}
+            examError={examError}
+            examWarning={examWarning}
+            checkExamWarning={checkExamWarning}
+            onAddExamSubmit={handleAddExamSubmit}
+            onEditExam={openEditExamModal}
+            onDeleteExam={openDeleteExamModal}
+          />
+        ) : (
+          <div className="space-y-6 animate-fadeIn">
+            <button
+              type="button"
+              onClick={() => {
+                setView("list");
+                setSelectedBalitaId(null);
+                setDetailBalita(null);
+                if (onBack) onBack();
+              }}
+              className="flex items-center gap-2 text-xs font-bold text-saas-muted hover:text-saas-dark transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> {backLabel || "Kembali ke Daftar Balita"}
+            </button>
+            <div className="bg-white rounded-card shadow-soft-card border border-gray-100 p-12 text-center">
+              <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+              <p className="text-sm font-bold text-saas-dark">Data profil balita tidak ditemukan</p>
+              <p className="text-xs text-saas-muted mt-1 mb-4">Balita mungkin telah dihapus atau tidak terdaftar pada posyandu ini.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setView("list");
+                  setSelectedBalitaId(null);
+                  setDetailBalita(null);
+                  if (onBack) onBack();
+                }}
+                className="px-4 py-2 bg-saas-primary hover:bg-teal-600 text-white text-xs font-bold rounded-lg cursor-pointer transition-colors"
+              >
+                Kembali ke Daftar Balita
+              </button>
+            </div>
+          </div>
+        )
       )}
 
       {/* 3. VIEW: TAMBAH BALITA FORM */}

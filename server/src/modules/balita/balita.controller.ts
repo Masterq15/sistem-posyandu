@@ -10,9 +10,10 @@ import { hitungUsiaBulan, kelompokUsiaBulan } from './balita.helper';
 export const getAllBalita = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const posyanduId = req.params.posyanduId as string;
-    const { search, kelompokUsia, page, limit } = req.query as {
+    const { search, kelompokUsia, tindakLanjut, page, limit } = req.query as {
       search?: string;
       kelompokUsia?: string;
+      tindakLanjut?: string;
       page?: string;
       limit?: string;
     };
@@ -20,7 +21,7 @@ export const getAllBalita = async (req: Request, res: Response, next: NextFuncti
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
 
-    const { data, meta } = await balitaService.findAll(posyanduId, search, kelompokUsia, pageNum, limitNum);
+    const { data, meta } = await balitaService.findAll(posyanduId, search, kelompokUsia, tindakLanjut, pageNum, limitNum);
     res.json({ success: true, data, meta });
   } catch (err) {
     next(err);

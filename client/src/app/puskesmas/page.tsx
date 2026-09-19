@@ -412,7 +412,11 @@ export default function PuskesmasPublicPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 space-y-6 print:p-0 print:bg-white">
+    <div
+      className={`min-h-screen bg-gray-50 p-4 sm:p-6 space-y-6 print:p-0 print:bg-white ${
+        isPreviewOpen ? "print:hidden" : ""
+      }`}
+    >
       <PageHelmet
         title={`Laporan Rekapitulasi ${activeTab} — SIPANDU`}
         description={`Portal publik rekapitulasi data pemeriksaan kesehatan ${activeTab} seluruh Posyandu terintegrasi SIPANDU.`}

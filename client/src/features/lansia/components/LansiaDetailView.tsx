@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -15,6 +15,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import LansiaIcon from "@/components/LansiaIcon";
+import Pagination from "@/components/Pagination";
 import {
   ResponsiveContainer,
   LineChart,
@@ -103,6 +104,22 @@ export default function LansiaDetailView({
   openEditExamModal,
   openDeleteExamModal,
 }: LansiaDetailViewProps) {
+  // Pagination State untuk Riwayat Pemeriksaan Bulanan
+  const [pageRiwayat, setPageRiwayat] = useState(1);
+  const [pageSizeRiwayat, setPageSizeRiwayat] = useState(5);
+
+  useEffect(() => {
+    setPageRiwayat(1);
+  }, [activeLansia.id]);
+
+  const listPemeriksaan = activeLansia.pemeriksaan || [];
+  const totalItemsRiwayat = listPemeriksaan.length;
+  const totalPagesRiwayat = Math.max(1, Math.ceil(totalItemsRiwayat / pageSizeRiwayat));
+  const paginatedPemeriksaan = listPemeriksaan.slice(
+    (pageRiwayat - 1) * pageSizeRiwayat,
+    pageRiwayat * pageSizeRiwayat
+  );
+
   return (
     <div className="space-y-8 min-w-0 max-w-full">
       {/* Back Button */}
@@ -570,8 +587,8 @@ export default function LansiaDetailView({
               </tr>
             </thead>
             <tbody>
-              {activeLansia.pemeriksaan.length > 0 ? (
-                activeLansia.pemeriksaan.map((exam) => (
+              {paginatedPemeriksaan.length > 0 ? (
+                paginatedPemeriksaan.map((exam) => (
                   <tr key={exam.id} className="border-b border-gray-50 last:border-b-0 text-xs text-saas-dark">
                     <td className="py-4 font-bold">{formatTanggalIndonesia(exam.tanggalPeriksa)}</td>
                     <td className="py-4 font-bold">{exam.beratBadan} kg</td>
@@ -644,6 +661,22 @@ export default function LansiaDetailView({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Riwayat Pemeriksaan Bulanan Lansia */}
+        {totalItemsRiwayat > 0 && (
+          <Pagination
+            currentPage={pageRiwayat}
+            totalPages={totalPagesRiwayat}
+            pageSize={pageSizeRiwayat}
+            totalItems={totalItemsRiwayat}
+            onPageChange={setPageRiwayat}
+            onPageSizeChange={(newSize) => {
+              setPageSizeRiwayat(newSize);
+              setPageRiwayat(1);
+            }}
+            pageSizeOptions={[5, 10, 20]}
+          />
+        )}
       </div>
     </div>
   );

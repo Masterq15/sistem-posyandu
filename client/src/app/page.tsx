@@ -588,6 +588,7 @@ export default function Home() {
         if (activeMenu !== "Balita") {
           setNavigationOrigin(activeMenu);
         }
+        setNavKey((prev) => prev + 1);
       }
       setActiveMenu("Balita");
     } else if (target === "lansia") {
@@ -596,6 +597,7 @@ export default function Home() {
         if (activeMenu !== "Lansia") {
           setNavigationOrigin(activeMenu);
         }
+        setNavKey((prev) => prev + 1);
       }
       setActiveMenu("Lansia");
     } else if (target === "pelayanan") {

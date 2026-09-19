@@ -53,7 +53,7 @@ async function main() {
   });
   console.log(`✅ Akun Owner dibuat: ${kaderOwner.nama} (${kaderOwner.email}) / username: demo`);
 
-  // 4. Buat Periode Pelayanan dari Jan 2025 s/d Jan 2026
+  // 4. Buat Periode Pelayanan dari Jan 2025 s/d September 2026
   const periodesData = [
     { bulan: 1, tahun: 2025, nama: 'Periode Pelayanan Januari 2025' },
     { bulan: 2, tahun: 2025, nama: 'Periode Pelayanan Februari 2025' },
@@ -68,6 +68,14 @@ async function main() {
     { bulan: 11, tahun: 2025, nama: 'Periode Pelayanan November 2025' },
     { bulan: 12, tahun: 2025, nama: 'Periode Pelayanan Desember 2025' },
     { bulan: 1, tahun: 2026, nama: 'Periode Pelayanan Januari 2026' },
+    { bulan: 2, tahun: 2026, nama: 'Periode Pelayanan Februari 2026' },
+    { bulan: 3, tahun: 2026, nama: 'Periode Pelayanan Maret 2026' },
+    { bulan: 4, tahun: 2026, nama: 'Periode Pelayanan April 2026' },
+    { bulan: 5, tahun: 2026, nama: 'Periode Pelayanan Mei 2026' },
+    { bulan: 6, tahun: 2026, nama: 'Periode Pelayanan Juni 2026' },
+    { bulan: 7, tahun: 2026, nama: 'Periode Pelayanan Juli 2026' },
+    { bulan: 8, tahun: 2026, nama: 'Periode Pelayanan Agustus 2026' },
+    { bulan: 9, tahun: 2026, nama: 'Periode Pelayanan September 2026' },
   ];
 
   for (const p of periodesData) {
@@ -78,12 +86,12 @@ async function main() {
         bulan: p.bulan,
         tahun: p.tahun,
         tanggal: new Date(Date.UTC(p.tahun, p.bulan - 1, 10)),
-        status: (p.tahun === 2026 && p.bulan === 1) ? 'AKTIF' : 'SELESAI',
+        status: (p.tahun === 2026 && p.bulan === 9) ? 'AKTIF' : 'SELESAI',
         catatan: `Layanan rutin posyandu ${p.nama}`,
       },
     });
   }
-  console.log(`✅ ${periodesData.length} Periode Pelayanan berhasil dibuat (Januari 2025 - Januari 2026).`);
+  console.log(`✅ ${periodesData.length} Periode Pelayanan berhasil dibuat (Januari 2025 - September 2026).`);
 
   // 5. Data 25 Balita
   const balitasRaw = [
@@ -143,18 +151,29 @@ async function main() {
       const diffMonths = (periksaDate.getFullYear() - lahirDate.getFullYear()) * 12 + (periksaDate.getMonth() - lahirDate.getMonth());
       const usiaBulan = Math.max(0, diffMonths);
 
-      // Variasi parameter pertumbuhan
-      const bbBase = b.jk === 'L' ? 3.3 + usiaBulan * 0.5 : 3.2 + usiaBulan * 0.46;
+      // Variasi parameter pertumbuhan realistis standar KMS / WHO
+      let bbBase = b.jk === 'L' ? 3.3 : 3.2;
+      let tbBase = 50;
+      if (usiaBulan <= 12) {
+        bbBase += usiaBulan * 0.55;
+        tbBase += usiaBulan * 2.1;
+      } else if (usiaBulan <= 24) {
+        bbBase += 12 * 0.55 + (usiaBulan - 12) * 0.22;
+        tbBase += 12 * 2.1 + (usiaBulan - 12) * 1.0;
+      } else {
+        bbBase += 12 * 0.55 + 12 * 0.22 + (usiaBulan - 24) * 0.18;
+        tbBase += 12 * 2.1 + 12 * 1.0 + (usiaBulan - 24) * 0.65;
+      }
+
       // Berikan variasi gizi untuk beberapa anak (misal 2 anak agak kurus, 2 gemuk)
       let bbMod = 0;
-      if (idx % 7 === 0) bbMod = -1.5; // Agak kurang
-      else if (idx % 9 === 0) bbMod = 1.8; // Agak gemuk
-      const beratBadan = Math.max(2.5, Number((bbBase + bbMod + (Math.sin(usiaBulan) * 0.2)).toFixed(2)));
+      if (idx % 7 === 0) bbMod = -1.2; // Agak kurang
+      else if (idx % 9 === 0) bbMod = 1.3; // Agak gemuk
+      const beratBadan = Math.max(2.5, Number((bbBase + bbMod + (Math.sin(usiaBulan) * 0.15)).toFixed(2)));
 
-      const tbBase = 50 + usiaBulan * 1.5;
-      const tinggiBadan = Math.max(48, Number((tbBase + (Math.cos(usiaBulan) * 0.4)).toFixed(2)));
-      const lingkarKepala = Number((34 + Math.min(16, usiaBulan * 0.6)).toFixed(1));
-      const lingkarLengan = Number((11 + Math.min(5, usiaBulan * 0.25)).toFixed(1));
+      const tinggiBadan = Math.max(48, Number((tbBase + (Math.cos(usiaBulan) * 0.3)).toFixed(2)));
+      const lingkarKepala = Number((34 + Math.min(16, usiaBulan * 0.5)).toFixed(1));
+      const lingkarLengan = Number((11 + Math.min(5, usiaBulan * 0.2)).toFixed(1));
 
       const statusBbU = hitungStatusBbU(beratBadan, usiaBulan, b.jk);
       const statusTbU = hitungStatusTbU(tinggiBadan, usiaBulan, b.jk);

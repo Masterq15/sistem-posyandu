@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import PageHelmet from "../../components/PageHelmet";
 import { lansiaApi, PeriodePelayanan } from "../../lib/api";
 import { SearchIndex } from "../../lib/searchIndex";
@@ -49,6 +50,8 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
   const [isSaving, setIsSaving] = useState(false);
   const [view, setView] = useState<"list" | "detail" | "add">("list");
   const [selectedLansiaId, setSelectedLansiaId] = useState<string | null>(selectedId || null);
+  const [detailLansia, setDetailLansia] = useState<Lansia | null>(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(Boolean(selectedId));
 
   // In-Memory Search Index for instant O(1) query lookups by token/prefix
   const lansiaIndexRef = useRef<SearchIndex<Lansia>>(
@@ -96,32 +99,47 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
     if (selectedId) {
       setSelectedLansiaId(selectedId);
       setView("detail");
+      setIsDetailLoading(true);
       if (posyanduId) {
-        lansiaApi.getById(posyanduId, selectedId).then((res) => {
-          if (res.success && res.data) {
-            const l = res.data;
-            const mappedSingle: Lansia = {
-              ...l,
-              tanggalLahir: typeof l.tanggalLahir === "string" ? l.tanggalLahir.split("T")[0] : new Date(l.tanggalLahir).toISOString().split("T")[0],
-              pemeriksaan: (l.pemeriksaans ?? []).map((p: any) => ({
-                ...p,
-                tanggalPeriksa: typeof p.tanggalPeriksa === "string" ? p.tanggalPeriksa.split("T")[0] : new Date(p.tanggalPeriksa).toISOString().split("T")[0],
-              })),
-            };
-            setLansias((prev) => {
-              const idx = prev.findIndex((item) => item.id === l.id);
-              if (idx >= 0) {
-                const next = [...prev];
-                next[idx] = mappedSingle;
-                return next;
-              }
-              return [mappedSingle, ...prev];
-            });
-          }
-        }).catch((err) => console.error("Gagal mengambil detail lansia:", err));
+        lansiaApi
+          .getById(posyanduId, selectedId)
+          .then((res) => {
+            if (res.success && res.data) {
+              const l = res.data;
+              const mappedSingle: Lansia = {
+                ...l,
+                tanggalLahir: typeof l.tanggalLahir === "string" ? l.tanggalLahir.split("T")[0] : new Date(l.tanggalLahir).toISOString().split("T")[0],
+                pemeriksaan: (l.pemeriksaans ?? []).map((p: any) => ({
+                  ...p,
+                  tanggalPeriksa: typeof p.tanggalPeriksa === "string" ? p.tanggalPeriksa.split("T")[0] : new Date(p.tanggalPeriksa).toISOString().split("T")[0],
+                })),
+              };
+              setDetailLansia(mappedSingle);
+              setLansias((prev) => {
+                const idx = prev.findIndex((item) => item.id === l.id);
+                if (idx >= 0) {
+                  const next = [...prev];
+                  next[idx] = mappedSingle;
+                  return next;
+                }
+                return [mappedSingle, ...prev];
+              });
+            } else {
+              setDetailLansia(null);
+            }
+          })
+          .catch((err) => {
+            console.error("Gagal mengambil detail lansia:", err);
+            setDetailLansia(null);
+          })
+          .finally(() => {
+            setIsDetailLoading(false);
+          });
       }
     } else {
       setSelectedLansiaId(null);
+      setDetailLansia(null);
+      setIsDetailLoading(false);
       setView("list");
     }
   }, [selectedId, posyanduId]);
@@ -298,7 +316,9 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
   const [examTindakan, setExamTindakan] = useState("");
   const [examWarning, setExamWarning] = useState("");
   const [examError, setExamError] = useState("");
-  const activeLansia = lansias.find((l) => l.id === selectedLansiaId);
+  const activeLansia = (detailLansia && detailLansia.id === selectedLansiaId)
+    ? detailLansia
+    : lansias.find((l) => l.id === selectedLansiaId);
 
   const targetMonth = activePeriode ? activePeriode.bulan : (new Date().getMonth() + 1);
   const targetYear = activePeriode ? activePeriode.tahun : new Date().getFullYear();
@@ -801,56 +821,115 @@ export default function LansiaModule({ posyanduId, activePeriode, searchQuery = 
           setCurrentPage={setCurrentPage}
           limit={limit}
           setLimit={setLimit}
+          totalItems={totalItems}
+          totalPages={totalPages}
           onAddNew={() => setView("add")}
           onSelectDetail={(id) => {
             setSelectedLansiaId(id);
+            const found = lansias.find((l) => l.id === id);
+            if (found) setDetailLansia(found);
             setView("detail");
           }}
         />
       )}
 
       {/* 2. VIEW: DETAIL LANSIA & RIWAYAT PEMERIKSAAN */}
-      {view === "detail" && activeLansia && (
-        <LansiaDetailView
-          activeLansia={activeLansia}
-          onBack={() => {
-            setView("list");
-            setSelectedLansiaId(null);
-            if (onBack) onBack();
-          }}
-          backLabel={backLabel}
-          onEditProfile={openEditModal}
-          onDeleteProfile={() => setIsDeleteModalOpen(true)}
-          currentPeriodExam={currentPeriodExam}
-          examDate={examDate}
-          setExamDate={setExamDate}
-          examBB={examBB}
-          setExamBB={setExamBB}
-          examTB={examTB}
-          setExamTB={setExamTB}
-          examSistol={examSistol}
-          setExamSistol={setExamSistol}
-          examDiastol={examDiastol}
-          setExamDiastol={setExamDiastol}
-          examGds={examGds}
-          setExamGds={setExamGds}
-          examLp={examLp}
-          setExamLp={setExamLp}
-          examCholesterol={examCholesterol}
-          setExamCholesterol={setExamCholesterol}
-          examUricAcid={examUricAcid}
-          setExamUricAcid={setExamUricAcid}
-          examKeluhan={examKeluhan}
-          setExamKeluhan={setExamKeluhan}
-          examTindakan={examTindakan}
-          setExamTindakan={setExamTindakan}
-          examError={examError}
-          examWarning={examWarning}
-          handleExamInputCheck={handleExamInputCheck}
-          handleAddExamSubmit={handleAddExamSubmit}
-          openEditExamModal={openEditExamModal}
-          openDeleteExamModal={openDeleteExamModal}
-        />
+      {view === "detail" && (
+        isDetailLoading && !activeLansia ? (
+          <div className="space-y-6 animate-fadeIn">
+            <button
+              type="button"
+              onClick={() => {
+                setView("list");
+                setSelectedLansiaId(null);
+                setDetailLansia(null);
+                if (onBack) onBack();
+              }}
+              className="flex items-center gap-2 text-xs font-bold text-saas-muted hover:text-saas-dark transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> {backLabel || "Kembali ke Daftar Lansia"}
+            </button>
+            <div className="bg-white rounded-card shadow-soft-card border border-gray-100 p-12 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-saas-primary mx-auto mb-3"></div>
+              <p className="text-sm font-semibold text-saas-dark">Memuat data profil lansia...</p>
+              <p className="text-xs text-saas-muted mt-1">Mohon tunggu sebentar.</p>
+            </div>
+          </div>
+        ) : activeLansia ? (
+          <LansiaDetailView
+            activeLansia={activeLansia}
+            onBack={() => {
+              setView("list");
+              setSelectedLansiaId(null);
+              setDetailLansia(null);
+              if (onBack) onBack();
+            }}
+            backLabel={backLabel}
+            onEditProfile={openEditModal}
+            onDeleteProfile={() => setIsDeleteModalOpen(true)}
+            currentPeriodExam={currentPeriodExam}
+            examDate={examDate}
+            setExamDate={setExamDate}
+            examBB={examBB}
+            setExamBB={setExamBB}
+            examTB={examTB}
+            setExamTB={setExamTB}
+            examSistol={examSistol}
+            setExamSistol={setExamSistol}
+            examDiastol={examDiastol}
+            setExamDiastol={setExamDiastol}
+            examGds={examGds}
+            setExamGds={setExamGds}
+            examLp={examLp}
+            setExamLp={setExamLp}
+            examCholesterol={examCholesterol}
+            setExamCholesterol={setExamCholesterol}
+            examUricAcid={examUricAcid}
+            setExamUricAcid={setExamUricAcid}
+            examKeluhan={examKeluhan}
+            setExamKeluhan={setExamKeluhan}
+            examTindakan={examTindakan}
+            setExamTindakan={setExamTindakan}
+            examError={examError}
+            examWarning={examWarning}
+            handleExamInputCheck={handleExamInputCheck}
+            handleAddExamSubmit={handleAddExamSubmit}
+            openEditExamModal={openEditExamModal}
+            openDeleteExamModal={openDeleteExamModal}
+          />
+        ) : (
+          <div className="space-y-6 animate-fadeIn">
+            <button
+              type="button"
+              onClick={() => {
+                setView("list");
+                setSelectedLansiaId(null);
+                setDetailLansia(null);
+                if (onBack) onBack();
+              }}
+              className="flex items-center gap-2 text-xs font-bold text-saas-muted hover:text-saas-dark transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> {backLabel || "Kembali ke Daftar Lansia"}
+            </button>
+            <div className="bg-white rounded-card shadow-soft-card border border-gray-100 p-12 text-center">
+              <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+              <p className="text-sm font-bold text-saas-dark">Data profil lansia tidak ditemukan</p>
+              <p className="text-xs text-saas-muted mt-1 mb-4">Lansia mungkin telah dihapus atau tidak terdaftar pada posyandu ini.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setView("list");
+                  setSelectedLansiaId(null);
+                  setDetailLansia(null);
+                  if (onBack) onBack();
+                }}
+                className="px-4 py-2 bg-saas-primary hover:bg-teal-600 text-white text-xs font-bold rounded-lg cursor-pointer transition-colors"
+              >
+                Kembali ke Daftar Lansia
+              </button>
+            </div>
+          </div>
+        )
       )}
 
       {/* 3. VIEW: ADD LANSIA */}

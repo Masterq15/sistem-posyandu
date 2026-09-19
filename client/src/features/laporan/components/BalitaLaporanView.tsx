@@ -970,6 +970,11 @@ export default function BalitaLaporanView({
           pageSize={pageSizeBalita}
           totalItems={filteredBalitaLogs.length}
           onPageChange={setPageBalita}
+          onPageSizeChange={(newSize) => {
+            setPageSizeBalita(newSize);
+            setPageBalita(1);
+          }}
+          pageSizeOptions={[10, 25, 50, 100]}
         />
       </div>
     </div>

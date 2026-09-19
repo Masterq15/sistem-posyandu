@@ -73,14 +73,14 @@ export default function PuskesmasPreviewModal({
     <div
       onClick={onClose}
       style={{ margin: 0 }}
-      className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] !m-0 !mt-0 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-5 animate-in fade-in duration-200"
+      className="posyandu-preview-backdrop fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] !m-0 !mt-0 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-5 animate-in fade-in duration-200 print:!static print:!inset-auto print:!w-full print:!h-auto print:!bg-transparent print:!p-0 print:!m-0 print:!block print:!overflow-visible print:backdrop-blur-none"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white w-full max-w-6xl h-[92vh] rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden relative"
+        className="posyandu-preview-dialog bg-white w-full max-w-6xl h-[92vh] rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden relative print:!static print:!w-full print:!max-w-none print:!h-auto print:!max-h-none print:!shadow-none print:!border-none print:!rounded-none print:!p-0 print:!m-0 print:!block print:!overflow-visible"
       >
         {/* Modal Header */}
-        <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50/90">
+        <div className="posyandu-preview-header print:hidden px-5 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50/90">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
               <FileText className="w-4 h-4" />
@@ -111,10 +111,10 @@ export default function PuskesmasPreviewModal({
         </div>
 
         {/* Modal Body: Lembar Dokumen Resmi Standar Pemerintah */}
-        <div className="flex-1 bg-gray-100 p-3 sm:p-6 overflow-y-auto">
+        <div className="posyandu-preview-body flex-1 bg-gray-100 p-3 sm:p-6 overflow-y-auto print:!p-0 print:!m-0 print:!bg-white print:!overflow-visible print:!h-auto print:!block">
           <div
             id="printable-report-document"
-            className="bg-white mx-auto shadow-md border border-gray-200 rounded-lg p-6 sm:p-8 max-w-5xl space-y-6 text-gray-900 font-sans"
+            className="posyandu-print-document bg-white mx-auto shadow-md border border-gray-200 rounded-lg p-6 sm:p-8 max-w-5xl space-y-6 text-gray-900 font-sans print:!shadow-none print:!border-none print:!rounded-none print:!p-0 print:!m-0 print:!w-full print:!max-w-none print:space-y-4"
           >
             {/* KOP SIPANDU — PORTAL PUBLIK */}
             <div className="flex items-center gap-4 border-b-2 border-teal-600 pb-4">
@@ -201,9 +201,9 @@ export default function PuskesmasPreviewModal({
             </div>
 
             {/* Tabel Dokumen Resmi */}
-            <div className="overflow-x-auto border border-gray-300 rounded">
+            <div className="overflow-x-auto border border-gray-300 rounded print:!overflow-visible print:!border-none print:!rounded-none">
               {activeTab === "Balita" ? (
-                <table className="w-full text-[10px] border-collapse">
+                <table className="w-full text-[10px] border-collapse print:text-[8.5px]">
                   <thead className="bg-gray-100 border-b border-gray-300 font-bold text-gray-800">
                     <tr>
                       <th className="border border-gray-300 px-1.5 py-1 text-center w-8">No</th>
@@ -256,7 +256,7 @@ export default function PuskesmasPreviewModal({
                   </tbody>
                 </table>
               ) : (
-                <table className="w-full text-[10px] border-collapse">
+                <table className="w-full text-[10px] border-collapse print:text-[8.5px]">
                   <thead className="bg-gray-100 border-b border-gray-300 font-bold text-gray-800">
                     <tr>
                       <th className="border border-gray-300 px-1.5 py-1 text-center w-8">No</th>
@@ -323,7 +323,7 @@ export default function PuskesmasPreviewModal({
         </div>
 
         {/* Modal Footer / Action Buttons */}
-        <div className="px-5 py-3 border-t border-gray-200 bg-white flex flex-wrap items-center justify-between gap-3">
+        <div className="posyandu-preview-footer print:hidden px-5 py-3 border-t border-gray-200 bg-white flex flex-wrap items-center justify-between gap-3">
           <div className="text-xs text-gray-500 flex items-center gap-1.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>Dokumen register siap dicetak atau disimpan format PDF</span>
@@ -371,7 +371,75 @@ export default function PuskesmasPreviewModal({
           </div>
         </div>
       </div>
+
+      {/* Print Style Rule Override */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page {
+            size: landscape;
+            margin: 8mm;
+          }
+          body {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            overflow: visible !important;
+            height: auto !important;
+          }
+          .posyandu-preview-header,
+          .posyandu-preview-footer {
+            display: none !important;
+          }
+          .posyandu-preview-backdrop {
+            position: static !important;
+            width: 100% !important;
+            height: auto !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: block !important;
+            overflow: visible !important;
+          }
+          .posyandu-preview-dialog {
+            position: static !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: block !important;
+            overflow: visible !important;
+          }
+          .posyandu-preview-body {
+            overflow: visible !important;
+            height: auto !important;
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: block !important;
+          }
+          #printable-report-document {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .posyandu-print-table-wrap {
+            overflow: visible !important;
+            border: none !important;
+            border-radius: 0 !important;
+          }
+        }
+      `}} />
     </div>,
     document.body
   );
 }
+

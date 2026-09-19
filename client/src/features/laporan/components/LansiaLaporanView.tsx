@@ -868,6 +868,11 @@ export default function LansiaLaporanView({
           pageSize={pageSizeLansia}
           totalItems={filteredLansiaLogs.length}
           onPageChange={setPageLansia}
+          onPageSizeChange={(newSize) => {
+            setPageSizeLansia(newSize);
+            setPageLansia(1);
+          }}
+          pageSizeOptions={[10, 25, 50, 100]}
         />
       </div>
     </div>

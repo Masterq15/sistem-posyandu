@@ -8,6 +8,7 @@ export const balitaService = {
     posyanduId: string,
     search?: string,
     kelompokUsia?: string,
+    tindakLanjut?: string,
     page: number = 1,
     limit: number = 10
   ) {
@@ -17,7 +18,20 @@ export const balitaService = {
       ...(search && { nama: { contains: search, mode: 'insensitive' } }),
     };
 
-    if (!kelompokUsia) {
+    // Helper memeriksa apakah balita memerlukan perhatian/tindak lanjut gizi
+    const checkPerluTindakLanjut = (latestExam?: any) => {
+      if (!latestExam) return false;
+      const bbu = String(latestExam.statusBbU || '').toUpperCase();
+      const tbu = String(latestExam.statusTbU || '').toUpperCase();
+      const bbtb = String(latestExam.statusBbTb || '').toUpperCase();
+      return (
+        tbu === 'SP' || tbu === 'P' ||
+        bbtb === 'SK' || bbtb === 'K' || bbtb === 'G' ||
+        bbu === 'SK' || bbu === 'K'
+      );
+    };
+
+    if (!kelompokUsia && (!tindakLanjut || tindakLanjut === 'semua')) {
       const [total, balitas] = await Promise.all([
         prisma.balita.count({ where }),
         prisma.balita.findMany({
@@ -58,7 +72,22 @@ export const balitaService = {
           const kelompok = kelompokUsiaBulan(usiaBulan);
           return { ...b, usiaBulan, kelompokUsia: kelompok };
         })
-        .filter((b) => b.kelompokUsia === kelompokUsia);
+        .filter((b) => {
+          if (kelompokUsia && b.kelompokUsia !== kelompokUsia) return false;
+          if (tindakLanjut && tindakLanjut !== 'semua') {
+            const latestExam = b.pemeriksaans?.[0];
+            if (tindakLanjut === 'perlu_tindak_lanjut') {
+              return checkPerluTindakLanjut(latestExam);
+            }
+            if (tindakLanjut === 'normal') {
+              return Boolean(latestExam && !checkPerluTindakLanjut(latestExam));
+            }
+            if (tindakLanjut === 'belum_periksa') {
+              return !latestExam;
+            }
+          }
+          return true;
+        });
 
       const total = filtered.length;
       const totalPages = Math.ceil(total / limit) || 1;
@@ -67,6 +96,7 @@ export const balitaService = {
       return { data, meta: { page, limit, total, totalPages } };
     }
   },
+
 
   async findById(id: string, posyanduId: string) {
     return prisma.balita.findFirst({

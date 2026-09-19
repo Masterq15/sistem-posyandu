@@ -21,6 +21,8 @@ export interface LansiaListTableProps {
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   limit: number;
   setLimit: (l: number) => void;
+  totalItems?: number;
+  totalPages?: number;
   onAddNew: () => void;
   onSelectDetail: (id: string) => void;
 }
@@ -39,12 +41,23 @@ export default function LansiaListTable({
   setCurrentPage,
   limit,
   setLimit,
+  totalItems: serverTotalItems,
+  totalPages: serverTotalPages,
   onAddNew,
   onSelectDetail,
 }: LansiaListTableProps) {
-  const totalItems = filteredLansias.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / limit));
-  const paginatedLansias = filteredLansias.slice((currentPage - 1) * limit, currentPage * limit);
+  const isClientSearchActive = Boolean(query && query.trim());
+  const totalItems = isClientSearchActive
+    ? filteredLansias.length
+    : (serverTotalItems ?? filteredLansias.length);
+  const totalPages = isClientSearchActive
+    ? Math.max(1, Math.ceil(filteredLansias.length / limit))
+    : (serverTotalPages ?? Math.max(1, Math.ceil(totalItems / limit)));
+
+  const paginatedLansias = isClientSearchActive
+    ? filteredLansias.slice((currentPage - 1) * limit, currentPage * limit)
+    : filteredLansias;
+
 
   return (
     <div className="space-y-6 min-w-0 max-w-full">

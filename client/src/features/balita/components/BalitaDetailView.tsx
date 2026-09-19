@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -13,6 +13,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import BalitaIcon from "@/components/BalitaIcon";
+import Pagination from "@/components/Pagination";
 import {
   ResponsiveContainer,
   LineChart,
@@ -121,6 +122,22 @@ export default function BalitaDetailView({
   onEditExam,
   onDeleteExam,
 }: BalitaDetailViewProps) {
+  // Pagination State untuk Riwayat Perkembangan Bulanan
+  const [pageRiwayat, setPageRiwayat] = useState(1);
+  const [pageSizeRiwayat, setPageSizeRiwayat] = useState(5);
+
+  useEffect(() => {
+    setPageRiwayat(1);
+  }, [activeBalita.id]);
+
+  const listPemeriksaan = activeBalita.pemeriksaan || [];
+  const totalItemsRiwayat = listPemeriksaan.length;
+  const totalPagesRiwayat = Math.max(1, Math.ceil(totalItemsRiwayat / pageSizeRiwayat));
+  const paginatedPemeriksaan = listPemeriksaan.slice(
+    (pageRiwayat - 1) * pageSizeRiwayat,
+    pageRiwayat * pageSizeRiwayat
+  );
+
   return (
     <div className="space-y-8">
       {/* Back Action Header */}
@@ -675,8 +692,8 @@ export default function BalitaDetailView({
               </tr>
             </thead>
             <tbody>
-              {activeBalita.pemeriksaan.length > 0 ? (
-                activeBalita.pemeriksaan.map((exam) => (
+              {paginatedPemeriksaan.length > 0 ? (
+                paginatedPemeriksaan.map((exam) => (
                   <tr key={exam.id} className="border-b border-gray-50 last:border-b-0 text-xs text-saas-dark">
                     <td className="py-4 font-bold">{formatTanggalIndonesia(exam.tanggalPeriksa)}</td>
                     <td className="py-4 font-semibold">{exam.usiaBulan} Bulan</td>
@@ -751,6 +768,22 @@ export default function BalitaDetailView({
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Riwayat Perkembangan Bulanan */}
+        {totalItemsRiwayat > 0 && (
+          <Pagination
+            currentPage={pageRiwayat}
+            totalPages={totalPagesRiwayat}
+            pageSize={pageSizeRiwayat}
+            totalItems={totalItemsRiwayat}
+            onPageChange={setPageRiwayat}
+            onPageSizeChange={(newSize) => {
+              setPageSizeRiwayat(newSize);
+              setPageRiwayat(1);
+            }}
+            pageSizeOptions={[5, 10, 20]}
+          />
+        )}
       </div>
     </div>
   );

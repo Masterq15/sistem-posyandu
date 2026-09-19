@@ -338,7 +338,7 @@ export const posyanduApi = {
 // ─────────────────────────────────────────────────────────────
 
 export const balitaApi = {
-  getAll: (posyanduId: string, params?: { search?: string; kelompokUsia?: string; page?: number; limit?: number }) => {
+  getAll: (posyanduId: string, params?: { search?: string; kelompokUsia?: string; tindakLanjut?: string; page?: number; limit?: number }) => {
     const cleanParams: Record<string, string> = {};
     if (params) {
       Object.entries(params).forEach(([k, v]) => {
