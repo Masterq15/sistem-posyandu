@@ -63,7 +63,7 @@ export default function LansiaAddForm({
   onSubmit,
 }: LansiaAddFormProps) {
   return (
-    <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6 sm:p-8 space-y-6 max-w-3xl">
+    <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6 sm:p-8 space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between border-b border-gray-100 pb-4">
         <div>
           <h2 className="text-xl font-bold text-saas-dark tracking-tight">Formulir Pendaftaran Lansia Baru</h2>

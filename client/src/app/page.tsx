@@ -284,6 +284,7 @@ export default function Home() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [modalNotice, setModalNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const openEditProfileModal = () => {
     if (user) {
@@ -910,8 +911,8 @@ export default function Home() {
 
               <div className="relative group flex justify-center">
                 <button
-                  onClick={logout}
-                  className="w-11 h-11 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-50 transition-all"
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="w-11 h-11 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-50 transition-all cursor-pointer"
                   aria-label="Keluar"
                 >
                   <SignOut className="w-5 h-5" weight="bold" />
@@ -949,8 +950,8 @@ export default function Home() {
                 <span>Bantuan</span>
               </button>
               <button
-                onClick={logout}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50/70 transition-all"
+                onClick={() => setShowLogoutConfirm(true)}
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50/70 transition-all cursor-pointer"
               >
                 <SignOut className="w-4 h-4" weight="bold" />
                 <span>Keluar</span>
@@ -1088,9 +1089,9 @@ export default function Home() {
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
-                  logout();
+                  setShowLogoutConfirm(true);
                 }}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50/60 transition-all"
+                className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50/60 transition-all cursor-pointer"
               >
                 <SignOut className="w-4 h-4" weight="bold" />
                 <span>Keluar (Logout)</span>
@@ -1472,8 +1473,11 @@ export default function Home() {
 
                   <div className="border-t border-gray-100 pt-1 mt-1">
                     <button
-                      onClick={logout}
-                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50/80 rounded-lg transition-colors text-left"
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        setShowLogoutConfirm(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50/80 rounded-lg transition-colors text-left cursor-pointer"
                     >
                       <SignOut className="w-4 h-4 text-red-500" weight="bold" />
                       Keluar (Logout)
@@ -1735,6 +1739,51 @@ export default function Home() {
         onSelectPeriode={(p) => setActivePeriode(p)}
         onRefreshPeriode={loadActivePeriode}
       />
+
+      {/* 7. MODAL KONFIRMASI LOGOUT */}
+      {showLogoutConfirm && (
+        <div
+          onClick={() => setShowLogoutConfirm(false)}
+          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-4 bg-saas-dark/40 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-gray-100 p-6 relative text-center"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 border border-red-100 flex items-center justify-center mx-auto mb-4">
+              <SignOut className="w-6 h-6" weight="bold" />
+            </div>
+
+            <h3 className="font-bold text-base text-saas-dark mb-1">
+              Konfirmasi Keluar
+            </h3>
+            <p className="text-xs text-saas-muted mb-6 leading-relaxed">
+              Apakah Anda yakin ingin keluar dari akun Sistem Posyandu? Anda harus masuk kembali untuk mengakses data.
+            </p>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-2.5 px-4 text-xs font-bold text-saas-muted hover:text-saas-dark hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  logout();
+                }}
+                className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <SignOut className="w-4 h-4" weight="bold" />
+                Ya, Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
