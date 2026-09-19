@@ -141,7 +141,7 @@ function LeftPanel() {
       <div className="relative z-10 flex items-center justify-between border-t border-teal-200/50 pt-4 text-[11px] text-slate-500">
         <span className="font-bold text-emerald-600">● SISTEM AKTIF</span>
         <Link href="/puskesmas" className="font-bold text-saas-primary hover:underline flex items-center gap-1">
-          <Building2 className="w-3.5 h-3.5" /> Portal Puskesmas →
+          <Building2 className="w-3.5 h-3.5" /> Portal Publik →
         </Link>
       </div>
     </div>

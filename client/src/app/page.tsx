@@ -853,12 +853,12 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-11 h-11 flex items-center justify-center rounded-xl text-saas-primary hover:bg-teal-50 border border-teal-200 transition-all"
-                  aria-label="Portal Puskesmas"
+                  aria-label="Portal Publik"
                 >
                   <Buildings className="w-5 h-5 text-saas-primary" weight="bold" />
                 </a>
                 <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-semibold rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 shadow-xl top-1/2 -translate-y-1/2">
-                  Portal Puskesmas ↗
+                  Portal Publik ↗
                 </div>
               </div>
 
@@ -904,7 +904,7 @@ export default function Home() {
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-saas-primary hover:bg-teal-50 transition-all border border-teal-200"
               >
                 <Buildings className="w-4 h-4 shrink-0 text-saas-primary" weight="bold" />
-                <span>Portal Puskesmas ↗</span>
+                <span>Portal Publik ↗</span>
               </a>
               <button
                 onClick={() => handleMenuSelect("Bantuan")}
@@ -1043,7 +1043,7 @@ export default function Home() {
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-saas-primary hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all border border-teal-200 dark:border-teal-800/50"
               >
                 <Buildings className="w-4 h-4 shrink-0 text-saas-primary" weight="bold" />
-                <span>Portal Puskesmas ↗</span>
+                <span>Portal Publik ↗</span>
               </a>
               <button
                 onClick={() => {
