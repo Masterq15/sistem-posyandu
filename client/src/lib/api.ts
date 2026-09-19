@@ -247,7 +247,7 @@ export const authApi = {
       body: JSON.stringify({ token, newPassword }),
     }),
 
-  updateProfile: (data: { nama: string; email: string; username?: string; password?: string }) =>
+  updateProfile: (data: { nama: string; email: string; username?: string; oldPassword?: string; password?: string }) =>
     request<ApiResponse<KaderInfo>>('/api/auth/profile', {
       method: 'PUT',
       body: JSON.stringify(data),

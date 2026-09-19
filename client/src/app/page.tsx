@@ -276,8 +276,12 @@ export default function Home() {
   const [editNama, setEditNama] = useState("");
   const [editUsername, setEditUsername] = useState("");
   const [editEmail, setEditEmail] = useState("");
-  const [editPassword, setEditPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [editOldPassword, setEditOldPassword] = useState("");
+  const [editNewPassword, setEditNewPassword] = useState("");
+  const [editConfirmPassword, setEditConfirmPassword] = useState("");
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [modalNotice, setModalNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -286,8 +290,12 @@ export default function Home() {
       setEditNama(user.nama);
       setEditUsername(user.username || "");
       setEditEmail(user.email);
-      setEditPassword("");
-      setShowPassword(false);
+      setEditOldPassword("");
+      setEditNewPassword("");
+      setEditConfirmPassword("");
+      setShowOldPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
       setModalNotice(null);
       setIsEditProfileOpen(true);
     }
@@ -302,9 +310,23 @@ export default function Home() {
       return;
     }
 
-    if (editPassword && editPassword.length < 6) {
-      setModalNotice({ type: "error", message: "Password minimal 6 karakter" });
-      return;
+    const isChangingPassword = Boolean(
+      editOldPassword.trim() || editNewPassword.trim() || editConfirmPassword.trim()
+    );
+
+    if (isChangingPassword) {
+      if (!editOldPassword.trim()) {
+        setModalNotice({ type: "error", message: "Password lama wajib diisi untuk mengganti kata sandi" });
+        return;
+      }
+      if (!editNewPassword.trim() || editNewPassword.trim().length < 6) {
+        setModalNotice({ type: "error", message: "Password baru minimal 6 karakter" });
+        return;
+      }
+      if (editNewPassword !== editConfirmPassword) {
+        setModalNotice({ type: "error", message: "Konfirmasi password baru tidak cocok" });
+        return;
+      }
     }
 
     try {
@@ -313,7 +335,9 @@ export default function Home() {
         nama: editNama.trim(),
         username: editUsername.trim(),
         email: editEmail.trim(),
-        ...(editPassword.trim() ? { password: editPassword.trim() } : {}),
+        ...(isChangingPassword
+          ? { oldPassword: editOldPassword.trim(), password: editNewPassword.trim() }
+          : {}),
       });
 
       if (res.success && res.data) {
@@ -1584,28 +1608,93 @@ export default function Home() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-saas-dark mb-1.5">Kata Sandi Baru (Opsional)</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={editPassword}
-                    onChange={(e) => setEditPassword(e.target.value)}
-                    placeholder="Kosongkan jika tidak ingin diubah"
-                    className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary focus:bg-white transition-all"
-                  />
-                  <Lock className="absolute left-3 top-3 w-4 h-4 text-saas-muted" weight="bold" />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-saas-muted hover:text-saas-dark"
-                  >
-                    {showPassword ? (
-                      <EyeSlash className="w-4 h-4" weight="bold" />
-                    ) : (
-                      <Eye className="w-4 h-4" weight="bold" />
-                    )}
-                  </button>
+              {/* Seksi Ganti Kata Sandi */}
+              <div className="pt-3 border-t border-gray-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-saas-muted uppercase tracking-wider">
+                    Ganti Kata Sandi (Opsional)
+                  </span>
+                  <span className="text-[10px] text-saas-muted">
+                    Kosongkan jika tidak ingin diubah
+                  </span>
+                </div>
+
+                {/* Password Lama */}
+                <div>
+                  <label className="block text-xs font-bold text-saas-dark mb-1">Password Lama</label>
+                  <div className="relative">
+                    <input
+                      type={showOldPassword ? "text" : "password"}
+                      value={editOldPassword}
+                      onChange={(e) => setEditOldPassword(e.target.value)}
+                      placeholder="Masukkan password lama Anda"
+                      className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary focus:bg-white transition-all"
+                    />
+                    <Lock className="absolute left-3 top-3 w-4 h-4 text-saas-muted" weight="bold" />
+                    <button
+                      type="button"
+                      onClick={() => setShowOldPassword(!showOldPassword)}
+                      className="absolute right-3 top-3 text-saas-muted hover:text-saas-dark cursor-pointer"
+                    >
+                      {showOldPassword ? (
+                        <EyeSlash className="w-4 h-4" weight="bold" />
+                      ) : (
+                        <Eye className="w-4 h-4" weight="bold" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Password Baru */}
+                <div>
+                  <label className="block text-xs font-bold text-saas-dark mb-1">Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      value={editNewPassword}
+                      onChange={(e) => setEditNewPassword(e.target.value)}
+                      placeholder="Minimal 6 karakter"
+                      className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary focus:bg-white transition-all"
+                    />
+                    <Lock className="absolute left-3 top-3 w-4 h-4 text-saas-muted" weight="bold" />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-3 text-saas-muted hover:text-saas-dark cursor-pointer"
+                    >
+                      {showNewPassword ? (
+                        <EyeSlash className="w-4 h-4" weight="bold" />
+                      ) : (
+                        <Eye className="w-4 h-4" weight="bold" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Konfirmasi Password Baru */}
+                <div>
+                  <label className="block text-xs font-bold text-saas-dark mb-1">Konfirmasi Password Baru</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={editConfirmPassword}
+                      onChange={(e) => setEditConfirmPassword(e.target.value)}
+                      placeholder="Ulangi password baru"
+                      className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-saas-dark focus:outline-none focus:border-saas-primary focus:bg-white transition-all"
+                    />
+                    <Lock className="absolute left-3 top-3 w-4 h-4 text-saas-muted" weight="bold" />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-3 text-saas-muted hover:text-saas-dark cursor-pointer"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeSlash className="w-4 h-4" weight="bold" />
+                      ) : (
+                        <Eye className="w-4 h-4" weight="bold" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 

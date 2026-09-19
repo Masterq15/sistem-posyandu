@@ -201,12 +201,19 @@ export const authService = {
     return kader;
   },
 
-  async updateProfile(userId: string, data: { nama: string; email: string; username?: string; password?: string }) {
-    const { nama, email, username, password } = data;
+  async updateProfile(userId: string, data: { nama: string; email: string; username?: string; password?: string; oldPassword?: string }) {
+    const { nama, email, username, password, oldPassword } = data;
 
     if (!nama || !email) {
       const err = new Error('Nama dan email wajib diisi');
       (err as any).statusCode = 400;
+      throw err;
+    }
+
+    const currentUser = await prisma.kader.findUnique({ where: { id: userId } });
+    if (!currentUser) {
+      const err = new Error('Pengguna tidak ditemukan');
+      (err as any).statusCode = 404;
       throw err;
     }
 
@@ -235,7 +242,25 @@ export const authService = {
     if (username !== undefined) {
       updateData.username = username.trim() || null;
     }
-    if (password && password.trim().length >= 6) {
+
+    // Jika pengguna ingin mengganti password
+    if (password && password.trim().length > 0) {
+      if (!oldPassword || !oldPassword.trim()) {
+        const err = new Error('Password lama wajib diisi untuk mengganti kata sandi');
+        (err as any).statusCode = 400;
+        throw err;
+      }
+      const isOldPasswordValid = await bcrypt.compare(oldPassword.trim(), currentUser.password);
+      if (!isOldPasswordValid) {
+        const err = new Error('Password lama yang Anda masukkan tidak sesuai');
+        (err as any).statusCode = 400;
+        throw err;
+      }
+      if (password.trim().length < 6) {
+        const err = new Error('Password baru minimal 6 karakter');
+        (err as any).statusCode = 400;
+        throw err;
+      }
       updateData.password = await bcrypt.hash(password.trim(), 12);
     }
 
