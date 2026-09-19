@@ -263,7 +263,7 @@ export const authService = {
       },
     });
 
-    const clientHost = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',')[0].trim() : 'http://localhost:3000';
+    const clientHost = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',')[0].trim() : 'https://sistem-posyandu.vercel.app';
     const resetUrl = `${clientHost}/reset-password?token=${resetToken}`;
 
     await sendResetPasswordEmail({

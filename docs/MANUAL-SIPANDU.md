@@ -51,7 +51,7 @@
 Ketik alamat aplikasi di browser (Chrome, Firefox, dll):
 
 ```
-https://sipandu.app
+https://sistem-posyandu.vercel.app
 ```
 
 > ğŸ’¡ **Tips:** Simpan alamat ini sebagai Bookmark agar mudah ditemukan lagi.
@@ -619,7 +619,7 @@ Portal Publik adalah halaman yang bisa diakses **tanpa login** oleh siapa saja â
 Buka browser dan ketik:
 
 ```
-https://sipandu.app/publik
+https://sistem-posyandu.vercel.app/puskesmas
 ```
 
 ---
