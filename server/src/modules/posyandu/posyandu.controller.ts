@@ -28,7 +28,11 @@ export const createPosyandu = async (req: Request, res: Response, next: NextFunc
   try {
     const data = await posyanduService.create(req.body);
     res.status(201).json({ success: true, message: 'Posyandu berhasil dibuat', data });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.statusCode) {
+      res.status(err.statusCode).json({ success: false, message: err.message });
+      return;
+    }
     next(err);
   }
 };
@@ -38,7 +42,11 @@ export const updatePosyandu = async (req: Request, res: Response, next: NextFunc
     const id = req.params.id as string;
     const data = await posyanduService.update(id, req.body);
     res.json({ success: true, message: 'Posyandu berhasil diperbarui', data });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.statusCode) {
+      res.status(err.statusCode).json({ success: false, message: err.message });
+      return;
+    }
     next(err);
   }
 };

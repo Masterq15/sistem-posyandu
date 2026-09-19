@@ -75,6 +75,20 @@ export const authService = {
       throw err;
     }
 
+    const existingPosyandu = await prisma.posyandu.findFirst({
+      where: {
+        nama: {
+          equals: namaPosyandu.trim(),
+          mode: 'insensitive',
+        },
+      },
+    });
+    if (existingPosyandu) {
+      const err = new Error('Nama Posyandu sudah digunakan. Silakan gunakan nama lain');
+      (err as any).statusCode = 409;
+      throw err;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const result = await prisma.$transaction(async (tx) => {

@@ -24,11 +24,51 @@ export const posyanduService = {
   },
 
   async create(data: { nama: string; desa: string; kecamatan: string; alamat: string }) {
-    return prisma.posyandu.create({ data });
+    const existing = await prisma.posyandu.findFirst({
+      where: {
+        nama: {
+          equals: data.nama.trim(),
+          mode: 'insensitive',
+        },
+      },
+    });
+    if (existing) {
+      const err = new Error('Nama Posyandu sudah digunakan. Silakan gunakan nama lain');
+      (err as any).statusCode = 409;
+      throw err;
+    }
+    return prisma.posyandu.create({
+      data: {
+        ...data,
+        nama: data.nama.trim(),
+      },
+    });
   },
 
   async update(id: string, data: Partial<{ nama: string; desa: string; kecamatan: string; alamat: string }>) {
-    return prisma.posyandu.update({ where: { id }, data });
+    if (data.nama && data.nama.trim()) {
+      const existing = await prisma.posyandu.findFirst({
+        where: {
+          id: { not: id },
+          nama: {
+            equals: data.nama.trim(),
+            mode: 'insensitive',
+          },
+        },
+      });
+      if (existing) {
+        const err = new Error('Nama Posyandu sudah digunakan. Silakan gunakan nama lain');
+        (err as any).statusCode = 409;
+        throw err;
+      }
+    }
+    return prisma.posyandu.update({
+      where: { id },
+      data: {
+        ...data,
+        ...(data.nama && { nama: data.nama.trim() }),
+      },
+    });
   },
 
   async delete(id: string) {
