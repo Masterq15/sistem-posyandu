@@ -11,14 +11,11 @@ import {
   CheckCircle2,
   User,
   Lock,
-  Bell,
   Palette,
   Shield,
   ChevronRight,
   Eye,
   EyeOff,
-  BellRing,
-  BellOff,
   Database,
   Download,
   Sun,
@@ -40,7 +37,6 @@ type SettingSection =
   | "profil"
   | "akun"
   | "tampilan"
-  | "notifikasi"
   | "data";
 
 interface NavItem {
@@ -89,14 +85,6 @@ const navItems: NavItem[] = [
     icon: Palette,
     color: "text-violet-600",
     bgColor: "bg-violet-500/10",
-  },
-  {
-    id: "notifikasi",
-    label: "Notifikasi",
-    description: "Pengingat jadwal & imunisasi",
-    icon: Bell,
-    color: "text-amber-600",
-    bgColor: "bg-amber-500/10",
   },
   {
     id: "data",
@@ -618,81 +606,6 @@ function TampilanSection() {
   );
 }
 
-// ─── Notifikasi ───────────────────────────────────────────
-function NotifikasiSection() {
-  const [notifs, setNotifs] = useState({
-    jadwalPosyandu: true,
-    imunisasiBalita: true,
-    resikoKesehatan: true,
-    laporanBulanan: false,
-  });
-  const [saved, setSaved] = useState(false);
-
-  const toggle = (key: keyof typeof notifs) => {
-    setNotifs((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-  };
-
-  const items = [
-    { key: "jadwalPosyandu" as const, label: "Pengingat Jadwal Posyandu", desc: "Notifikasi otomatis menjelang hari buka posyandu" },
-    { key: "imunisasiBalita" as const, label: "Peringatan Imunisasi Balita", desc: "Notifikasi balita yang belum lengkap imunisasinya" },
-    { key: "resikoKesehatan" as const, label: "Peringatan Gizi & Hipertensi", desc: "Notifikasi lansia/balita berisiko tinggi" },
-    { key: "laporanBulanan" as const, label: "Pengingat Laporan Bulanan", desc: "Notifikasi untuk melengkapi laporan akhir bulan" },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={Bell}
-        iconColor="text-amber-600"
-        iconBg="bg-amber-500/10"
-        title="Notifikasi & Pengingat"
-        subtitle="Aktifkan pengingat penting agar tidak ada jadwal atau laporan yang terlewat."
-      />
-
-      <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50">
-        {items.map(({ key, label, desc }) => (
-          <div key={key} className="flex items-center justify-between p-5 gap-4">
-            <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${notifs[key] ? "bg-amber-500/10" : "bg-gray-100"}`}>
-                {notifs[key]
-                  ? <BellRing className="w-4 h-4 text-amber-600" />
-                  : <BellOff className="w-4 h-4 text-saas-muted" />
-                }
-              </div>
-              <div>
-                <p className={`text-sm font-bold ${notifs[key] ? "text-saas-dark" : "text-saas-muted"}`}>{label}</p>
-                <p className="text-xs text-saas-muted mt-0.5">{desc}</p>
-              </div>
-            </div>
-            <button
-              onClick={() => toggle(key)}
-              aria-label={`Toggle ${label}`}
-              className={`relative w-12 h-6 rounded-full transition-all duration-300 shrink-0 ${notifs[key] ? "bg-amber-500" : "bg-gray-200"}`}
-            >
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm transition-all duration-300 ${notifs[key] ? "left-7" : "left-1"}`} />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex justify-end">
-        <button
-          onClick={handleSave}
-          className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-xl shadow-md shadow-amber-500/20 transition-all flex items-center gap-2"
-        >
-          <Save className="w-4 h-4" />
-          {saved ? "Tersimpan!" : "Simpan Pengaturan"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ─── Data & Privasi ───────────────────────────────────────
 function DataSection() {
   const { user, posyanduId } = useAuth();
@@ -1026,7 +939,6 @@ export default function PengaturanModule() {
       case "profil": return <ProfilSection />;
       case "akun": return <AkunSection />;
       case "tampilan": return <TampilanSection />;
-      case "notifikasi": return <NotifikasiSection />;
       case "data": return <DataSection />;
     }
   };

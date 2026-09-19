@@ -9,42 +9,82 @@
 
 ## 📋 DAFTAR ISI
 
-1. [Apa Itu SIPANDU?](#1-apa-itu-sipandu)
-2. [Cara Masuk ke Aplikasi (Login)](#2-cara-masuk-ke-aplikasi-login)
+1. [Apa Itu SIPANDU & Peran Pengguna (Role)](#1-apa-itu-sipandu--peran-pengguna-role)
+2. [Pendaftaran Posyandu Baru & Cara Masuk (Login)](#2-pendaftaran-posyandu-baru--cara-masuk-login)
 3. [Mengenal Tampilan Utama (Dashboard)](#3-mengenal-tampilan-utama-dashboard)
-4. [Menu Pelayanan — Catat Pemeriksaan](#4-menu-pelayanan--catat-pemeriksaan)
+4. [Menu Pelayanan — Catat Pemeriksaan Langsung](#4-menu-pelayanan--catat-pemeriksaan-langsung)
 5. [Menu Data Balita](#5-menu-data-balita)
 6. [Menu Data Lansia](#6-menu-data-lansia)
 7. [Menu Riwayat Pemeriksaan](#7-menu-riwayat-pemeriksaan)
-8. [Menu Laporan](#8-menu-laporan)
-9. [Menu Pengaturan Akun](#9-menu-pengaturan-akun)
-10. [Portal Publik (Untuk Masyarakat)](#10-portal-publik-untuk-masyarakat)
+8. [Menu Laporan Rekapitulasi](#8-menu-laporan-rekapitulasi)
+9. [Menu Pengaturan — Manajemen Akun Kader & Profil](#9-menu-pengaturan-akun)
+10. [Portal Publik (Untuk Masyarakat & Puskesmas)](#10-portal-publik-untuk-masyarakat--puskesmas)
 11. [Pertanyaan yang Sering Ditanyakan (FAQ)](#11-pertanyaan-yang-sering-ditanyakan-faq)
 12. [Panduan Singkat Kode Status Gizi](#12-panduan-singkat-kode-status-gizi)
 
 ---
 
-## 1. Apa Itu SIPANDU?
+## 1. Apa Itu SIPANDU & Peran Pengguna (Role)
 
-**SIPANDU** (Sistem Informasi Pelayanan dan Data Posyandu) adalah aplikasi digital berbasis web yang membantu kader posyandu mencatat, memantau, dan melaporkan data kesehatan balita dan lansia secara mudah dan terorganisir.
+**SIPANDU** (Sistem Informasi Pelayanan dan Data Posyandu) adalah aplikasi digital berbasis web yang dirancang untuk mempermudah kader posyandu mencatat pemeriksaan, memantau status gizi anak secara otomatis dengan standar WHO/Kemenkes, skrining fisik lansia, serta menghasilkan laporan rekapitulasi secara instan.
 
-### ✅ Apa yang bisa dilakukan di SIPANDU?
+### ✅ Fitur Utama SIPANDU:
 
 | Fitur | Keterangan |
 |-------|------------|
-| 📊 **Dashboard** | Lihat ringkasan data posyandu secara real-time |
-| 💉 **Pelayanan** | Catat pemeriksaan balita dan lansia saat posyandu berlangsung |
-| 👶 **Data Balita** | Kelola data lengkap balita terdaftar |
-| 👴 **Data Lansia** | Kelola data lengkap lansia terdaftar |
-| 📋 **Riwayat** | Lihat histori pemeriksaan sebelumnya |
-| 📄 **Laporan** | Unduh laporan bulanan dalam format PDF atau Excel |
-| 🌐 **Portal Publik** | Masyarakat bisa melihat data rekapitulasi tanpa perlu login |
+| 📊 **Dashboard** | Ringkasan statistik posyandu real-time, tren status gizi balita, dan distribusi kehadiran RT/RW |
+| 💉 **Pelayanan** | Pencatatan langsung penimbangan balita dan skrining lansia saat hari-H pelayanan |
+| 👶 **Data Balita** | Database anak lengkap, grafik KMS digital, dan riwayat tumbuh kembang balita |
+| 👴 **Data Lansia** | Database lansia, pemantauan hipertensi, diabetes, dan riwayat kesehatan lansia |
+| 📋 **Riwayat** | Histori seluruh log pemeriksaan dengan filter pencarian dan periode lengkap |
+| 📄 **Laporan** | Cetak & ekspor laporan rekapitulasi bulanan resmi berformat PDF & Excel |
+| 👥 **Manajemen Akun** | Pengelolaan akun kader posyandu (khusus Ketua Posyandu / Owner) |
+| 🌐 **Portal Publik** | Akses publik bagi warga & puskesmas untuk melihat data agregat tanpa perlu login |
 
 ---
 
-## 2. Cara Masuk ke Aplikasi (Login)
+### 👥 Peran Pengguna & Hak Akses (User Roles):
 
-### Langkah-langkah Login:
+Di dalam sistem SIPANDU terdapat **3 tingkatan peran (role)** dengan hak akses masing-masing:
+
+| Peran (Role) | Siapa Penggunanya? | Hak Akses & Kemampuan di Aplikasi |
+|--------------|-------------------|-----------------------------------|
+| 👑 **OWNER** *(Ketua Posyandu)* | Ketua Posyandu / Penanggung Jawab Utama | • Mendaftarkan unit Posyandu baru pertama kali.<br>• Mengelola identitas & profil Posyandu (nama, wilayah, alamat).<br>• Menambah, mengedit, dan menonaktifkan akun **Kader** di menu Manajemen Akun.<br>• Membuka & mengaktifkan **Periode Pelayanan** bulanan.<br>• Mengunduh Cadangan Data (*Backup JSON*) & Reset Data Posyandu.<br>• Memiliki akses penuh ke seluruh fitur pencatatan dan laporan. |
+| 🩺 **KADER** *(Kader Posyandu)* | Kader Pelaksana Posyandu | • Didaftarkan akunnya oleh Owner.<br>• Menginput pemeriksaan tumbuh kembang Balita & skrining Lansia saat pelayanan.<br>• Mendaftarkan sasaran Balita & Lansia baru.<br>• Melihat riwayat pemeriksaan & mengunduh laporan PDF/Excel.<br>• Mengubah profil nama dan kata sandi pribadi. |
+| 🌐 **PUBLIK** *(Masyarakat / Puskesmas)* | Warga, Orang Tua Balita, Pihak Puskesmas | • Akses terbuka tanpa login melalui tautan Portal Publik.<br>• Melihat ringkasan data posyandu, grafik tren gizi, dan transparansi pelayanan. |
+
+---
+
+## 2. Pendaftaran Posyandu Baru & Cara Masuk (Login)
+
+### A. Mendaftarkan Posyandu Baru (Khusus OWNER)
+
+Jika posyandu Anda **belum terdaftar** di SIPANDU, langkah pertama adalah mendaftarkan unit posyandu baru. Pendaftaran hanya dilakukan **sekali** oleh Ketua Posyandu (OWNER).
+
+**Langkah Pendaftaran Posyandu Baru:**
+
+1. Buka aplikasi di browser: `https://sistem-posyandu.vercel.app`
+2. Klik tombol **"Daftar Posyandu"** atau **"Buat Akun"** di halaman login
+3. Isi formulir pendaftaran:
+
+| Kolom | Keterangan |
+|-------|-----------|
+| **Nama Posyandu** | Nama resmi posyandu, contoh: *Posyandu Mawar RT 05* |
+| **Kelurahan/Desa** | Lokasi posyandu |
+| **Kecamatan** | Kecamatan posyandu |
+| **Kabupaten/Kota** | Kabupaten atau kota |
+| **Nama Ketua** | Nama lengkap Anda sebagai Ketua Posyandu |
+| **Email** | Email aktif untuk login dan pemulihan akun |
+| **Password** | Buat password yang kuat (minimal 8 karakter) |
+
+4. Klik **"Daftar"** → akun OWNER Anda otomatis terbuat
+5. Login menggunakan email dan password yang baru didaftarkan
+
+> 📌 **Catatan:** Setelah OWNER terdaftar dan login, akun **Kader** ditambahkan oleh OWNER melalui menu **Manajemen Akun** — bukan melalui halaman daftar publik. (Lihat [Section 9](#9-menu-pengaturan--manajemen-akun-kader))
+
+---
+
+### B. Langkah-langkah Login:
 
 **Langkah 1 — Buka Aplikasi**
 
@@ -180,12 +220,16 @@ Menampilkan persentase kehadiran warga berdasarkan wilayah RT/RW.
 
 ---
 
-#### 🔘 E. Tombol Aksi di Header Dashboard
+#### 🔘 E. Navigasi Sidebar
 
-Di pojok kanan atas terdapat dua tombol:
+Di sisi kiri terdapat **menu navigasi** yang dapat digunakan untuk berpindah antar fitur:
 
-- **"Pemeriksaan Cepat"** → Langsung menuju halaman Pelayanan untuk mencatat pemeriksaan
-- **"Laporan"** → Langsung menuju halaman Laporan untuk mengunduh/mencetak laporan
+- **Pelayanan** → Mencatat pemeriksaan hari ini
+- **Data Balita** → Kelola data anak terdaftar
+- **Data Lansia** → Kelola data lansia terdaftar
+- **Riwayat** → Melihat histori pemeriksaan
+- **Laporan** → Unduh/cetak laporan bulanan
+- **Pengaturan** → Kelola profil dan akun kader
 
 ---
 
@@ -204,7 +248,7 @@ Klik menu **"Pelayanan"** di bilah navigasi sebelah kiri.
 >
 > ![Pelayanan](./screenshots/08-menu-pelayanan.png)
 >
-> *Tampilkan halaman pelayanan dengan antrian dan tombol tambah.*
+> *Tampilkan halaman pelayanan dengan daftar peserta dan tombol tambah.*
 
 ---
 
@@ -223,16 +267,16 @@ Sebelum mencatat, pastikan **Periode Aktif** sudah dipilih. Periode adalah bulan
 
 ---
 
-### B. Menambah Peserta ke Antrian
+### B. Menambah Peserta Baru/yang Belum Terdata
 
 1. Klik tombol **"+ Tambah Balita"** atau **"+ Tambah Lansia"**
 2. Cari nama peserta di kolom pencarian
-3. Klik nama yang sesuai → peserta masuk ke daftar antrian
+3. Klik nama yang sesuai → peserta masuk ke daftar peserta
 
 ---
 
 <!-- SCREENSHOT PLACEHOLDER -->
-> 📸 **[Screenshot: Modal pencarian dan tambah peserta ke antrian]**
+> 📸 **[Screenshot: Modal pencarian dan tambah peserta ke daftar peserta]**
 >
 > ![Tambah Peserta](./screenshots/10-tambah-peserta-antrian.png)
 >
@@ -242,7 +286,7 @@ Sebelum mencatat, pastikan **Periode Aktif** sudah dipilih. Periode adalah bulan
 
 ### C. Mencatat Hasil Pemeriksaan Balita
 
-1. Dari daftar antrian, klik tombol **"Periksa"** di samping nama balita
+1. Dari daftar peserta, klik tombol **"Periksa"** di samping nama balita
 2. Isi formulir pemeriksaan:
 
 ---
@@ -286,7 +330,7 @@ Sebelum mencatat, pastikan **Periode Aktif** sudah dipilih. Periode adalah bulan
 
 ### D. Mencatat Hasil Pemeriksaan Lansia
 
-1. Dari daftar antrian, klik **"Periksa"** di samping nama lansia
+1. Dari daftar peserta, klik **"Periksa"** di samping nama lansia
 2. Isi formulir pemeriksaan lansia:
 
 ---
@@ -572,7 +616,76 @@ Di bagian atas terdapat **kartu ringkasan** yang menampilkan:
 
 ## 9. Menu Pengaturan Akun
 
-### A. Mengubah Data Profil
+> 🔐 **Catatan Peran:** Bagian **A (Manajemen Kader)** hanya tersedia untuk **OWNER (Ketua Posyandu)**. Sub-section B, C, dan D dapat diakses oleh semua kader.
+
+### A. Menambahkan Kader *(Khusus OWNER)*
+
+Akun kader **tidak bisa mendaftar sendiri** — hanya OWNER yang bisa menambahkan kader baru melalui menu Pengaturan.
+
+**Langkah Menambah Kader Baru:**
+
+1. Login sebagai **OWNER (Ketua Posyandu)**
+2. Klik menu **"Pengaturan"** di bilah navigasi kiri
+3. Pilih tab **"Manajemen Kader"** atau scroll ke bagian **Daftar Kader**
+
+---
+
+<!-- SCREENSHOT PLACEHOLDER -->
+> 📸 **[Screenshot: Tab Manajemen Kader di halaman Pengaturan (tampilan OWNER)]**
+>
+> ![Manajemen Kader](./screenshots/27a-manajemen-kader.png)
+>
+> *Tampilkan halaman pengaturan dengan tab/section Manajemen Kader.*
+
+---
+
+4. Klik tombol **"+ Tambah Kader"**
+5. Isi formulir data kader baru:
+
+| Kolom | Keterangan |
+|-------|-----------|
+| **Nama Lengkap** | Nama kader yang akan didaftarkan |
+| **Email** | Email aktif milik kader — digunakan untuk login |
+| **Password Awal** | Buat password sementara dan beritahu kader |
+| **Role** | Pilih **Kader** *(biarkan default)* |
+
+---
+
+<!-- SCREENSHOT PLACEHOLDER -->
+> 📸 **[Screenshot: Form Tambah Kader Baru]**
+>
+> ![Form Tambah Kader](./screenshots/27b-form-tambah-kader.png)
+>
+> *Tampilkan formulir penambahan kader baru dengan kolom nama, email, dan password.*
+
+---
+
+6. Klik **"Simpan"** → akun kader langsung aktif
+7. Beritahu kader email dan password yang telah dibuat
+8. Kader dapat login langsung dan mengubah password pribadi mereka di menu Pengaturan
+
+> 💡 **Tips:** Minta kader untuk segera mengganti password setelah login pertama kali demi keamanan akun.
+
+---
+
+**Langkah Mengedit atau Menonaktifkan Kader:**
+
+1. Di daftar kader, temukan nama kader yang ingin diubah
+2. Klik ikon **✏️ Edit** untuk mengubah nama atau email kader
+3. Klik ikon **🚫 Nonaktifkan** untuk menonaktifkan akun kader (akun tidak terhapus, hanya tidak bisa login)
+
+---
+
+<!-- SCREENSHOT PLACEHOLDER -->
+> 📸 **[Screenshot: Daftar Kader dengan tombol Edit dan Nonaktifkan]**
+>
+> ![Daftar Kader](./screenshots/27c-daftar-kader.png)
+>
+> *Tampilkan tabel daftar kader dengan kolom nama, email, status, dan aksi (edit/nonaktifkan).*
+
+---
+
+### B. Mengubah Data Profil
 
 1. Klik menu **"Pengaturan"** di bilah navigasi kiri
 2. Ubah **Nama**, **Foto Profil**, atau informasi lainnya
@@ -589,13 +702,13 @@ Di bagian atas terdapat **kartu ringkasan** yang menampilkan:
 
 ---
 
-### B. Mengubah Password
+### C. Mengubah Password
 
 1. Di halaman Pengaturan, cari bagian **"Keamanan"**
 2. Isi **Password Lama**, **Password Baru**, dan **Konfirmasi Password Baru**
 3. Klik **"Ubah Password"**
 
-### C. Keluar dari Aplikasi (Logout)
+### D. Keluar dari Aplikasi (Logout)
 
 Klik **foto profil / nama** di pojok kiri bawah → pilih **"Keluar"**.
 
@@ -798,8 +911,8 @@ Hanya **kader posyandu yang sudah login** yang bisa mendaftarkan peserta baru. M
 
 Jika mengalami kendala teknis yang tidak tercantum di panduan ini, hubungi:
 
-- 📧 **Email Tim SIPANDU:** support@sipandu.app
-- 💬 **Grup WhatsApp Kader:** *(tanyakan nomor grup ke koordinator posyandu Anda)*
+- 📧 **Email Tim SIPANDU:** sipandu@webind.my.id
+- 💬 **Nomor WhatsApp Tim SIPANDU:** *(tanyakan nomor grup ke koordinator posyandu Anda)*
 - 📋 **Menu Bantuan di Aplikasi:** Klik menu **"Bantuan"** di navigasi kiri aplikasi
 
 ---
