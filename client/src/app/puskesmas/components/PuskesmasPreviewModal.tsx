@@ -210,8 +210,6 @@ export default function PuskesmasPreviewModal({
                       <th className="border border-gray-300 px-2 py-1 text-left">Nama Balita</th>
                       <th className="border border-gray-300 px-2 py-1 text-left">Posyandu</th>
                       <th className="border border-gray-300 px-1.5 py-1 text-center">Tgl Periksa</th>
-                      <th className="border border-gray-300 px-1.5 py-1 text-center">Tgl Lahir</th>
-                      <th className="border border-gray-300 px-2 py-1 text-left">Nama Ibu</th>
                       <th className="border border-gray-300 px-1 py-1 text-center w-6">JK</th>
                       <th className="border border-gray-300 px-1 py-1 text-center">Usia</th>
                       <th className="border border-gray-300 px-1.5 py-1 text-right">BB</th>
@@ -229,7 +227,7 @@ export default function PuskesmasPreviewModal({
                   <tbody>
                     {filteredBalitaLogs.length === 0 ? (
                       <tr>
-                        <td colSpan={18} className="py-6 text-center text-gray-500 font-medium">
+                        <td colSpan={16} className="py-6 text-center text-gray-500 font-medium">
                           Tidak ada data untuk dicetak pada periode ini.
                         </td>
                       </tr>
@@ -240,8 +238,6 @@ export default function PuskesmasPreviewModal({
                           <td className="border border-gray-300 px-2 py-1 font-bold text-gray-900">{log.namaWarga}</td>
                           <td className="border border-gray-300 px-2 py-1">{log.posyanduNama}</td>
                           <td className="border border-gray-300 px-1.5 py-1 text-center">{log.tanggalPeriksa}</td>
-                          <td className="border border-gray-300 px-1.5 py-1 text-center">{log.tanggalLahir || "-"}</td>
-                          <td className="border border-gray-300 px-2 py-1">{log.namaIbu || "-"}</td>
                           <td className="border border-gray-300 px-1 py-1 text-center">{log.jenisKelamin}</td>
                           <td className="border border-gray-300 px-1 py-1 text-center">{log.usiaInfo}</td>
                           <td className="border border-gray-300 px-1.5 py-1 text-right font-semibold">{log.beratBadan}</td>

@@ -31,6 +31,7 @@ interface BalitaLaporanViewProps {
   onSelectLog?: (log: ItemRiwayat) => void;
   triggerKey?: string | number;
   isUpdating?: boolean;
+  isPublic?: boolean;
 }
 
 export default function BalitaLaporanView({
@@ -46,6 +47,7 @@ export default function BalitaLaporanView({
   onSelectLog,
   triggerKey,
   isUpdating,
+  isPublic = false,
 }: BalitaLaporanViewProps) {
   const totalPages = Math.max(1, Math.ceil(filteredBalitaLogs.length / pageSizeBalita));
 
@@ -742,9 +744,13 @@ export default function BalitaLaporanView({
               <tr>
                 <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">No</th>
                 <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Nama Balita</th>
-                <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Tanggal Lahir</th>
-                <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">NIK</th>
-                <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Nama Ibu</th>
+                {!isPublic && (
+                  <>
+                    <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Tanggal Lahir</th>
+                    <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">NIK</th>
+                    <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Nama Ibu</th>
+                  </>
+                )}
                 <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">JK</th>
                 <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Usia</th>
                 <th className="px-2.5 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">BB (kg)</th>
@@ -765,7 +771,7 @@ export default function BalitaLaporanView({
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredBalitaLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={20} className="py-8 text-center text-xs text-gray-500 font-medium">
+                  <td colSpan={isPublic ? 17 : 20} className="py-8 text-center text-xs text-gray-500 font-medium">
                     Tidak ada catatan pemeriksaan Balita yang sesuai dengan filter.
                   </td>
                 </tr>
@@ -783,6 +789,8 @@ export default function BalitaLaporanView({
                           (periksa.getMonth() - lahir.getMonth())
                       );
                       usiaStr = `${totalBulan} bln`;
+                    } else if (log.usiaBulan !== undefined) {
+                      usiaStr = `${log.usiaBulan} bln`;
                     }
 
                     return (
@@ -813,9 +821,13 @@ export default function BalitaLaporanView({
                             <span>{log.nama || "-"}</span>
                           )}
                         </td>
-                        <td className="px-2.5 py-2 text-gray-600 whitespace-nowrap">{log.tanggalLahir || "-"}</td>
-                        <td className="px-2.5 py-2 text-gray-600 whitespace-nowrap">{log.nik || "-"}</td>
-                        <td className="px-2.5 py-2 text-gray-600 whitespace-nowrap">{log.namaIbu || "-"}</td>
+                        {!isPublic && (
+                          <>
+                            <td className="px-2.5 py-2 text-gray-600 whitespace-nowrap">{log.tanggalLahir || "-"}</td>
+                            <td className="px-2.5 py-2 text-gray-600 whitespace-nowrap">{log.nik || "-"}</td>
+                            <td className="px-2.5 py-2 text-gray-600 whitespace-nowrap">{log.namaIbu || "-"}</td>
+                          </>
+                        )}
                         <td className="px-2.5 py-2 text-gray-600 font-semibold whitespace-nowrap">{log.jenisKelamin || "-"}</td>
                         <td className="px-2.5 py-2 text-gray-600 whitespace-nowrap">{usiaStr}</td>
                         <td className="px-2.5 py-2 text-gray-900 font-bold whitespace-nowrap">{log.beratBadan ?? "-"}</td>

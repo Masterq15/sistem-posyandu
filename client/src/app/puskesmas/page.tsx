@@ -299,9 +299,6 @@ export default function PuskesmasPublicPage() {
               Posyandu: item.posyanduNama || "",
               Wilayah: item.wilayah || "",
               "Tanggal Periksa": item.tanggalPeriksa || "",
-              "Tanggal Lahir": item.tanggalLahir || "",
-              NIK: item.nik || "-",
-              "Nama Ibu": item.namaIbu || "-",
               "Jenis Kelamin": item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
               "Usia (Bulan)": item.usiaInfo || "",
               "BB (kg)": item.beratBadan ?? "",
@@ -325,8 +322,6 @@ export default function PuskesmasPublicPage() {
               Posyandu: item.posyanduNama || "",
               Wilayah: item.wilayah || "",
               "Tanggal Periksa": item.tanggalPeriksa || "",
-              "Tanggal Lahir": item.tanggalLahir || "",
-              NIK: item.nik || "-",
               "Jenis Kelamin": item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
               Usia: item.usiaInfo || "-",
               "Riw. HT": item.riwayatHt ? "Ya" : "Tidak",
@@ -524,6 +519,7 @@ export default function PuskesmasPublicPage() {
           searchBalita={searchBalita}
           setSearchBalita={setSearchBalita}
           onSelectLog={handleSelectLog}
+          isPublic={true}
         />
       ) : (
         <LansiaLaporanView
@@ -536,6 +532,7 @@ export default function PuskesmasPublicPage() {
           searchLansia={searchLansia}
           setSearchLansia={setSearchLansia}
           onSelectLog={handleSelectLog}
+          isPublic={true}
         />
       )}
 

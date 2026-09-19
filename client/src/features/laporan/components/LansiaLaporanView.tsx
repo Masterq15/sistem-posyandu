@@ -32,6 +32,7 @@ interface LansiaLaporanViewProps {
   onSelectLog?: (log: ItemRiwayat) => void;
   triggerKey?: string | number;
   isUpdating?: boolean;
+  isPublic?: boolean;
 }
 
 export default function LansiaLaporanView({
@@ -47,6 +48,7 @@ export default function LansiaLaporanView({
   onSelectLog,
   triggerKey,
   isUpdating,
+  isPublic = false,
 }: LansiaLaporanViewProps) {
   const totalPages = Math.max(1, Math.ceil(filteredLansiaLogs.length / pageSizeLansia));
 
@@ -755,8 +757,12 @@ export default function LansiaLaporanView({
               <tr>
                 <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">No</th>
                 <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Nama Lansia</th>
-                <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Tanggal Lahir</th>
-                <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">NIK</th>
+                {!isPublic && (
+                  <>
+                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Tanggal Lahir</th>
+                    <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">NIK</th>
+                  </>
+                )}
                 <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">JK</th>
                 <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Usia</th>
                 <th className="px-3 py-2.5 text-left font-bold text-gray-700 whitespace-nowrap">Riw HT</th>
@@ -773,7 +779,7 @@ export default function LansiaLaporanView({
             <tbody className="divide-y divide-gray-200 bg-white">
               {filteredLansiaLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={15} className="py-8 text-center text-xs text-gray-500 font-medium">
+                  <td colSpan={isPublic ? 13 : 15} className="py-8 text-center text-xs text-gray-500 font-medium">
                     Tidak ada catatan pemeriksaan Lansia yang sesuai dengan filter.
                   </td>
                 </tr>
@@ -792,6 +798,8 @@ export default function LansiaLaporanView({
                       usiaTahun = Math.floor(
                         (sekarang.getTime() - lahir.getTime()) / (365.25 * 24 * 60 * 60 * 1000)
                       ).toString();
+                    } else if ((log as any).usiaInfo) {
+                      usiaTahun = (log as any).usiaInfo.replace(/[^0-9]/g, "");
                     }
 
                     return (
@@ -822,8 +830,12 @@ export default function LansiaLaporanView({
                             <span>{log.nama || "-"}</span>
                           )}
                         </td>
-                        <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{log.tanggalLahir || "-"}</td>
-                        <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{log.nik || "-"}</td>
+                        {!isPublic && (
+                          <>
+                            <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{log.tanggalLahir || "-"}</td>
+                            <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{log.nik || "-"}</td>
+                          </>
+                        )}
                         <td className="px-3 py-2.5 text-gray-600 font-semibold whitespace-nowrap">{log.jenisKelamin || "-"}</td>
                         <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{usiaTahun !== "-" ? `${usiaTahun} th` : "-"}</td>
                         <td className="px-3 py-2.5 text-gray-600 font-semibold whitespace-nowrap">{(log as any).riwayatHt ? "Ya" : "Tdk"}</td>
