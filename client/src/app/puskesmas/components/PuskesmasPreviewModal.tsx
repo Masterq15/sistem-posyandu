@@ -87,7 +87,7 @@ export default function PuskesmasPreviewModal({
             </div>
             <div>
               <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                Pratinjau Laporan Register Puskesmas
+                Pratinjau Laporan SiPandu
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
                   {activeTab}
                 </span>
@@ -118,9 +118,14 @@ export default function PuskesmasPreviewModal({
           >
             {/* KOP SIPANDU — PORTAL PUBLIK */}
             <div className="flex items-center gap-4 border-b-2 border-teal-600 pb-4">
-              {/* Logo / Ikon Aplikasi */}
-              <div className="w-14 h-14 rounded-2xl bg-teal-600 flex items-center justify-center shrink-0 shadow-md">
-                <img src="/logo.svg" alt="SIPANDU" className="w-9 h-9 object-contain invert" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              {/* Logo / Ikon Aplikasi (SIPANDU & Universitas) */}
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-2.5">
+                  <img src="/logo.svg" alt="SIPANDU" className="w-9 h-9 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                </div>
+                <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-1.5">
+                  <img src="/logoupb.webp" alt="Logo Universitas" className="w-11 h-11 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                </div>
               </div>
               {/* Identitas Aplikasi */}
               <div className="flex-1 text-left">

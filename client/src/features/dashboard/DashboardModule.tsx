@@ -18,7 +18,7 @@ import {
 import { formatTanggalIndonesia } from "../../lib/dateUtils";
 import Modal from "../../components/Modal";
 import PageHelmet from "../../components/PageHelmet";
-import { Download, CheckCircle2, Plus } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { hitungStatusBbU, hitungStatusTbU, hitungStatusBbTb, hitungIMT } from "../../lib/zScoreCalculator";
 import { useAuth } from "../../contexts/AuthContext";
@@ -711,20 +711,6 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
           <p className="text-xs sm:text-sm text-saas-muted mt-0.5 sm:mt-1 font-normal">
             Pantau pertumbuhan anak dan kondisi kesehatan lansia secara terpusat.
           </p>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <button
-            onClick={() => onNavigate("pelayanan")}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-saas-primary hover:bg-saas-primary-active text-white text-xs font-semibold rounded-pill transition-all shadow-md shadow-teal-500/10"
-          >
-            <Plus className="w-4 h-4" /> Pemeriksaan Cepat
-          </button>
-          <button
-            onClick={() => onNavigate("laporan")}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2.5 border border-hairline rounded-pill bg-white text-xs font-semibold text-saas-dark hover:bg-surface-soft transition-all"
-          >
-            <Download className="w-3.5 h-3.5 text-saas-muted" /> Laporan
-          </button>
         </div>
       </div>
 

@@ -81,8 +81,13 @@ function LeftPanel() {
 
       {/* Brand Header */}
       <div className="relative z-10 flex items-center gap-3">
-        <div className="w-10 h-10 bg-white border border-slate-200/90 rounded-xl flex items-center justify-center p-1.5 shadow-2xs">
-          <img src="/logo.svg" alt="Logo SIPANDU" className="w-7 h-7 object-contain" />
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className="w-10 h-10 bg-white border border-slate-200/90 rounded-xl flex items-center justify-center p-1.5 shadow-2xs">
+            <img src="/logo.svg" alt="Logo SIPANDU" className="w-7 h-7 object-contain" />
+          </div>
+          <div className="w-10 h-10 bg-white border border-slate-200/90 rounded-xl flex items-center justify-center p-1 shadow-2xs" title="Logo Universitas">
+            <img src="/logoupb.webp" alt="Logo Universitas" className="w-7 h-7 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          </div>
         </div>
         <div>
           <p className="text-teal-950 font-black text-base tracking-tight leading-none">SIPANDU</p>
@@ -795,9 +800,14 @@ export default function LoginPage() {
           {/* Right form panel */}
           <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 py-6 sm:py-10 min-w-0">
             {/* Mobile logo */}
-            <div className="md:hidden flex items-center gap-2.5 mb-8">
-              <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1.5 shadow-2xs">
-                <img src="/logo.svg" alt="Logo SIPANDU" className="w-6 h-6 object-contain" />
+            <div className="md:hidden flex items-center gap-3 mb-8">
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1.5 shadow-2xs">
+                  <img src="/logo.svg" alt="Logo SIPANDU" className="w-6 h-6 object-contain" />
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1 shadow-2xs">
+                  <img src="/logoupb.webp" alt="Logo Universitas" className="w-6 h-6 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                </div>
               </div>
               <div>
                 <span className="font-black text-teal-950 text-base leading-none block">SIPANDU</span>

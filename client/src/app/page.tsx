@@ -581,7 +581,7 @@ export default function Home() {
 
   // ── Conditional Rendering of Views ──────────────────────
   const handleDashboardNavigate = (menu: string, patientId?: string) => {
-    const target = menu.toLowerCase();
+    const target = menu.toLowerCase().trim();
     if (target === "balita") {
       if (patientId) {
         setSelectedBalitaId(patientId);
@@ -598,6 +598,20 @@ export default function Home() {
         }
       }
       setActiveMenu("Lansia");
+    } else if (target === "pelayanan") {
+      setActiveMenu("Pelayanan");
+    } else if (target === "laporan") {
+      setActiveMenu("Laporan");
+    } else if (target === "riwayat") {
+      setActiveMenu("Riwayat");
+    } else if (target === "overview" || target === "dashboard") {
+      setActiveMenu("Overview");
+    } else if (target === "pengaturan" || target === "settings") {
+      setActiveMenu("Pengaturan");
+    } else if (target === "manajemen akun" || target === "manajemen-akun") {
+      setActiveMenu("Manajemen Akun");
+    } else if (target === "bantuan" || target === "help") {
+      setActiveMenu("Bantuan");
     } else {
       setActiveMenu(menu);
     }

@@ -1097,38 +1097,38 @@ export default function BantuanModule() {
               </div>
             </div>
 
-            {/* Kontak Dukungan */}
+            {/* Kontak Pengembang & Dukungan Teknis */}
             <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6 space-y-4 flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <PhoneCall className="w-4.5 h-4.5 text-saas-primary" />
-                  <h3 className="font-extrabold text-sm text-saas-dark">Kontak Dukungan Rujukan</h3>
+                  <h3 className="font-extrabold text-sm text-saas-dark">Kontak Pengembang (Developer)</h3>
                 </div>
                 <p className="text-[11px] text-saas-muted font-medium leading-normal">
-                  Bila ada kendala darurat medis pada balita atau lansia saat pemeriksaan posyandu, segera hubungi kontak rujukan:
+                  Bila Anda mengalami kendala teknis, error sistem, atau membutuhkan bantuan penggunaan aplikasi SIPANDU, silakan hubungi pengembang:
                 </p>
                 
                 <div className="space-y-3 pt-1">
                   <div className="p-3.5 bg-teal-50/50 border border-teal-100/60 rounded-xl space-y-1">
                     <p className="text-[9px] text-saas-primary font-bold uppercase tracking-wider">
-                      {user?.posyandu?.nama ? `Bidan Desa Pembina • ${user.posyandu.nama}` : "Bidan Desa Pembina"}
+                      Tim Pengembang Sistem • Pengabdian Masyarakat
                     </p>
-                    <p className="text-xs font-black text-saas-dark">Bidan Desa Siaga</p>
+                    <p className="text-xs font-black text-saas-dark">Developer SIPANDU</p>
                     <a
-                      href="https://wa.me/6281234567890"
+                      href="https://wa.me/6285877925025?text=Halo%20Developer%20SIPANDU,%20saya%20memerlukan%20bantuan%20terkait%20aplikasi"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-saas-primary font-bold hover:underline inline-flex items-center gap-1 pt-1"
                     >
-                      📞 +62 812-3456-7890 (WhatsApp)
+                      💬 +62 858-7792-5025 (WhatsApp Developer)
                     </a>
                   </div>
 
                   <div className="p-3.5 bg-gray-50 border border-gray-100 rounded-xl space-y-1">
-                    <p className="text-[9px] text-saas-muted font-bold uppercase tracking-wider">Hotline Puskesmas Pembina</p>
-                    <p className="text-xs font-black text-saas-dark">Unit Pelayanan Kesehatan Puskesmas</p>
-                    <p className="text-xs text-saas-primary font-bold pt-1">
-                      📞 (0287) 123-456 / 119
+                    <p className="text-[9px] text-saas-muted font-bold uppercase tracking-wider">Dukungan Teknis &amp; Konsultasi</p>
+                    <p className="text-xs font-black text-saas-dark">Layanan Pemeliharaan Sistem</p>
+                    <p className="text-[11px] text-saas-muted font-semibold pt-0.5">
+                      Siap membantu troubleshooting, sinkronisasi data, &amp; panduan teknis kader.
                     </p>
                   </div>
                 </div>
@@ -1136,7 +1136,7 @@ export default function BantuanModule() {
 
               <div className="pt-4 border-t border-gray-100">
                 <p className="text-[10px] text-saas-muted font-medium leading-relaxed">
-                  💡 <strong>Info Kader:</strong> Profil posyandu dan pengaturan wilayah dapat dikelola oleh akun Owner melalui menu <strong>Pengaturan</strong>.
+                  💡 <strong>Info Pengembang:</strong> Anda dapat mengganti nomor WhatsApp di atas dengan nomor pribadi/tim pengembang Anda kapan saja.
                 </p>
               </div>
             </div>
