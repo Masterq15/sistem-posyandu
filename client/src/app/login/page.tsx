@@ -358,9 +358,14 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
           <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
             <Mail className="w-6 h-6" />
           </div>
-          <p className="text-xs font-semibold text-emerald-800 leading-relaxed">
-            {successMessage}
-          </p>
+          <div className="space-y-2">
+            <p className="text-xs font-bold text-emerald-900 leading-relaxed">
+              {successMessage}
+            </p>
+            <p className="text-[11px] text-emerald-800 bg-emerald-100/70 p-3 rounded-xl leading-relaxed text-left border border-emerald-200/60">
+              📬 <strong>Catatan:</strong> Jika email belum masuk ke Kotak Masuk (Inbox), silakan periksa folder <strong>Spam</strong> atau <strong>Promosi</strong> di aplikasi email Anda.
+            </p>
+          </div>
           <button
             type="button"
             onClick={onBack}
