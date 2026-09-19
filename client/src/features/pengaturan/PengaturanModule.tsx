@@ -269,8 +269,12 @@ function AkunSection() {
   const [namaKader, setNamaKader] = useState(user?.nama || "");
   const [usernameKader, setUsernameKader] = useState(user?.username || "");
   const [emailKader, setEmailKader] = useState(user?.email || "");
+  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showOldPw, setShowOldPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileNotice, setProfileNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -291,9 +295,23 @@ function AkunSection() {
       return;
     }
 
-    if (newPassword && newPassword.length < 6) {
-      setProfileNotice({ type: "error", message: "Kata sandi baru minimal 6 karakter." });
-      return;
+    const isChangingPassword = Boolean(
+      oldPassword.trim() || newPassword.trim() || confirmPassword.trim()
+    );
+
+    if (isChangingPassword) {
+      if (!oldPassword.trim()) {
+        setProfileNotice({ type: "error", message: "Password lama wajib diisi untuk mengganti kata sandi." });
+        return;
+      }
+      if (!newPassword.trim() || newPassword.trim().length < 6) {
+        setProfileNotice({ type: "error", message: "Password baru minimal 6 karakter." });
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setProfileNotice({ type: "error", message: "Konfirmasi password baru tidak cocok." });
+        return;
+      }
     }
 
     try {
@@ -302,7 +320,9 @@ function AkunSection() {
         nama: namaKader.trim(),
         email: emailKader.trim(),
         username: usernameKader.trim(),
-        ...(newPassword.trim() ? { password: newPassword.trim() } : {}),
+        ...(isChangingPassword
+          ? { oldPassword: oldPassword.trim(), password: newPassword.trim() }
+          : {}),
       });
 
       if (res.success && res.data) {
@@ -311,9 +331,11 @@ function AkunSection() {
           username: res.data.username,
           email: res.data.email,
         });
+        setOldPassword("");
         setNewPassword("");
-        setProfileNotice({ type: "success", message: "Profil dan akun berhasil diperbarui!" });
-        toast.success("Profil dan akun berhasil diperbarui!");
+        setConfirmPassword("");
+        setProfileNotice({ type: "success", message: "Profil dan kata sandi berhasil diperbarui!" });
+        toast.success("Profil dan kata sandi berhasil diperbarui!");
       }
     } catch (err: any) {
       const msg = err.message || "Gagal memperbarui profil.";
@@ -412,24 +434,75 @@ function AkunSection() {
             </FormField>
           </div>
 
-          <FormField label="Kata Sandi Baru (Opsional)">
-            <div className="relative">
-              <input
-                type={showPw ? "text" : "password"}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Biarkan kosong jika tidak ingin mengganti kata sandi"
-                className="w-full p-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-3.5 text-saas-muted hover:text-saas-dark"
-              >
-                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+          <div className="pt-3 border-t border-gray-100 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                Ganti Kata Sandi (Opsional)
+              </span>
+              <span className="text-[11px] text-gray-400">
+                Kosongkan jika tidak ingin mengganti kata sandi
+              </span>
             </div>
-          </FormField>
+
+            <FormField label="Password Lama">
+              <div className="relative">
+                <input
+                  type={showOldPw ? "text" : "password"}
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  placeholder="Masukkan password lama Anda"
+                  className="w-full p-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOldPw(!showOldPw)}
+                  className="absolute right-3 top-3.5 text-saas-muted hover:text-saas-dark cursor-pointer"
+                >
+                  {showOldPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </FormField>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField label="Password Baru">
+                <div className="relative">
+                  <input
+                    type={showNewPw ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Minimal 6 karakter"
+                    className="w-full p-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPw(!showNewPw)}
+                    className="absolute right-3 top-3.5 text-saas-muted hover:text-saas-dark cursor-pointer"
+                  >
+                    {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </FormField>
+
+              <FormField label="Konfirmasi Password Baru">
+                <div className="relative">
+                  <input
+                    type={showConfirmPw ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Ulangi password baru"
+                    className="w-full p-3 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-400 focus:bg-white transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPw(!showConfirmPw)}
+                    className="absolute right-3 top-3.5 text-saas-muted hover:text-saas-dark cursor-pointer"
+                  >
+                    {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </FormField>
+            </div>
+          </div>
 
           <div className="flex justify-end pt-1">
             <button

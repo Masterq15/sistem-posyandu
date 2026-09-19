@@ -1750,9 +1750,6 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
             className="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-gray-100 p-6 relative text-center"
           >
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 border border-red-100 flex items-center justify-center mx-auto mb-4">
-              <SignOut className="w-6 h-6" weight="bold" />
-            </div>
 
             <h3 className="font-bold text-base text-saas-dark mb-1">
               Konfirmasi Keluar
@@ -1777,7 +1774,6 @@ export default function Home() {
                 }}
                 className="flex-1 py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-500/20 transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                <SignOut className="w-4 h-4" weight="bold" />
                 Ya, Keluar
               </button>
             </div>

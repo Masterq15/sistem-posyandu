@@ -199,27 +199,29 @@ export const dashboardService = {
       item.sumZScoreTBU += zTBU;
     }
 
-    const result = Array.from(aggregatedMap.values()).map((item) => {
-      const avgZScoreBBU = item.total > 0 ? Number((item.sumZScoreBBU / item.total).toFixed(2)) : 0;
-      const avgZScoreTBU = item.total > 0 ? Number((item.sumZScoreTBU / item.total).toFixed(2)) : 0;
-      const pctNormal = item.total > 0 ? Math.round((item.normal / item.total) * 100) : 0;
-      const pctKurang = item.total > 0 ? Math.round(((item.kurang + item.sangatKurang) / item.total) * 100) : 0;
+    const result = Array.from(aggregatedMap.values())
+      .sort((a, b) => a.periodKey.localeCompare(b.periodKey))
+      .map((item) => {
+        const avgZScoreBBU = item.total > 0 ? Number((item.sumZScoreBBU / item.total).toFixed(2)) : 0;
+        const avgZScoreTBU = item.total > 0 ? Number((item.sumZScoreTBU / item.total).toFixed(2)) : 0;
+        const pctNormal = item.total > 0 ? Math.round((item.normal / item.total) * 100) : 0;
+        const pctKurang = item.total > 0 ? Math.round(((item.kurang + item.sangatKurang) / item.total) * 100) : 0;
 
-      return {
-        periodKey: item.periodKey,
-        label: item.label,
-        total: item.total,
-        normal: item.normal,
-        kurang: item.kurang,
-        sangatKurang: item.sangatKurang,
-        lebih: item.lebih,
-        stunting: item.stunting,
-        pctNormal,
-        pctKurang,
-        avgZScoreBBU,
-        avgZScoreTBU,
-      };
-    });
+        return {
+          periodKey: item.periodKey,
+          label: item.label,
+          total: item.total,
+          normal: item.normal,
+          kurang: item.kurang,
+          sangatKurang: item.sangatKurang,
+          lebih: item.lebih,
+          stunting: item.stunting,
+          pctNormal,
+          pctKurang,
+          avgZScoreBBU,
+          avgZScoreTBU,
+        };
+      });
 
     return result;
     }, 300);
