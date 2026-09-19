@@ -22,6 +22,7 @@ router.use('/:posyanduId', riwayatRoutes);
 router.get('/', authenticate, getAllPosyandu);
 router.get('/:id', authenticate, getPosyanduById);
 router.post('/', authenticate, authorize('OWNER'), validate(createPosyanduSchema), createPosyandu);
+router.put('/:id', authenticate, authorize('OWNER'), validate(updatePosyanduSchema), updatePosyandu);
 router.patch('/:id', authenticate, authorize('OWNER'), validate(updatePosyanduSchema), updatePosyandu);
 router.delete('/:id', authenticate, authorize('OWNER'), deletePosyandu);
 
