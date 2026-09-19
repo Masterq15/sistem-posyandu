@@ -116,20 +116,36 @@ export default function PuskesmasPreviewModal({
             id="printable-report-document"
             className="bg-white mx-auto shadow-md border border-gray-200 rounded-lg p-6 sm:p-8 max-w-5xl space-y-6 text-gray-900 font-sans"
           >
-            {/* KOP RESMI LAPORAN REGISTER PUSKESMAS */}
-            <div className="text-center space-y-1 border-b-2 border-teal-700 pb-3">
-              <p className="text-xs font-bold tracking-widest text-gray-700 uppercase">
-                PEMERINTAH KABUPATEN KEBUMEN • DINAS KESEHATAN
-              </p>
-              <h2 className="text-lg font-black tracking-tight text-gray-900 uppercase">
-                UPTD PUSKESMAS WILAYAH KERJA KECAMATAN
-              </h2>
-              <h3 className="text-sm font-extrabold text-teal-800 tracking-wide uppercase">
-                REGISTER REKAPITULASI CATATAN PEMERIKSAAN {activeTab.toUpperCase()}
-              </h3>
-              <p className="text-xs font-semibold text-gray-600">
-                Periode: {periodeText} • Posyandu: {selectedPosyanduName}
-              </p>
+            {/* KOP SIPANDU — PORTAL PUBLIK */}
+            <div className="flex items-center gap-4 border-b-2 border-teal-600 pb-4">
+              {/* Logo / Ikon Aplikasi */}
+              <div className="w-14 h-14 rounded-2xl bg-teal-600 flex items-center justify-center shrink-0 shadow-md">
+                <img src="/logo.svg" alt="SIPANDU" className="w-9 h-9 object-contain invert" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              </div>
+              {/* Identitas Aplikasi */}
+              <div className="flex-1 text-left">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-bold tracking-widest text-teal-700 uppercase">
+                    Portal Data Publik • Sistem Informasi Posyandu
+                  </span>
+                </div>
+                <h2 className="text-xl font-black tracking-tight text-gray-900">
+                  SIPANDU
+                </h2>
+                <p className="text-[11px] text-gray-500 font-medium">
+                  Sistem Informasi Pelayanan dan Data Posyandu Terintegrasi
+                </p>
+              </div>
+              {/* Info Laporan */}
+              <div className="text-right shrink-0">
+                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Laporan Rekapitulasi</p>
+                <p className="text-sm font-extrabold text-teal-800 uppercase">{activeTab}</p>
+                <p className="text-[10px] text-gray-500 mt-0.5">Periode: <span className="font-bold text-gray-700">{periodeText}</span></p>
+                <p className="text-[10px] text-gray-500">Posyandu: <span className="font-bold text-gray-700">{selectedPosyanduName}</span></p>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Dicetak: {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                </p>
+              </div>
             </div>
 
             {/* Ringkasan Statistik Singkat Register */}
@@ -296,25 +312,11 @@ export default function PuskesmasPreviewModal({
               )}
             </div>
 
-            {/* Lembar Tanda Tangan / Pengesahan Resmi */}
-            <div className="pt-6 grid grid-cols-2 gap-8 text-xs">
-              <div className="text-center space-y-14">
-                <p className="font-semibold text-gray-700">Mengetahui,<br />Kepala UPTD Puskesmas</p>
-                <div>
-                  <p className="font-bold underline text-gray-900">( .................................................. )</p>
-                  <p className="text-[11px] text-gray-500">NIP. ..................................................</p>
-                </div>
-              </div>
-              <div className="text-center space-y-14">
-                <p className="font-semibold text-gray-700">
-                  Kebumen, {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}<br />
-                  Koordinator Program Promkes / Bidan Desa
-                </p>
-                <div>
-                  <p className="font-bold underline text-gray-900">( .................................................. )</p>
-                  <p className="text-[11px] text-gray-500">Petugas Puskesmas</p>
-                </div>
-              </div>
+
+            {/* Footer Dokumen Publik */}
+            <div className="pt-4 border-t border-gray-200 flex items-center justify-between text-[10px] text-gray-400">
+              <span>Dokumen ini digenerate otomatis oleh <strong className="text-teal-700">SIPANDU</strong> — Sistem Informasi Pelayanan dan Data Posyandu.</span>
+              <span>sipandu.app • {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>
             </div>
           </div>
         </div>

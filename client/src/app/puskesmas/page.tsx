@@ -1,5 +1,7 @@
 "use client";
 
+import * as XLSX from "xlsx";
+
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { ChevronRight, Globe } from "lucide-react";
@@ -278,7 +280,7 @@ export default function PuskesmasPublicPage() {
       ? "Semua Posyandu"
       : posyandus.find((p) => p.id === selectedPosyandu)?.nama || selectedPosyandu;
 
-  // Export to Standard Spreadsheet (Excel / CSV dengan UTF-8 BOM)
+  // Export to Excel (.xlsx) menggunakan SheetJS
   const handleExportExcel = () => {
     try {
       setExportingExcel(true);
@@ -288,129 +290,93 @@ export default function PuskesmasPublicPage() {
         return;
       }
 
-      const headers =
+      // ── Build rows ──────────────────────────────────────────
+      const rows =
         activeTab === "Balita"
-          ? [
-              "No",
-              "Nama Balita",
-              "Posyandu",
-              "Wilayah",
-              "Tanggal Periksa",
-              "Tanggal Lahir",
-              "NIK",
-              "Nama Ibu",
-              "Jenis Kelamin",
-              "Usia (Bulan)",
-              "BB (kg)",
-              "TB (cm)",
-              "LK (cm)",
-              "LiLA (cm)",
-              "Status BB/U",
-              "Status TB/U",
-              "Status BB/TB",
-              "Pemberian Lain",
-              "Vit B1",
-              "Vit B6",
-              "ASI Eksklusif",
-              "Vitamin A",
-              "Obat Cacing",
-              "Petugas",
-            ]
-          : [
-              "No",
-              "Nama Lansia",
-              "Posyandu",
-              "Wilayah",
-              "Tanggal Periksa",
-              "Tanggal Lahir",
-              "NIK",
-              "Jenis Kelamin",
-              "Usia",
-              "Riw HT",
-              "Riw DM",
-              "BB (kg)",
-              "TB (cm)",
-              "Tekanan Darah",
-              "GDS (mg/dL)",
-              "Kolesterol",
-              "Asam Urat",
-              "Lingkar Perut",
-              "Keluhan",
-              "Tindakan Medis",
-              "Status Ringkasan",
-              "Petugas",
-            ];
+          ? activeRaw.map((item, idx) => ({
+              No: idx + 1,
+              "Nama Balita": item.namaWarga || "",
+              Posyandu: item.posyanduNama || "",
+              Wilayah: item.wilayah || "",
+              "Tanggal Periksa": item.tanggalPeriksa || "",
+              "Tanggal Lahir": item.tanggalLahir || "",
+              NIK: item.nik || "-",
+              "Nama Ibu": item.namaIbu || "-",
+              "Jenis Kelamin": item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
+              "Usia (Bulan)": item.usiaInfo || "",
+              "BB (kg)": item.beratBadan ?? "",
+              "TB (cm)": item.tinggiBadan ?? "",
+              "LK (cm)": item.lingkarKepala ?? "",
+              "LiLA (cm)": item.lingkarLengan ?? "",
+              "Status BB/U": item.statusBbU || "-",
+              "Status TB/U": item.statusTbU || "-",
+              "Status BB/TB": item.statusBbTb || "-",
+              "Pemberian Lain": extractPemberianLain(item.statusImunisasi),
+              "Vit B1": item.vitB1 ? "Ya" : "Tidak",
+              "Vit B6": item.vitB6 ? "Ya" : "Tidak",
+              "ASI Eksklusif": item.asiEksklusif ? "Ya" : "Tidak",
+              "Vitamin A": item.vitaminA ? "Ya" : "Tidak",
+              "Obat Cacing": item.obatCacing ? "Ya" : "Tidak",
+              Petugas: item.petugas || "Kader Posyandu",
+            }))
+          : activeRaw.map((item, idx) => ({
+              No: idx + 1,
+              "Nama Lansia": item.namaWarga || "",
+              Posyandu: item.posyanduNama || "",
+              Wilayah: item.wilayah || "",
+              "Tanggal Periksa": item.tanggalPeriksa || "",
+              "Tanggal Lahir": item.tanggalLahir || "",
+              NIK: item.nik || "-",
+              "Jenis Kelamin": item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
+              Usia: item.usiaInfo || "-",
+              "Riw. HT": item.riwayatHt ? "Ya" : "Tidak",
+              "Riw. DM": item.riwayatDm ? "Ya" : "Tidak",
+              "BB (kg)": item.beratBadan ?? "",
+              "TB (cm)": item.tinggiBadan ?? "",
+              "Tekanan Darah": item.tekananDarah || (item.sistol ? `${item.sistol}/${item.diastol}` : "-"),
+              "GDS (mg/dL)": item.gds ?? "",
+              "Kolesterol (mg/dL)": item.kolesterol ?? "",
+              "Asam Urat (mg/dL)": item.asamUrat ?? "",
+              "Lingkar Perut (cm)": item.lingkarPerut ?? "",
+              Keluhan: item.keluhan || "-",
+              "Tindakan Medis": item.tindakan || item.tindakanCatatan || "-",
+              "Status Ringkasan": item.statusRingkasan || "-",
+              Petugas: item.petugas || "Kader Posyandu",
+            }));
 
-      const rows = activeRaw.map((item, idx) =>
-        activeTab === "Balita"
-          ? [
-              idx + 1,
-              `"${(item.namaWarga || "").replace(/"/g, '""')}"`,
-              `"${(item.posyanduNama || "").replace(/"/g, '""')}"`,
-              `"${(item.wilayah || "").replace(/"/g, '""')}"`,
-              item.tanggalPeriksa || "",
-              item.tanggalLahir || "",
-              `"${(item.nik || "-").replace(/"/g, '""')}"`,
-              `"${(item.namaIbu || "-").replace(/"/g, '""')}"`,
-              item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
-              `"${(item.usiaInfo || "").replace(/"/g, '""')}"`,
-              item.beratBadan ?? "",
-              item.tinggiBadan ?? "",
-              item.lingkarKepala ?? "",
-              item.lingkarLengan ?? "",
-              `"${(item.statusBbU || "-").replace(/"/g, '""')}"`,
-              `"${(item.statusTbU || "-").replace(/"/g, '""')}"`,
-              `"${(item.statusRingkasan || item.statusBbTb || "-").replace(/"/g, '""')}"`,
-              `"${extractPemberianLain(item.statusImunisasi).replace(/"/g, '""')}"`,
-              item.vitB1 ? "Ya" : "Tidak",
-              item.vitB6 ? "Ya" : "Tidak",
-              item.asiEksklusif ? "Ya" : "Tidak",
-              item.vitaminA ? "Ya" : "Tidak",
-              item.obatCacing ? "Ya" : "Tidak",
-              `"${(item.petugas || "Kader Posyandu").replace(/"/g, '""')}"`,
-            ]
-          : [
-              idx + 1,
-              `"${(item.namaWarga || "").replace(/"/g, '""')}"`,
-              `"${(item.posyanduNama || "").replace(/"/g, '""')}"`,
-              `"${(item.wilayah || "").replace(/"/g, '""')}"`,
-              item.tanggalPeriksa || "",
-              item.tanggalLahir || "",
-              `"${(item.nik || "-").replace(/"/g, '""')}"`,
-              item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
-              `"${(item.usiaInfo || "-").replace(/"/g, '""')}"`,
-              item.riwayatHt ? "Ya" : "Tidak",
-              item.riwayatDm ? "Ya" : "Tidak",
-              item.beratBadan ?? "",
-              item.tinggiBadan ?? "",
-              `"${(item.tekananDarah || (item.sistol ? `${item.sistol}/${item.diastol}` : "-")).replace(/"/g, '""')}"`,
-              item.gds ?? "",
-              item.kolesterol ?? "",
-              item.asamUrat ?? "",
-              item.lingkarPerut ?? "",
-              `"${(item.keluhan || "-").replace(/"/g, '""')}"`,
-              `"${(item.tindakan || item.tindakanCatatan || "-").replace(/"/g, '""')}"`,
-              `"${(item.statusRingkasan || "-").replace(/"/g, '""')}"`,
-              `"${(item.petugas || "Kader Posyandu").replace(/"/g, '""')}"`,
-            ]
-      );
+      // ── Build worksheet ──────────────────────────────────────
+      const ws = XLSX.utils.json_to_sheet(rows);
 
-      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute(
-        "download",
-        `Laporan_Rekapitulasi_${activeTab}_${periodeText.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.csv`
-      );
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Auto-width: hitung lebar kolom berdasarkan konten
+      const colKeys = Object.keys(rows[0] || {});
+      const colWidths = colKeys.map((key) => {
+        const maxLen = Math.max(
+          key.length,
+          ...rows.map((r) => String((r as any)[key] ?? "").length)
+        );
+        return { wch: Math.min(maxLen + 2, 40) };
+      });
+      ws["!cols"] = colWidths;
+
+      // Bold header row
+      const headerRange = XLSX.utils.decode_range(ws["!ref"] || "A1");
+      for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+        const cellAddr = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (ws[cellAddr]) {
+          ws[cellAddr].s = { font: { bold: true } };
+        }
+      }
+
+      // ── Build workbook & download ────────────────────────────
+      const wb = XLSX.utils.book_new();
+      const sheetName = activeTab === "Balita" ? "Data Balita" : "Data Lansia";
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+      const fileName = `Laporan_${activeTab}_${periodeText.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      XLSX.writeFile(wb, fileName);
     } catch (err) {
       console.error("Gagal export Excel:", err);
-      alert("Gagal mengunduh Excel/CSV.");
+      alert("Gagal mengunduh file Excel.");
     } finally {
       setExportingExcel(false);
     }
