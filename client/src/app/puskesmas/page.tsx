@@ -13,6 +13,7 @@ import BalitaLaporanView from "@/features/laporan/components/BalitaLaporanView";
 import LansiaLaporanView from "@/features/laporan/components/LansiaLaporanView";
 import PuskesmasParticipantModal, { ParticipantHistoryItem } from "./components/PuskesmasParticipantModal";
 import PuskesmasPreviewModal from "./components/PuskesmasPreviewModal";
+import { LaporanSkeleton } from "@/components/Skeleton";
 import {
   calculateRekapanBalita,
   calculateRekapanLansia,
@@ -507,8 +508,12 @@ export default function PuskesmasPublicPage() {
         />
       </div>
 
-      {/* Main Report View */}
-      {activeTab === "Balita" ? (
+      {/* Main Report View / Skeleton Loading */}
+      {isLoading ? (
+        <div className="bg-white rounded-2xl border border-gray-200/80 p-6 shadow-2xs">
+          <LaporanSkeleton />
+        </div>
+      ) : activeTab === "Balita" ? (
         <BalitaLaporanView
           rekapanBalita={rekapanBalita}
           filteredBalitaLogs={filteredBalitaLogs}
@@ -520,6 +525,7 @@ export default function PuskesmasPublicPage() {
           setSearchBalita={setSearchBalita}
           onSelectLog={handleSelectLog}
           isPublic={true}
+          isUpdating={isLoading}
         />
       ) : (
         <LansiaLaporanView
@@ -533,6 +539,7 @@ export default function PuskesmasPublicPage() {
           setSearchLansia={setSearchLansia}
           onSelectLog={handleSelectLog}
           isPublic={true}
+          isUpdating={isLoading}
         />
       )}
 

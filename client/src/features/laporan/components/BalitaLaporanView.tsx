@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { ItemRiwayat } from "@/lib/api";
 import { RekapanBalita, extractPemberianLain } from "../types";
 import BalitaIcon from "@/components/BalitaIcon";
@@ -50,6 +50,27 @@ export default function BalitaLaporanView({
   isPublic = false,
 }: BalitaLaporanViewProps) {
   const totalPages = Math.max(1, Math.ceil(filteredBalitaLogs.length / pageSizeBalita));
+
+  // State Pagination & Search untuk Tier 4 (Balita Perlu Perhatian)
+  const [pageTier4, setPageTier4] = useState<number>(1);
+  const [pageSizeTier4, setPageSizeTier4] = useState<number>(10);
+  const [searchTier4, setSearchTier4] = useState<string>("");
+
+  const rawTier4List = rekapanBalita?.balitaPerluPerhatianList || [];
+  const filteredTier4List = rawTier4List.filter((item) => {
+    if (!searchTier4.trim()) return true;
+    const query = searchTier4.toLowerCase();
+    return (
+      item.nama.toLowerCase().includes(query) ||
+      item.masalah.some((m) => m.toLowerCase().includes(query)) ||
+      item.saran.toLowerCase().includes(query)
+    );
+  });
+  const totalPagesTier4 = Math.max(1, Math.ceil(filteredTier4List.length / pageSizeTier4));
+  const paginatedTier4List = filteredTier4List.slice(
+    (pageTier4 - 1) * pageSizeTier4,
+    pageTier4 * pageSizeTier4
+  );
 
   return (
     <div className={`bg-white rounded-xl border border-gray-200/80 p-5 shadow-2xs space-y-5 transition-all duration-300 ${
@@ -611,76 +632,135 @@ export default function BalitaLaporanView({
           </div>
         </div>
 
-        {rekapanBalita?.balitaPerluPerhatianList && rekapanBalita.balitaPerluPerhatianList.length > 0 ? (
-          <div className="border border-rose-200/80 rounded-xl overflow-hidden bg-rose-50/20 shadow-2xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-rose-100/50 text-rose-950 font-bold border-b border-rose-200/70">
-                    <th className="px-3.5 py-2.5">Nama Balita</th>
-                    <th className="px-3.5 py-2.5">Usia</th>
-                    <th className="px-3.5 py-2.5">Indikasi Masalah Gizi</th>
-                    <th className="px-3.5 py-2.5">Tanggal Periksa</th>
-                    <th className="px-3.5 py-2.5">Rekomendasi Tindak Lanjut</th>
-                    <th className="px-3.5 py-2.5 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-rose-100/70 bg-white">
-                  {rekapanBalita.balitaPerluPerhatianList.map((item) => (
-                    <tr key={item.id} className="hover:bg-rose-50/40 transition-colors">
-                      <td className="px-3.5 py-2.5 font-bold text-gray-900">
-                        {item.nama}
-                      </td>
-                      <td className="px-3.5 py-2.5 text-gray-600">
-                        {item.usia}
-                      </td>
-                      <td className="px-3.5 py-2.5">
-                        <div className="flex flex-wrap gap-1">
-                          {item.masalah.map((m, idx) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200"
-                            >
-                              {m}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3.5 py-2.5 text-gray-600">
-                        {item.tanggal}
-                      </td>
-                      <td className="px-3.5 py-2.5 text-gray-700 font-medium">
-                        {item.saran}
-                      </td>
-                      <td className="px-3.5 py-2.5 text-right">
-                        {onSelectLog ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const found = filteredBalitaLogs.find((l) => l.id === item.id || l.pasienId === item.pasienId);
-                              if (found) onSelectLog(found);
-                            }}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors cursor-pointer"
-                          >
-                            Lihat Detail
-                          </button>
-                        ) : onNavigate && item.pasienId ? (
-                          <button
-                            type="button"
-                            onClick={() => onNavigate("balita", item.pasienId)}
-                            className="px-2.5 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors cursor-pointer"
-                          >
-                            Buka Profil
-                          </button>
-                        ) : (
-                          <span className="text-[11px] text-gray-400">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {rawTier4List.length > 0 ? (
+          <div className="space-y-4">
+            {/* Toolbar Tier 4 */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+              <span className="text-xs font-bold text-gray-700">
+                Daftar Kasus Memerlukan Perhatian ({filteredTier4List.length} dari {rawTier4List.length})
+              </span>
+              <div className="flex items-center gap-3">
+                <div className="text-xs text-gray-600 flex items-center gap-1.5">
+                  <span>Tampilkan</span>
+                  <select
+                    value={pageSizeTier4}
+                    onChange={(e) => {
+                      setPageSizeTier4(Number(e.target.value));
+                      setPageTier4(1);
+                    }}
+                    className="px-2 py-1 border border-gray-300 rounded-lg text-xs font-semibold text-gray-900 bg-white focus:outline-none focus:ring-1 focus:ring-rose-600"
+                  >
+                    <option value={5} className="text-gray-900">5</option>
+                    <option value={10} className="text-gray-900">10</option>
+                    <option value={25} className="text-gray-900">25</option>
+                    <option value={50} className="text-gray-900">50</option>
+                  </select>
+                  <span>data</span>
+                </div>
+                <div className="relative w-48 sm:w-60">
+                  <input
+                    type="text"
+                    placeholder="Cari kasus balita..."
+                    value={searchTier4}
+                    onChange={(e) => {
+                      setSearchTier4(e.target.value);
+                      setPageTier4(1);
+                    }}
+                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-600 bg-white text-gray-900"
+                  />
+                  <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5" />
+                </div>
+              </div>
             </div>
+
+            {/* Tabel Tier 4 */}
+            <div className="border border-rose-200/80 rounded-xl overflow-hidden bg-rose-50/20 shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-rose-100/50 text-rose-950 font-bold border-b border-rose-200/70">
+                      <th className="px-3.5 py-2.5">Nama Balita</th>
+                      <th className="px-3.5 py-2.5">Usia</th>
+                      <th className="px-3.5 py-2.5">Indikasi Masalah Gizi</th>
+                      <th className="px-3.5 py-2.5">Tanggal Periksa</th>
+                      <th className="px-3.5 py-2.5">Rekomendasi Tindak Lanjut</th>
+                      <th className="px-3.5 py-2.5 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-rose-100/70 bg-white">
+                    {filteredTier4List.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-6 text-center text-xs text-gray-500 font-medium">
+                          Tidak ada data kasus yang sesuai dengan pencarian.
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedTier4List.map((item) => (
+                        <tr key={item.id} className="hover:bg-rose-50/40 transition-colors">
+                          <td className="px-3.5 py-2.5 font-bold text-gray-900">
+                            {item.nama}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-600">
+                            {item.usia}
+                          </td>
+                          <td className="px-3.5 py-2.5">
+                            <div className="flex flex-wrap gap-1">
+                              {item.masalah.map((m, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200"
+                                >
+                                  {m}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-600">
+                            {item.tanggal}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-gray-700 font-medium">
+                            {item.saran}
+                          </td>
+                          <td className="px-3.5 py-2.5 text-right">
+                            {onSelectLog ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const found = filteredBalitaLogs.find((l) => l.id === item.id || l.pasienId === item.pasienId);
+                                  if (found) onSelectLog(found);
+                                }}
+                                className="px-2.5 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                              >
+                                Lihat Detail
+                              </button>
+                            ) : onNavigate && item.pasienId ? (
+                              <button
+                                type="button"
+                                onClick={() => onNavigate("balita", item.pasienId)}
+                                className="px-2.5 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200 transition-colors cursor-pointer"
+                              >
+                                Buka Profil
+                              </button>
+                            ) : (
+                              <span className="text-[11px] text-gray-400">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Pagination Tier 4 */}
+            <Pagination
+              currentPage={pageTier4}
+              totalPages={totalPagesTier4}
+              pageSize={pageSizeTier4}
+              totalItems={filteredTier4List.length}
+              onPageChange={setPageTier4}
+            />
           </div>
         ) : (
           <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-center gap-3">
