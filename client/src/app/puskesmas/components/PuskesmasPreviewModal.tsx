@@ -118,20 +118,20 @@ export default function PuskesmasPreviewModal({
           >
             {/* KOP SIPANDU — PORTAL PUBLIK */}
             <div className="flex items-center gap-4 border-b-2 border-teal-600 pb-4">
-              {/* Logo / Ikon Aplikasi (SIPANDU & Universitas) */}
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-2.5">
-                  <img src="/logo.svg" alt="SIPANDU" className="w-9 h-9 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                </div>
-                <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-1.5">
-                  <img src="/logoupb.webp" alt="Logo Universitas" className="w-11 h-11 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                </div>
+              {/* Logo / Ikon Aplikasi (SIPANDU) */}
+              <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-2.5 shrink-0">
+                <img src="/logo.svg" alt="SIPANDU" className="w-9 h-9 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
               {/* Identitas Aplikasi */}
               <div className="flex-1 text-left">
-                <div className="flex items-center gap-2 mb-0.5">
+                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                   <span className="text-[10px] font-bold tracking-widest text-teal-700 uppercase">
                     Portal Data Publik • Sistem Informasi Posyandu
+                  </span>
+                  <span className="text-[10px] text-gray-300">•</span>
+                  <span className="inline-flex items-center gap-1 text-[10px] text-gray-600 font-medium">
+                    Created by <strong className="text-gray-800">Universitas Putra Bangsa</strong>
+                    <img src="/logoupb.webp" alt="Logo Universitas Putra Bangsa" className="w-3.5 h-3.5 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   </span>
                 </div>
                 <h2 className="text-xl font-black tracking-tight text-gray-900">
@@ -315,8 +315,15 @@ export default function PuskesmasPreviewModal({
 
 
             {/* Footer Dokumen Publik */}
-            <div className="pt-4 border-t border-gray-200 flex items-center justify-between text-[10px] text-gray-400">
-              <span>Dokumen ini digenerate otomatis oleh <strong className="text-teal-700">SIPANDU</strong> — Sistem Informasi Pelayanan dan Data Posyandu.</span>
+            <div className="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2 text-[10px] text-gray-400">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span>Dokumen ini digenerate otomatis oleh <strong className="text-teal-700">SIPANDU</strong> — Sistem Informasi Pelayanan dan Data Posyandu.</span>
+                <span>•</span>
+                <span className="inline-flex items-center gap-1 text-gray-600 font-medium">
+                  Created by <strong className="text-gray-800">Universitas Putra Bangsa</strong>
+                  <img src="/logoupb.webp" alt="Logo Universitas Putra Bangsa" className="w-3.5 h-3.5 object-contain inline-block" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                </span>
+              </div>
               <span>sipandu.app • {new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>
             </div>
           </div>

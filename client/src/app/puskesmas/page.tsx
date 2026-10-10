@@ -425,14 +425,9 @@ export default function PuskesmasPublicPage() {
       {/* Header Halaman */}
       <div className="print:hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-gray-200/80 shadow-2xs">
         <div className="flex items-start gap-4">
-          {/* Logo SIPANDU & Universitas */}
-          <div className="flex items-center gap-2 shrink-0 mt-0.5">
-            <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-2">
-              <img src="/logo.svg" alt="Logo SIPANDU" className="w-8 h-8 object-contain" />
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-1.5">
-              <img src="/logoupb.webp" alt="Logo Universitas" className="w-9 h-9 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-            </div>
+          {/* Logo SIPANDU */}
+          <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-2 shrink-0 mt-0.5">
+            <img src="/logo.svg" alt="Logo SIPANDU" className="w-8 h-8 object-contain" />
           </div>
 
           <div className="min-w-0">
@@ -546,6 +541,21 @@ export default function PuskesmasPublicPage() {
           isUpdating={isLoading}
         />
       )}
+
+      {/* Footer Puskesmas Page */}
+      <footer className="print:hidden border-t border-gray-200/80 pt-6 pb-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
+        <p>© 2026 SIPANDU · Sistem Informasi Pelayanan dan Data Posyandu</p>
+        <div className="flex items-center gap-1.5 text-gray-600 font-medium">
+          <span>Created by</span>
+          <span className="font-semibold text-gray-800">Universitas Putra Bangsa</span>
+          <img
+            src="/logoupb.webp"
+            alt="Logo Universitas Putra Bangsa"
+            className="w-4 h-4 object-contain inline-block"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+        </div>
+      </footer>
 
       {/* Participant Detail Modal with Growth Trend Chart */}
       <PuskesmasParticipantModal
