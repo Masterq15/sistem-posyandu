@@ -87,7 +87,7 @@ function LeftPanel() {
         <div>
           <p className="text-teal-950 font-black text-base tracking-tight leading-none">SIIP</p>
           <span className="inline-block mt-1 px-2.5 py-0.5 bg-teal-600/10 text-teal-800 rounded-pill text-[8.5px] tracking-wider font-bold">
-            SISTEM INFORMASI PELAYANAN DAN DATA POSYANDU
+            Sistem Informasi Posyandu
           </span>
         </div>
       </div>
@@ -806,7 +806,7 @@ export default function LoginPage() {
               </div>
               <div>
                 <span className="font-black text-teal-950 text-base leading-none block">SIIP</span>
-                <span className="text-[8px] text-teal-700 font-bold uppercase tracking-wider block mt-0.5">Sistem Informasi Pelayanan dan Data Posyandu</span>
+                <span className="text-[8px] text-teal-700 font-bold uppercase tracking-wider block mt-0.5">Sistem Informasi Posyandu</span>
               </div>
             </div>
 
@@ -835,7 +835,7 @@ export default function LoginPage() {
                 />
               </div>
               <p className="text-[11px] text-saas-muted font-medium">
-                © 2026 SIIP · Sistem Informasi Pelayanan dan Data Posyandu
+                © 2026 SIIP · Sistem Informasi Posyandu
               </p>
             </div>
           </div>

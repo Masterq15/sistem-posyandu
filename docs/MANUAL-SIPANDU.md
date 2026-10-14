@@ -1,5 +1,5 @@
 # 📖 BUKU PANDUAN PENGGUNA
-# SIIP — Sistem Informasi Pelayanan dan Data Posyandu
+# SIIP — Sistem Informasi Posyandu
 
 > **Untuk:** Kader Posyandu & Masyarakat Umum  
 > **Versi:** 1.0  
@@ -26,7 +26,7 @@
 
 ## 1. Apa Itu SIIP & Peran Pengguna (Role)
 
-**SIIP** (Sistem Informasi Pelayanan dan Data Posyandu) adalah aplikasi digital berbasis web yang dirancang untuk mempermudah kader posyandu mencatat pemeriksaan, memantau status gizi anak secara otomatis dengan standar WHO/Kemenkes, skrining fisik lansia, serta menghasilkan laporan rekapitulasi secara instan.
+**SIIP** (Sistem Informasi Posyandu) adalah aplikasi digital berbasis web yang dirancang untuk mempermudah kader posyandu mencatat pemeriksaan, memantau status gizi anak secara otomatis dengan standar WHO/Kemenkes, skrining fisik lansia, serta menghasilkan laporan rekapitulasi secara instan.
 
 ### ✅ Fitur Utama SIIP:
 
@@ -919,4 +919,4 @@ Jika mengalami kendala teknis yang tidak tercantum di panduan ini, hubungi:
 
 *Panduan ini akan terus diperbarui seiring perkembangan aplikasi SIIP.*
 
-**© 2026 SIIP — Sistem Informasi Pelayanan dan Data Posyandu**
+**© 2026 SIIP — Sistem Informasi Posyandu**

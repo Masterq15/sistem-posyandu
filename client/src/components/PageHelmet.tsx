@@ -12,7 +12,7 @@ export interface PageHelmetProps {
 
 export default function PageHelmet({
   title,
-  description = "Digitalisasi Pencatatan Tumbuh Kembang Anak & Pelayanan Lansia Mandiri — SIIP (Sistem Informasi Pelayanan dan Data Posyandu)",
+  description = "Digitalisasi Pencatatan Tumbuh Kembang Anak & Pelayanan Lansia Mandiri — SIIP (Sistem Informasi Posyandu)",
   keywords = "posyandu, kesehatan balita, lansia, stunting, z-score, imunisasi, posyandu digital, SIIP",
   ogType = "website",
 }: PageHelmetProps) {

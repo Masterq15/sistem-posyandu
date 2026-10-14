@@ -440,7 +440,7 @@ export default function PuskesmasPublicPage() {
               SIIP — Laporan Rekapitulasi Pelayanan Posyandu
             </h2>
             <p className="text-sm text-gray-600 mt-1 leading-relaxed">
-              Sistem Informasi Pelayanan dan Data Posyandu — Portal publik rekapitulasi dan pemantauan data pemeriksaan kesehatan Balita &amp; Lansia seluruh Posyandu secara terbuka dan transparan.
+              Sistem Informasi Posyandu — Portal publik rekapitulasi dan pemantauan data pemeriksaan kesehatan Balita &amp; Lansia seluruh Posyandu secara terbuka dan transparan.
             </p>
           </div>
         </div>
@@ -544,7 +544,7 @@ export default function PuskesmasPublicPage() {
 
       {/* Footer Puskesmas Page */}
       <footer className="print:hidden border-t border-gray-200/80 pt-6 pb-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
-        <p>© 2026 SIIP · Sistem Informasi Pelayanan dan Data Posyandu</p>
+        <p>© 2026 SIIP · Sistem Informasi Posyandu</p>
         <div className="flex items-center gap-1.5 text-gray-600 font-medium">
           <span>Created by</span>
           <span className="font-semibold text-gray-800">Universitas Putra Bangsa</span>

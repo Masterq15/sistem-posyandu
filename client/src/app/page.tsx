@@ -788,7 +788,7 @@ export default function Home() {
                     SIIP
                   </h1>
                   <p className="text-[9px] text-saas-muted dark:text-gray-400 font-semibold tracking-wide uppercase leading-tight mt-1">
-                    Sistem Informasi Pelayanan dan Data Posyandu
+                    Sistem Informasi Posyandu
                   </p>
                 </div>
               </div>
@@ -982,7 +982,7 @@ export default function Home() {
                   <div className="min-w-0 flex-1">
                     <h1 className="font-black text-saas-dark dark:text-white text-base tracking-tight leading-none">SIIP</h1>
                     <p className="text-[8.5px] text-saas-muted dark:text-gray-400 font-semibold tracking-wide uppercase leading-tight mt-1">
-                      Sistem Informasi Pelayanan dan Data Posyandu
+                      Sistem Informasi Posyandu
                     </p>
                   </div>
                 </div>
@@ -1120,7 +1120,7 @@ export default function Home() {
               </div>
               <div>
                 <span className="font-black text-saas-dark dark:text-white text-sm tracking-tight leading-none block">SIIP</span>
-                <span className="text-[7.5px] text-saas-muted dark:text-gray-400 font-bold uppercase tracking-wider block mt-0.5">Sistem Informasi Pelayanan dan Data Posyandu</span>
+                <span className="text-[7.5px] text-saas-muted dark:text-gray-400 font-bold uppercase tracking-wider block mt-0.5">Sistem Informasi Posyandu</span>
               </div>
             </div>
 

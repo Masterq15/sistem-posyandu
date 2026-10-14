@@ -28,7 +28,7 @@
 
 ## 🌟 Tentang Proyek
 
-**SIIP** (Sistem Informasi Pelayanan dan Data Posyandu) adalah sistem informasi berbasis web yang dirancang untuk membantu kader posyandu dalam:
+**SIIP** (Sistem Informasi Posyandu) adalah sistem informasi berbasis web yang dirancang untuk membantu kader posyandu dalam:
 
 - Mencatat **tumbuh kembang balita** (berat badan, tinggi badan, lingkar kepala, status gizi)
 - Memantau **kesehatan lansia** (tekanan darah, gula darah, berat badan, lingkar perut)

@@ -138,7 +138,7 @@ export default function PuskesmasPreviewModal({
                   SIIP
                 </h2>
                 <p className="text-[11px] text-gray-500 font-medium">
-                  Sistem Informasi Pelayanan dan Data Posyandu Terintegrasi
+                  Sistem Informasi Posyandu Terintegrasi
                 </p>
               </div>
               {/* Info Laporan */}
@@ -317,7 +317,7 @@ export default function PuskesmasPreviewModal({
             {/* Footer Dokumen Publik */}
             <div className="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2 text-[10px] text-gray-400">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span>Dokumen ini digenerate otomatis oleh <strong className="text-teal-700">SIIP</strong> — Sistem Informasi Pelayanan dan Data Posyandu.</span>
+                <span>Dokumen ini digenerate otomatis oleh <strong className="text-teal-700">SIIP</strong> — Sistem Informasi Posyandu.</span>
                 <span>•</span>
                 <span className="inline-flex items-center gap-1 text-gray-600 font-medium">
                   Created by <strong className="text-gray-800">Universitas Putra Bangsa</strong>

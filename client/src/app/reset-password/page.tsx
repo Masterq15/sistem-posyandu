@@ -112,7 +112,7 @@ function ResetPasswordFormContent() {
               SIIP
             </span>
             <span className="text-[9px] text-teal-700 font-bold uppercase tracking-wider block mt-0.5">
-              Sistem Informasi Pelayanan dan Data Posyandu
+              Sistem Informasi Posyandu
             </span>
           </div>
         </div>
