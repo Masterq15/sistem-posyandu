@@ -1,4 +1,4 @@
-# 📸 Folder Screenshot Manual SIPANDU
+# 📸 Folder Screenshot Manual SIIP
 
 Letakkan semua file screenshot di sini dengan nama file yang sesuai.
 
@@ -38,7 +38,7 @@ Letakkan semua file screenshot di sini dengan nama file yang sesuai.
 | 30 | `30-portal-publik-filter.png` | Filter portal publik dipilih |
 | 31 | `31-portal-publik-tabel-balita.png` | Tabel data balita di portal publik |
 | 32 | `32-portal-publik-tabel-lansia.png` | Tabel data lansia di portal publik |
-| 33 | `33-portal-publik-preview.png` | Modal pratinjau laporan publik (kop SIPANDU) |
+| 33 | `33-portal-publik-preview.png` | Modal pratinjau laporan publik (kop SIIP) |
 | 34 | `34-excel-publik-hasil.png` | File Excel terunduh terbuka di spreadsheet |
 | 35 | `35-portal-publik-detail-peserta.png` | Modal detail peserta + grafik tren |
 

@@ -418,16 +418,16 @@ export default function PuskesmasPublicPage() {
       }`}
     >
       <PageHelmet
-        title={`Laporan Rekapitulasi ${activeTab} — SIPANDU`}
-        description={`Portal publik rekapitulasi data pemeriksaan kesehatan ${activeTab} seluruh Posyandu terintegrasi SIPANDU.`}
+        title={`Laporan Rekapitulasi ${activeTab} — SIIP`}
+        description={`Portal publik rekapitulasi data pemeriksaan kesehatan ${activeTab} seluruh Posyandu terintegrasi SIIP.`}
       />
 
       {/* Header Halaman */}
       <div className="print:hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-gray-200/80 shadow-2xs">
         <div className="flex items-start gap-4">
-          {/* Logo SIPANDU */}
+          {/* Logo SIIP */}
           <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200/90 shadow-2xs flex items-center justify-center p-2 shrink-0 mt-0.5">
-            <img src="/logo.svg" alt="Logo SIPANDU" className="w-8 h-8 object-contain" />
+            <img src="/logo.svg" alt="Logo SIIP" className="w-8 h-8 object-contain" />
           </div>
 
           <div className="min-w-0">
@@ -437,7 +437,7 @@ export default function PuskesmasPublicPage() {
               </span>
             </div>
             <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-              SIPANDU — Laporan Rekapitulasi Pelayanan Posyandu
+              SIIP — Laporan Rekapitulasi Pelayanan Posyandu
             </h2>
             <p className="text-sm text-gray-600 mt-1 leading-relaxed">
               Sistem Informasi Pelayanan dan Data Posyandu — Portal publik rekapitulasi dan pemantauan data pemeriksaan kesehatan Balita &amp; Lansia seluruh Posyandu secara terbuka dan transparan.
@@ -544,7 +544,7 @@ export default function PuskesmasPublicPage() {
 
       {/* Footer Puskesmas Page */}
       <footer className="print:hidden border-t border-gray-200/80 pt-6 pb-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
-        <p>© 2026 SIPANDU · Sistem Informasi Pelayanan dan Data Posyandu</p>
+        <p>© 2026 SIIP · Sistem Informasi Pelayanan dan Data Posyandu</p>
         <div className="flex items-center gap-1.5 text-gray-600 font-medium">
           <span>Created by</span>
           <span className="font-semibold text-gray-800">Universitas Putra Bangsa</span>

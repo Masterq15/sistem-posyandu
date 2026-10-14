@@ -767,7 +767,7 @@ export default function Home() {
                 title="Buka Sidebar"
                 className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 flex items-center justify-center p-1.5 shadow-2xs shrink-0 cursor-pointer hover:border-gray-300 transition-all"
               >
-                <img src="/logo.svg" alt="Logo SIPANDU" className="w-7 h-7 object-contain" />
+                <img src="/logo.svg" alt="Logo SIIP" className="w-7 h-7 object-contain" />
               </div>
               <button
                 onClick={toggleSidebar}
@@ -781,11 +781,11 @@ export default function Home() {
             <div className="flex items-start justify-between mb-6 px-1">
               <div className="flex items-start gap-3 min-w-0 flex-1 pr-1">
                 <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 flex items-center justify-center p-1.5 shadow-2xs shrink-0 mt-0.5">
-                  <img src="/logo.svg" alt="Logo SIPANDU" className="w-7 h-7 object-contain" />
+                  <img src="/logo.svg" alt="Logo SIIP" className="w-7 h-7 object-contain" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h1 className="font-black text-saas-dark dark:text-white text-base tracking-tight leading-none">
-                    SIPANDU
+                    SIIP
                   </h1>
                   <p className="text-[9px] text-saas-muted dark:text-gray-400 font-semibold tracking-wide uppercase leading-tight mt-1">
                     Sistem Informasi Pelayanan dan Data Posyandu
@@ -977,10 +977,10 @@ export default function Home() {
               <div className="flex items-start justify-between mb-6 px-1">
                 <div className="flex items-start gap-3 min-w-0 flex-1 pr-2">
                   <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 flex items-center justify-center p-1.5 shadow-2xs shrink-0 mt-0.5">
-                    <img src="/logo.svg" alt="Logo SIPANDU" className="w-6 h-6 object-contain" />
+                    <img src="/logo.svg" alt="Logo SIIP" className="w-6 h-6 object-contain" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h1 className="font-black text-saas-dark dark:text-white text-base tracking-tight leading-none">SIPANDU</h1>
+                    <h1 className="font-black text-saas-dark dark:text-white text-base tracking-tight leading-none">SIIP</h1>
                     <p className="text-[8.5px] text-saas-muted dark:text-gray-400 font-semibold tracking-wide uppercase leading-tight mt-1">
                       Sistem Informasi Pelayanan dan Data Posyandu
                     </p>
@@ -1116,10 +1116,10 @@ export default function Home() {
             </button>
             <div className="flex items-center gap-2 md:hidden">
               <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-gray-200/90 dark:border-slate-800 flex items-center justify-center p-1 shrink-0">
-                <img src="/logo.svg" alt="Logo SIPANDU" className="w-5 h-5 object-contain" />
+                <img src="/logo.svg" alt="Logo SIIP" className="w-5 h-5 object-contain" />
               </div>
               <div>
-                <span className="font-black text-saas-dark dark:text-white text-sm tracking-tight leading-none block">SIPANDU</span>
+                <span className="font-black text-saas-dark dark:text-white text-sm tracking-tight leading-none block">SIIP</span>
                 <span className="text-[7.5px] text-saas-muted dark:text-gray-400 font-bold uppercase tracking-wider block mt-0.5">Sistem Informasi Pelayanan dan Data Posyandu</span>
               </div>
             </div>

@@ -82,10 +82,10 @@ function LeftPanel() {
       {/* Brand Header */}
       <div className="relative z-10 flex items-center gap-3">
         <div className="w-10 h-10 bg-white border border-slate-200/90 rounded-xl flex items-center justify-center p-1.5 shadow-2xs shrink-0">
-          <img src="/logo.svg" alt="Logo SIPANDU" className="w-7 h-7 object-contain" />
+          <img src="/logo.svg" alt="Logo SIIP" className="w-7 h-7 object-contain" />
         </div>
         <div>
-          <p className="text-teal-950 font-black text-base tracking-tight leading-none">SIPANDU</p>
+          <p className="text-teal-950 font-black text-base tracking-tight leading-none">SIIP</p>
           <span className="inline-block mt-1 px-2.5 py-0.5 bg-teal-600/10 text-teal-800 rounded-pill text-[8.5px] tracking-wider font-bold">
             SISTEM INFORMASI PELAYANAN DAN DATA POSYANDU
           </span>
@@ -774,7 +774,7 @@ export default function LoginPage() {
             ? "Lupa Kata Sandi"
             : "Pendaftaran Posyandu Baru"
         }
-        description="Portal masuk dan pendaftaran Posyandu digital untuk Kader dan Pengelola SIPANDU."
+        description="Portal masuk dan pendaftaran Posyandu digital untuk Kader dan Pengelola SIIP."
       />
       {/* Inject float animation */}
       <style>{`
@@ -802,10 +802,10 @@ export default function LoginPage() {
             {/* Mobile logo */}
             <div className="md:hidden flex items-center gap-3 mb-8">
               <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1.5 shadow-2xs shrink-0">
-                <img src="/logo.svg" alt="Logo SIPANDU" className="w-6 h-6 object-contain" />
+                <img src="/logo.svg" alt="Logo SIIP" className="w-6 h-6 object-contain" />
               </div>
               <div>
-                <span className="font-black text-teal-950 text-base leading-none block">SIPANDU</span>
+                <span className="font-black text-teal-950 text-base leading-none block">SIIP</span>
                 <span className="text-[8px] text-teal-700 font-bold uppercase tracking-wider block mt-0.5">Sistem Informasi Pelayanan dan Data Posyandu</span>
               </div>
             </div>
@@ -835,7 +835,7 @@ export default function LoginPage() {
                 />
               </div>
               <p className="text-[11px] text-saas-muted font-medium">
-                © 2026 SIPANDU · Sistem Informasi Pelayanan dan Data Posyandu
+                © 2026 SIIP · Sistem Informasi Pelayanan dan Data Posyandu
               </p>
             </div>
           </div>

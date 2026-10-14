@@ -42,7 +42,7 @@ async function main() {
   const kaderOwner = await prisma.kader.create({
     data: {
       id: uuidv4(),
-      nama: 'Kader Demo SIPANDU',
+      nama: 'Kader Demo SIIP',
       username: 'demo',
       email: 'demo@gmail.com',
       password: hashedPassword,
@@ -200,7 +200,7 @@ async function main() {
           vitB1: false,
           vitB6: false,
           statusImunisasi: usiaBulan >= 12 ? 'Lengkap' : 'Sesuai Usia',
-          petugas: 'Kader Demo SIPANDU',
+          petugas: 'Kader Demo SIIP',
         },
       });
     }
@@ -291,7 +291,7 @@ async function main() {
           asamUrat,
           keluhan: l.ht ? 'Kadang pusing di tengkuk' : (l.dm ? 'Sering merasa haus' : 'Tidak ada keluhan'),
           tindakan: l.ht || l.dm ? 'Edukasi diet rendah garam/gula & anjuran kontrol rutin Puskesmas' : 'Pertahankan pola hidup sehat',
-          petugas: 'Kader Demo SIPANDU',
+          petugas: 'Kader Demo SIIP',
         },
       });
     }

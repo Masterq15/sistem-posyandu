@@ -91,7 +91,7 @@ function ResetPasswordFormContent() {
     <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/40 flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <PageHelmet
         title="Reset Kata Sandi"
-        description="Atur ulang kata sandi akun kader SIPANDU Anda dengan aman."
+        description="Atur ulang kata sandi akun kader SIIP Anda dengan aman."
       />
       {/* Ambient Glow */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -105,11 +105,11 @@ function ResetPasswordFormContent() {
         {/* Header Logo */}
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1.5 shadow-2xs">
-            <img src="/logo.svg" alt="Logo SIPANDU" className="w-8 h-8 object-contain" />
+            <img src="/logo.svg" alt="Logo SIIP" className="w-8 h-8 object-contain" />
           </div>
           <div>
             <span className="font-black text-teal-950 text-xl tracking-tight leading-none block">
-              SIPANDU
+              SIIP
             </span>
             <span className="text-[9px] text-teal-700 font-bold uppercase tracking-wider block mt-0.5">
               Sistem Informasi Pelayanan dan Data Posyandu

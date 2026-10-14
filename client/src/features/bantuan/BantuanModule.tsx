@@ -1105,7 +1105,7 @@ export default function BantuanModule() {
                   <h3 className="font-extrabold text-sm text-saas-dark">Kontak Pengembang (Developer)</h3>
                 </div>
                 <p className="text-[11px] text-saas-muted font-medium leading-normal">
-                  Bila Anda mengalami kendala teknis, error sistem, atau membutuhkan bantuan penggunaan aplikasi SIPANDU, silakan hubungi pengembang:
+                  Bila Anda mengalami kendala teknis, error sistem, atau membutuhkan bantuan penggunaan aplikasi SIIP, silakan hubungi pengembang:
                 </p>
                 
                 <div className="space-y-3 pt-1">
@@ -1113,9 +1113,9 @@ export default function BantuanModule() {
                     <p className="text-[9px] text-saas-primary font-bold uppercase tracking-wider">
                       Tim Pengembang Sistem • Pengabdian Masyarakat
                     </p>
-                    <p className="text-xs font-black text-saas-dark">Developer SIPANDU</p>
+                    <p className="text-xs font-black text-saas-dark">Developer SIIP</p>
                     <a
-                      href="https://wa.me/6285877925025?text=Halo%20Developer%20SIPANDU,%20saya%20memerlukan%20bantuan%20terkait%20aplikasi"
+                      href="https://wa.me/6285877925025?text=Halo%20Developer%20SIIP,%20saya%20memerlukan%20bantuan%20terkait%20aplikasi"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-saas-primary font-bold hover:underline inline-flex items-center gap-1 pt-1"

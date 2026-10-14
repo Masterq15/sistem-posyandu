@@ -33,9 +33,9 @@ function createTransporter() {
  */
 export async function sendResetPasswordEmail({ to, nama, resetUrl }: SendResetEmailOptions): Promise<boolean> {
   const transporter = createTransporter();
-  const from = process.env.SMTP_FROM || '"SIPANDU" <noreply@sipandu.id>';
+  const from = process.env.SMTP_FROM || '"SIIP" <noreply@SIIP.id>';
 
-  const subject = 'Atur Ulang Kata Sandi - SIPANDU';
+  const subject = 'Atur Ulang Kata Sandi - SIIP';
 
   const html = `
     <!DOCTYPE html>
@@ -60,7 +60,7 @@ export async function sendResetPasswordEmail({ to, nama, resetUrl }: SendResetEm
         <div class="logo">SIIP - Sistem Informasi Posyandu</div>
         <h1>Atur Ulang Kata Sandi</h1>
         <p>Halo <strong>${nama}</strong>,</p>
-        <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Kader SIPANDU Anda. Silakan klik tombol di bawah ini untuk melanjutkan:</p>
+        <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Kader SIIP Anda. Silakan klik tombol di bawah ini untuk melanjutkan:</p>
         
         <div style="text-align: center;">
           <a href="${resetUrl}" class="btn" target="_blank">Atur Ulang Kata Sandi Saya</a>
@@ -125,7 +125,7 @@ export async function sendPosyanduReminderEmail({
   pesanKhusus,
 }: SendPosyanduReminderOptions): Promise<boolean> {
   const transporter = createTransporter();
-  const from = process.env.SMTP_FROM || '"SIPANDU" <noreply@sipandu.id>';
+  const from = process.env.SMTP_FROM || '"SIIP" <noreply@SIIP.id>';
   const subject = `📅 Pengingat Kegiatan Posyandu - ${namaPosyandu}`;
 
   const html = `
@@ -149,7 +149,7 @@ export async function sendPosyanduReminderEmail({
     </head>
     <body>
       <div class="container">
-        <div class="logo">🌿 SIPANDU <span class="badge">JADWAL POSYANDU</span></div>
+        <div class="logo">🌿 SIIP <span class="badge">JADWAL POSYANDU</span></div>
         <h2>Pengingat Jadwal Kegiatan Posyandu</h2>
         <p>Halo Kader <strong>${namaKader}</strong>,</p>
         <p>Email ini dikirimkan secara otomatis oleh sistem untuk mengingatkan pelaksanaan kegiatan Posyandu rutin mendatang:</p>

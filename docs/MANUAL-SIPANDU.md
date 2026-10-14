@@ -1,5 +1,5 @@
 # 📖 BUKU PANDUAN PENGGUNA
-# SIPANDU — Sistem Informasi Pelayanan dan Data Posyandu
+# SIIP — Sistem Informasi Pelayanan dan Data Posyandu
 
 > **Untuk:** Kader Posyandu & Masyarakat Umum  
 > **Versi:** 1.0  
@@ -9,7 +9,7 @@
 
 ## 📋 DAFTAR ISI
 
-1. [Apa Itu SIPANDU & Peran Pengguna (Role)](#1-apa-itu-sipandu--peran-pengguna-role)
+1. [Apa Itu SIIP & Peran Pengguna (Role)](#1-apa-itu-SIIP--peran-pengguna-role)
 2. [Pendaftaran Posyandu Baru & Cara Masuk (Login)](#2-pendaftaran-posyandu-baru--cara-masuk-login)
 3. [Mengenal Tampilan Utama (Dashboard)](#3-mengenal-tampilan-utama-dashboard)
 4. [Menu Pelayanan — Catat Pemeriksaan Langsung](#4-menu-pelayanan--catat-pemeriksaan-langsung)
@@ -24,11 +24,11 @@
 
 ---
 
-## 1. Apa Itu SIPANDU & Peran Pengguna (Role)
+## 1. Apa Itu SIIP & Peran Pengguna (Role)
 
-**SIPANDU** (Sistem Informasi Pelayanan dan Data Posyandu) adalah aplikasi digital berbasis web yang dirancang untuk mempermudah kader posyandu mencatat pemeriksaan, memantau status gizi anak secara otomatis dengan standar WHO/Kemenkes, skrining fisik lansia, serta menghasilkan laporan rekapitulasi secara instan.
+**SIIP** (Sistem Informasi Pelayanan dan Data Posyandu) adalah aplikasi digital berbasis web yang dirancang untuk mempermudah kader posyandu mencatat pemeriksaan, memantau status gizi anak secara otomatis dengan standar WHO/Kemenkes, skrining fisik lansia, serta menghasilkan laporan rekapitulasi secara instan.
 
-### ✅ Fitur Utama SIPANDU:
+### ✅ Fitur Utama SIIP:
 
 | Fitur | Keterangan |
 |-------|------------|
@@ -45,7 +45,7 @@
 
 ### 👥 Peran Pengguna & Hak Akses (User Roles):
 
-Di dalam sistem SIPANDU terdapat **3 tingkatan peran (role)** dengan hak akses masing-masing:
+Di dalam sistem SIIP terdapat **3 tingkatan peran (role)** dengan hak akses masing-masing:
 
 | Peran (Role) | Siapa Penggunanya? | Hak Akses & Kemampuan di Aplikasi |
 |--------------|-------------------|-----------------------------------|
@@ -59,7 +59,7 @@ Di dalam sistem SIPANDU terdapat **3 tingkatan peran (role)** dengan hak akses m
 
 ### A. Mendaftarkan Posyandu Baru (Khusus OWNER)
 
-Jika posyandu Anda **belum terdaftar** di SIPANDU, langkah pertama adalah mendaftarkan unit posyandu baru. Pendaftaran hanya dilakukan **sekali** oleh Ketua Posyandu (OWNER).
+Jika posyandu Anda **belum terdaftar** di SIIP, langkah pertama adalah mendaftarkan unit posyandu baru. Pendaftaran hanya dilakukan **sekali** oleh Ketua Posyandu (OWNER).
 
 **Langkah Pendaftaran Posyandu Baru:**
 
@@ -742,7 +742,7 @@ https://sistem-posyandu.vercel.app/puskesmas
 >
 > ![Portal Publik](./screenshots/29-portal-publik.png)
 >
-> *Tampilkan halaman portal publik dengan header SIPANDU dan filter data.*
+> *Tampilkan halaman portal publik dengan header SIIP dan filter data.*
 
 ---
 
@@ -793,7 +793,7 @@ Menampilkan daftar seluruh pemeriksaan sesuai filter yang dipilih.
 #### 📄 Pratinjau & Unduh Laporan Publik
 
 1. Klik tombol **"Pratinjau Laporan"**
-2. Dokumen laporan akan muncul lengkap dengan kop SIPANDU
+2. Dokumen laporan akan muncul lengkap dengan kop SIIP
 3. Klik **"Unduh Excel"** atau **"Unduh PDF"**
 
 ---
@@ -803,7 +803,7 @@ Menampilkan daftar seluruh pemeriksaan sesuai filter yang dipilih.
 >
 > ![Preview Publik](./screenshots/33-portal-publik-preview.png)
 >
-> *Tampilkan modal pratinjau laporan publik dengan kop SIPANDU.*
+> *Tampilkan modal pratinjau laporan publik dengan kop SIIP.*
 
 ---
 
@@ -849,10 +849,10 @@ Bisa, selama setiap kader **Logout** sebelum kader lain masuk dengan akunnya mas
 Ya. Data disimpan di server yang aman dan hanya bisa diakses oleh pengguna yang memiliki akun yang sah. Portal publik hanya menampilkan data rekapitulasi, bukan data pribadi yang sensitif.
 
 ### ❓ Apakah bisa diakses dari HP?
-Ya, SIPANDU bisa diakses dari **HP, tablet, maupun laptop** selama ada browser dan koneksi internet.
+Ya, SIIP bisa diakses dari **HP, tablet, maupun laptop** selama ada browser dan koneksi internet.
 
 ### ❓ Kalau sinyal jelek, apakah data hilang?
-Saat sinyal lemah, coba kembali ke halaman dan simpan ulang. SIPANDU menyimpan **cache sementara** untuk membantu memuat data lebih cepat.
+Saat sinyal lemah, coba kembali ke halaman dan simpan ulang. SIIP menyimpan **cache sementara** untuk membantu memuat data lebih cepat.
 
 ### ❓ Siapa yang bisa mendaftarkan balita/lansia baru?
 Hanya **kader posyandu yang sudah login** yang bisa mendaftarkan peserta baru. Masyarakat umum hanya bisa melihat data di Portal Publik.
@@ -911,12 +911,12 @@ Hanya **kader posyandu yang sudah login** yang bisa mendaftarkan peserta baru. M
 
 Jika mengalami kendala teknis yang tidak tercantum di panduan ini, hubungi:
 
-- 📧 **Email Tim SIPANDU:** sipandu@webind.my.id
-- 💬 **Nomor WhatsApp Tim SIPANDU:** *(tanyakan nomor grup ke koordinator posyandu Anda)*
+- 📧 **Email Tim SIIP:** SIIP@webind.my.id
+- 💬 **Nomor WhatsApp Tim SIIP:** *(tanyakan nomor grup ke koordinator posyandu Anda)*
 - 📋 **Menu Bantuan di Aplikasi:** Klik menu **"Bantuan"** di navigasi kiri aplikasi
 
 ---
 
-*Panduan ini akan terus diperbarui seiring perkembangan aplikasi SIPANDU.*
+*Panduan ini akan terus diperbarui seiring perkembangan aplikasi SIIP.*
 
-**© 2026 SIPANDU — Sistem Informasi Pelayanan dan Data Posyandu**
+**© 2026 SIIP — Sistem Informasi Pelayanan dan Data Posyandu**

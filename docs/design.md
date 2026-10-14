@@ -63,7 +63,7 @@ Berikut adalah pemetaan visual dari dashboard Posyandu berdasarkan layout *Sales
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ [Logo] SIPANDU         [  Cari nama balita/lansia...       ]                 (Bell) [ Foto Kader ]     │
+│ [Logo] SIIP         [  Cari nama balita/lansia...       ]                 (Bell) [ Foto Kader ]     │
 │                                                                                     Ibu Aminah         │
 ├──────────────────────┬─────────────────────────────────────────────────────────────────────────────────┤
 │                      │                                                                                 │
