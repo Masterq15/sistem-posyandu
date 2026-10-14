@@ -1,4 +1,4 @@
-# 🏥 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu
+# 🏥 SIIP - Sistem Informasi Posyandu
 
 > Platform digital pencatatan tumbuh kembang balita & pelayanan kesehatan lansia untuk Posyandu Indonesia.
 
@@ -443,5 +443,5 @@ MIT License — bebas digunakan untuk keperluan pendidikan dan non-komersial.
 ---
 
 <div align="center">
-  <p>© 2026 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu</p>
+  <p>© 2026 SIIP - Sistem Informasi Posyandu</p>
 </div>

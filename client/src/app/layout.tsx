@@ -13,7 +13,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu",
+  title: "SIIP - Sistem Informasi Posyandu",
   description: "Digitalisasi Pencatatan Tumbuh Kembang Anak & Pelayanan Lansia Mandiri — SIPANDU",
   icons: {
     icon: "/logo.svg",

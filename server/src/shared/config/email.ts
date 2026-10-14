@@ -57,7 +57,7 @@ export async function sendResetPasswordEmail({ to, nama, resetUrl }: SendResetEm
     </head>
     <body>
       <div class="container">
-        <div class="logo">🌿 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu</div>
+        <div class="logo">SIIP - Sistem Informasi Posyandu</div>
         <h1>Atur Ulang Kata Sandi</h1>
         <p>Halo <strong>${nama}</strong>,</p>
         <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun Kader SIPANDU Anda. Silakan klik tombol di bawah ini untuk melanjutkan:</p>
@@ -74,7 +74,7 @@ export async function sendResetPasswordEmail({ to, nama, resetUrl }: SendResetEm
         </p>
 
         <div class="footer">
-          &copy; 2026 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu.
+          &copy; 2026 SIIP - Sistem Informasi Posyandu.
         </div>
       </div>
     </body>
@@ -177,7 +177,7 @@ export async function sendPosyanduReminderEmail({
         <p>Mohon mempersiapkan alat penimbangan, pita LiLA, media KMS, serta buku registrasi Balita & Lansia sebelum acara dimulai.</p>
         
         <div class="footer">
-          &copy; 2026 SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu.
+          &copy; 2026 SIIP - Sistem Informasi Posyandu.
         </div>
       </div>
     </body>

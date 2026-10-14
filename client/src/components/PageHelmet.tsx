@@ -16,7 +16,7 @@ export default function PageHelmet({
   keywords = "posyandu, kesehatan balita, lansia, stunting, z-score, imunisasi, posyandu digital, sipandu",
   ogType = "website",
 }: PageHelmetProps) {
-  const fullTitle = title ? `${title} | SIPANDU` : "SIPANDU - Sistem Informasi Pelayanan dan Data Posyandu";
+  const fullTitle = title ? `${title} | SIPANDU` : "SIIP - Sistem Informasi Posyandu";
 
   return (
     <Helmet>
