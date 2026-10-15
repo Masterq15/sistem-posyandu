@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",
+    "caniuse-lite": "^1.0.30001810",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4"
