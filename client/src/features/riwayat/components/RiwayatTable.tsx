@@ -126,7 +126,7 @@ export default function RiwayatTable({
                   </td>
                   <td className="py-4 px-3 whitespace-nowrap">
                     <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
+                      className={`px-2.5 py-1 rounded-md text-xs font-bold inline-flex items-center gap-1 ${
                         log.statusType === "success"
                           ? "bg-trend-successBg text-trend-successText"
                           : log.statusType === "warning"

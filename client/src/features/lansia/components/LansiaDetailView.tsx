@@ -25,6 +25,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ReferenceLine,
 } from "recharts";
 import { formatTanggalIndonesia } from "@/lib/dateUtils";
 import { hitungIMT } from "@/lib/zScoreCalculator";
@@ -144,14 +145,14 @@ export default function LansiaDetailView({
                 <button
                   type="button"
                   onClick={() => onEditProfile(activeLansia)}
-                  className="px-3 py-1.5 border border-hairline text-saas-dark rounded-pill text-xs font-semibold hover:bg-surface-soft transition-all cursor-pointer"
+                  className="px-3 py-1.5 border border-hairline text-saas-dark rounded-lg text-xs font-semibold hover:bg-surface-soft transition-all cursor-pointer"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
                   onClick={onDeleteProfile}
-                  className="px-3 py-1.5 border border-red-200 text-trend-dangerText rounded-pill text-xs font-semibold hover:bg-red-50 transition-all cursor-pointer"
+                  className="px-3 py-1.5 border border-red-200 text-trend-dangerText rounded-lg text-xs font-semibold hover:bg-red-50 transition-all cursor-pointer"
                 >
                   Hapus
                 </button>
@@ -261,11 +262,11 @@ export default function LansiaDetailView({
               <p className="text-xs text-saas-muted mt-0.5">Masukkan data pengukuran fisik dan skrining gula darah.</p>
             </div>
             {currentPeriodExam ? (
-              <span className="self-start sm:self-auto text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+              <span className="self-start sm:self-auto text-[11px] font-bold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Sudah Diisi Periode Ini
               </span>
             ) : (
-              <span className="self-start sm:self-auto text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="self-start sm:self-auto text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
                 Belum Diisi Periode Ini
               </span>
             )}
@@ -489,7 +490,7 @@ export default function LansiaDetailView({
               Grafik tren tekanan darah (Sistol/Diastol mmHg), gula darah sewaktu (mg/dL), dan berat badan (kg).
             </p>
           </div>
-          <span className="text-xs font-bold text-saas-muted bg-gray-50 px-2.5 py-1 rounded-full border border-gray-150">
+          <span className="text-xs font-bold text-saas-muted bg-gray-50 px-2.5 py-1 rounded-md border border-gray-150">
             {activeLansia.pemeriksaan.length} Data Periksa
           </span>
         </div>
@@ -519,12 +520,24 @@ export default function LansiaDetailView({
                     fontSize: "12px",
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }} />
+                <ReferenceLine
+                  y={140}
+                  stroke="#DC2626"
+                  strokeDasharray="4 4"
+                  label={{ value: "Batas Hipertensi (140 mmHg)", fill: "#DC2626", fontSize: 10, position: "top" }}
+                />
+                <ReferenceLine
+                  y={90}
+                  stroke="#D97706"
+                  strokeDasharray="4 4"
+                  label={{ value: "Batas Diastol (90 mmHg)", fill: "#D97706", fontSize: 10, position: "bottom" }}
+                />
                 <Line
                   type="monotone"
                   dataKey="TD Sistol (mmHg)"
-                  stroke="#EF4444"
-                  strokeWidth={3}
+                  stroke="#DC2626"
+                  strokeWidth={2.5}
                   dot={{ r: 4 }}
                 />
                 <Line
@@ -598,7 +611,7 @@ export default function LansiaDetailView({
                     </td>
                     <td className="py-4 font-bold">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[11px] ${
+                        className={`px-2 py-0.5 rounded-md text-[11px] ${
                           exam.tekananDarahSistol >= 140
                             ? "bg-trend-dangerBg text-trend-dangerText"
                             : "bg-trend-successBg text-trend-successText"
@@ -609,7 +622,7 @@ export default function LansiaDetailView({
                     </td>
                     <td className="py-4 font-bold">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[11px] ${
+                        className={`px-2 py-0.5 rounded-md text-[11px] ${
                           Number(exam.gulaDarahSewaktu) >= 200
                             ? "bg-trend-dangerBg text-trend-dangerText"
                             : "bg-trend-successBg text-trend-successText"

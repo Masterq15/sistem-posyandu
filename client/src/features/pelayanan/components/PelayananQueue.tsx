@@ -42,7 +42,7 @@ export default function PelayananQueue({
           <h3 className="font-bold text-sm text-saas-dark">
             {activeTab === "Balita" ? "Pilih Balita" : "Pilih Lansia"}
           </h3>
-          <span className="text-[10px] font-bold text-saas-muted bg-gray-100 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold text-saas-muted bg-gray-100 px-2 py-0.5 rounded-md">
             {filteredPasiens.length} Orang
           </span>
         </div>
@@ -145,11 +145,11 @@ export default function PelayananQueue({
                         {p.nama}
                       </p>
                       {p.isCheckedInCurrentPeriod ? (
-                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold bg-teal-100 text-teal-700 border border-teal-200 shrink-0">
+                        <span className="px-1.5 py-0.2 rounded-md text-[9px] font-extrabold bg-teal-100 text-teal-700 border border-teal-200 shrink-0">
                           Selesai
                         </span>
                       ) : (
-                        <span className="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60 shrink-0">
+                        <span className="px-1.5 py-0.2 rounded-md text-[9px] font-extrabold bg-amber-50 text-amber-600 border border-amber-200/60 shrink-0">
                           Belum
                         </span>
                       )}

@@ -295,14 +295,14 @@ export default function LansiaModals({
             <button
               type="button"
               onClick={() => setIsEditModalOpen(false)}
-              className="px-4 py-2 border border-hairline rounded-pill text-xs font-semibold text-saas-dark hover:bg-surface-soft cursor-pointer"
+              className="px-4 py-2 border border-hairline rounded-lg text-xs font-semibold text-saas-dark hover:bg-surface-soft cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 bg-saas-primary text-white rounded-pill text-xs font-semibold hover:bg-saas-primary-active disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-saas-primary text-white rounded-lg text-xs font-semibold hover:bg-saas-primary-active disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
@@ -327,7 +327,7 @@ export default function LansiaModals({
             <button
               type="button"
               onClick={() => setIsDeleteModalOpen(false)}
-              className="px-4 py-2 border border-hairline rounded-pill text-xs font-semibold text-saas-dark hover:bg-surface-soft cursor-pointer"
+              className="px-4 py-2 border border-hairline rounded-lg text-xs font-semibold text-saas-dark hover:bg-surface-soft cursor-pointer"
             >
               Batal
             </button>
@@ -335,7 +335,7 @@ export default function LansiaModals({
               type="button"
               onClick={onDeleteLansia}
               disabled={isSaving}
-              className="px-4 py-2 bg-trend-dangerText text-white rounded-pill text-xs font-semibold hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-trend-dangerText text-white rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? "Menghapus..." : "Ya, Hapus Permanen"}
             </button>
@@ -491,14 +491,14 @@ export default function LansiaModals({
             <button
               type="button"
               onClick={() => setIsEditExamModalOpen(false)}
-              className="px-4 py-2 border border-hairline rounded-pill text-xs font-semibold text-saas-dark hover:bg-surface-soft cursor-pointer"
+              className="px-4 py-2 border border-hairline rounded-lg text-xs font-semibold text-saas-dark hover:bg-surface-soft cursor-pointer"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-4 py-2 bg-saas-primary text-white rounded-pill text-xs font-semibold hover:bg-saas-primary-active disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-saas-primary text-white rounded-lg text-xs font-semibold hover:bg-saas-primary-active disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
@@ -523,7 +523,7 @@ export default function LansiaModals({
             <button
               type="button"
               onClick={() => setIsDeleteExamModalOpen(false)}
-              className="px-4 py-2 border border-hairline rounded-pill text-xs font-semibold text-saas-dark hover:bg-surface-soft cursor-pointer"
+              className="px-4 py-2 border border-hairline rounded-lg text-xs font-semibold text-saas-dark hover:bg-surface-soft cursor-pointer"
             >
               Batal
             </button>
@@ -531,7 +531,7 @@ export default function LansiaModals({
               type="button"
               onClick={onDeleteExamSubmit}
               disabled={isSaving}
-              className="px-4 py-2 bg-trend-dangerText text-white rounded-pill text-xs font-semibold hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-trend-dangerText text-white rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? "Menghapus..." : "Ya, Hapus Record"}
             </button>

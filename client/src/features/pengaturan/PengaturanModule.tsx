@@ -396,7 +396,7 @@ function AkunSection() {
                 <p className="text-xs text-blue-600 font-semibold">@{user.username}</p>
               )}
               <p className="text-xs text-saas-muted">{user?.email}</p>
-              <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 text-[10px] font-bold border border-teal-100">
+              <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 text-[10px] font-bold border border-teal-100">
                 {user?.role === "OWNER" ? "Pengelola (Owner)" : "Kader"}
               </span>
             </div>
@@ -568,32 +568,32 @@ function TampilanSection() {
       />
 
       {/* Ukuran Teks */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6 space-y-5">
-        <h3 className="text-sm font-bold text-saas-dark flex items-center gap-2">
-          <ALargeSmall className="w-4 h-4 text-violet-500" /> Ukuran Teks
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 space-y-5">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <ALargeSmall className="w-4 h-4 text-teal-700 dark:text-teal-400" /> Ukuran Teks
         </h3>
 
         {fontSaveBanner && (
-          <div className="p-3 bg-violet-50 text-violet-700 border border-violet-100 rounded-xl text-sm font-semibold flex items-center gap-2">
+          <div className="p-3 bg-teal-50 text-teal-800 border border-teal-200 rounded-xl text-sm font-semibold flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             Ukuran teks diubah ke &quot;{fontSizeLevels.find(f => f.level === fontSizeLevel)?.label}&quot;
           </div>
         )}
 
         {/* Preview */}
-        <div className="p-4 bg-gradient-to-br from-violet-50/60 to-indigo-50/40 border border-violet-100/60 rounded-xl">
-          <p className="text-[10px] text-violet-500 font-bold mb-2 uppercase tracking-widest">Pratinjau Teks</p>
+        <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 rounded-xl">
+          <p className="text-[10px] text-teal-700 dark:text-teal-400 font-bold mb-2 uppercase tracking-widest">Pratinjau Teks</p>
           <p
-            className="font-bold text-saas-dark transition-all duration-300"
+            className="font-bold text-slate-900 dark:text-white transition-all duration-300"
             style={{ fontSize: fontSizeLevel === "kecil" ? "0.875em" : fontSizeLevel === "normal" ? "1em" : fontSizeLevel === "besar" ? "1.125em" : "1.375em" }}
           >
-            Data Posyandu Kita
+            Data Posyandu Terpadu
           </p>
           <p
-            className="text-saas-muted mt-1 transition-all duration-300"
+            className="text-slate-600 dark:text-slate-400 mt-1 transition-all duration-300"
             style={{ fontSize: fontSizeLevel === "kecil" ? "0.75em" : fontSizeLevel === "normal" ? "0.875em" : fontSizeLevel === "besar" ? "1em" : "1.125em" }}
           >
-            Kader dapat melihat informasi warga dengan jelas.
+            Kader dapat membaca informasi berat badan dan tensi darah dengan jelas di lapangan.
           </p>
         </div>
 
@@ -603,7 +603,7 @@ function TampilanSection() {
             onClick={decreaseFontSize}
             disabled={currentIndex === 0}
             aria-label="Perkecil teks"
-            className="w-10 h-10 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center hover:bg-violet-50 hover:border-violet-300 hover:text-violet-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center hover:bg-teal-50 hover:border-teal-300 hover:text-teal-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <Minus className="w-4 h-4" />
           </button>

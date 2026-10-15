@@ -83,7 +83,7 @@ export default function LansiaLaporanView({
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-base font-extrabold text-saas-dark tracking-tight">Ringkasan Rekapan Lansia</h3>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
+            <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
               {rekapanLansia?.periode || "Semua Periode"}
             </span>
           </div>
@@ -593,7 +593,7 @@ export default function LansiaLaporanView({
                 </div>
                 <h5 className="text-xs font-bold text-gray-900">Tindakan Medis &amp; Edukasi</h5>
               </div>
-              <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+              <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
                 <AnimatedNumber value={rekapanLansia?.totalMendapatTindakan || 0} triggerKey={triggerKey} /> Ditindaklanjuti
               </span>
             </div>
@@ -636,7 +636,7 @@ export default function LansiaLaporanView({
                 <AlertCircle className="w-4 h-4 text-rose-600" />
                 Tier 4 — Lansia Perlu Follow-Up &amp; Perhatian Khusus
               </h4>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-100 text-rose-800">
                 <AnimatedNumber value={rekapanLansia?.lansiaPerluPerhatianList?.length || 0} triggerKey={triggerKey} /> Kasus
               </span>
             </div>

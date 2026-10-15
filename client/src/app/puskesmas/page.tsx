@@ -36,6 +36,10 @@ function toItemRiwayat(item: PublicPemeriksaanItem): ItemRiwayat {
     diastol = diastol || parseInt(parts[1], 10) || undefined;
   }
 
+  const maskedNik = item.nik && item.nik.length >= 8
+    ? `${item.nik.slice(0, 6)}******${item.nik.slice(-4)}`
+    : item.nik;
+
   return {
     id: item.id,
     pasienId: item.nik || item.namaWarga,
@@ -46,7 +50,7 @@ function toItemRiwayat(item: PublicPemeriksaanItem): ItemRiwayat {
     parameter: `${item.beratBadan} kg / ${item.tinggiBadan} cm`,
     status: item.statusRingkasan,
     statusType: item.isPerluRujukan ? "warning" : "success",
-    nik: item.nik,
+    nik: maskedNik,
     namaIbu: item.namaIbu,
     usiaBulan,
     jenisKelamin: item.jenisKelamin,
@@ -432,7 +436,7 @@ export default function PuskesmasPublicPage() {
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 border border-teal-200/80 text-teal-800">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-teal-50 border border-teal-200/80 text-teal-800">
                 <Globe className="w-3.5 h-3.5 text-teal-600" /> Portal Publik
               </span>
             </div>

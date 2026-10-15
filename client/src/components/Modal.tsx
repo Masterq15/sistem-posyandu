@@ -41,7 +41,7 @@ export default function Modal({
   const modalContent = (
     <div
       onClick={onClose} // Closes modal when clicking outside (on overlay backdrop)
-      className={`fixed inset-0 w-screen h-screen top-0 left-0 bg-saas-dark/45 backdrop-blur-sm z-[9999] flex ${
+      className={`fixed inset-0 w-screen h-screen top-0 left-0 bg-black/50 z-[9999] flex ${
         type === "drawer" ? "justify-end" : "items-center justify-center p-4"
       }`}
     >
@@ -49,19 +49,19 @@ export default function Modal({
         onClick={(e) => e.stopPropagation()} // Prevents clicks inside the modal card from closing it
         className={
           type === "drawer"
-            ? "bg-white h-full w-full max-w-lg shadow-2xl flex flex-col justify-between p-4 sm:p-6 relative overflow-y-auto animate-slide-in"
-            : "bg-white rounded-card shadow-xl border border-gray-100 max-w-xl w-full p-4 sm:p-6 space-y-4 sm:space-y-5 relative max-h-[92vh] overflow-y-auto mx-2"
+            ? "bg-white dark:bg-slate-900 h-full w-full max-w-lg shadow-2xl flex flex-col justify-between p-4 sm:p-6 relative overflow-y-auto animate-slide-in text-saas-dark dark:text-slate-100"
+            : "bg-white dark:bg-slate-900 rounded-card shadow-xl border border-gray-100 dark:border-slate-800 max-w-xl w-full p-4 sm:p-6 space-y-4 sm:space-y-5 relative max-h-[92vh] overflow-y-auto mx-2 text-saas-dark dark:text-slate-100"
         }
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-slate-800 shrink-0">
           <div>
-            <h3 className="font-extrabold text-base text-saas-dark">{title}</h3>
-            {description && <p className="text-[11px] text-saas-muted mt-0.5">{description}</p>}
+            <h3 className="font-extrabold text-base text-saas-dark dark:text-white">{title}</h3>
+            {description && <p className="text-[11px] text-saas-muted dark:text-slate-400 mt-0.5">{description}</p>}
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-gray-50 flex items-center justify-center text-saas-muted hover:text-saas-dark transition-colors"
+            className="w-8 h-8 rounded-full hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-center text-saas-muted dark:text-slate-400 hover:text-saas-dark dark:hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>

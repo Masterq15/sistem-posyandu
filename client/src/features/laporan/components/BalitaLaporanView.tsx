@@ -89,7 +89,7 @@ export default function BalitaLaporanView({
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-base font-extrabold text-saas-dark tracking-tight">Ringkasan Rekapan Balita</h3>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
+            <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200/60">
               {rekapanBalita?.periode || "Semua Periode"}
             </span>
           </div>
@@ -630,7 +630,7 @@ export default function BalitaLaporanView({
                 <AlertCircle className="w-4 h-4 text-rose-600" />
                 Tier 4 — Balita Perlu Tindak Lanjut &amp; Perhatian Khusus
               </h4>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800">
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-rose-100 text-rose-800">
                 <AnimatedNumber value={rekapanBalita?.balitaPerluPerhatianList?.length || 0} triggerKey={triggerKey} /> Kasus
               </span>
             </div>
@@ -930,7 +930,7 @@ export default function BalitaLaporanView({
                         <td className="px-2.5 py-2 text-gray-900 font-bold whitespace-nowrap">{log.beratBadan ?? "-"}</td>
                         <td className="px-2.5 py-2 text-gray-900 font-bold whitespace-nowrap">{log.tinggiBadan ?? "-"}</td>
                         <td className="px-2.5 py-2 text-gray-700 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             codeBbU === "N" ? "bg-emerald-100 text-emerald-800" :
                             codeBbU === "K" ? "bg-amber-100 text-amber-800" :
                             codeBbU === "SK" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
@@ -939,7 +939,7 @@ export default function BalitaLaporanView({
                           </span>
                         </td>
                         <td className="px-2.5 py-2 text-gray-700 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             codeTbU === "N" ? "bg-emerald-100 text-emerald-800" :
                             codeTbU === "P" ? "bg-purple-100 text-purple-800" :
                             codeTbU === "SP" ? "bg-red-100 text-red-800" : "bg-teal-100 text-teal-800"
@@ -948,7 +948,7 @@ export default function BalitaLaporanView({
                           </span>
                         </td>
                         <td className="px-2.5 py-2 text-gray-700 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             codeBbTb === "N" ? "bg-emerald-100 text-emerald-800" :
                             codeBbTb === "K" ? "bg-amber-100 text-amber-800" :
                             codeBbTb === "SK" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"

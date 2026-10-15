@@ -170,7 +170,7 @@ export default function GoogleLoginButton({
           id="btn-google-login"
           onClick={handleCustomButtonClick}
           disabled={isLoading}
-          className="w-full py-3 px-4 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50/80 text-slate-700 text-sm font-semibold rounded-pill transition-all flex items-center justify-center gap-3 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50/80 text-slate-700 text-sm font-semibold rounded-xl transition-all flex items-center justify-center gap-3 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <>

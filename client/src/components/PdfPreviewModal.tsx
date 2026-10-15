@@ -74,7 +74,7 @@ export default function PdfPreviewModal({
     <div
       onClick={onClose}
       style={{ margin: 0 }}
-      className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] !m-0 !mt-0 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-5 animate-in fade-in duration-200"
+      className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] !m-0 !mt-0 flex items-center justify-center bg-black/60 p-2 sm:p-5 animate-in fade-in duration-200"
     >
       <div
         onClick={(e) => e.stopPropagation()}

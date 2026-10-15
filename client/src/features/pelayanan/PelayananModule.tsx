@@ -902,7 +902,7 @@ export default function PelayananModule({
         <div>
           <div className="flex items-center gap-2">
             <span
-              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${
+              className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase ${
                 activeTab === "Balita"
                   ? "bg-teal-50 text-saas-primary border border-teal-200/50"
                   : "bg-indigo-50 text-indigo-700 border border-indigo-200/50"
@@ -942,7 +942,7 @@ export default function PelayananModule({
               <BalitaIcon className="w-4 h-4" />
               <span>Balita</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
                   activeTab === "Balita" ? "bg-white/20 text-white" : "bg-gray-200/70 text-saas-muted"
                 }`}
               >
@@ -969,7 +969,7 @@ export default function PelayananModule({
               <LansiaIcon className="w-4 h-4" />
               <span>Lansia</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
                   activeTab === "Lansia" ? "bg-white/20 text-white" : "bg-gray-200/70 text-saas-muted"
                 }`}
               >

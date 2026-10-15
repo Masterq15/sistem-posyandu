@@ -280,7 +280,7 @@ export default function DashboardCharts({
         ) : (
           <div className="relative flex items-stretch border border-gray-100 rounded-xl bg-gray-50/30 overflow-hidden">
             {/* SUMBU Y (DIAM SAJA / FIXED DI KIRI) */}
-            <div className="shrink-0 z-10 bg-white/95 backdrop-blur-xs border-r border-gray-200/80 pr-0.5 flex flex-col select-none shadow-[2px_0_6px_-2px_rgba(0,0,0,0.06)]">
+            <div className="shrink-0 z-10 bg-white border-r border-gray-200/80 pr-0.5 flex flex-col select-none shadow-[2px_0_6px_-2px_rgba(0,0,0,0.06)]">
               <div style={{ width: 44, height: 284 }}>
                 {trenViewMode === "status" ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -400,108 +400,122 @@ export default function DashboardCharts({
       </div>
 
 
-      {/* Aktivitas Kunjungan (Donut Chart) */}
-      <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="font-bold text-base text-saas-dark">Aktivitas Kunjungan</h3>
-            <p className="text-xs text-saas-muted mt-0.5">Tingkat partisipasi kader &amp; posyandu</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => onOpenDetailAktivitas()}
-            className="p-1.5 hover:bg-gray-100 text-saas-muted hover:text-saas-dark rounded-lg transition-colors cursor-pointer"
-            title="Lihat Detail Aktivitas"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-        </div>
-
-        {isAktivitasLoading ? (
-          <div className="py-12 text-center text-xs text-saas-muted">Memuat data aktivitas...</div>
-        ) : (
-          <div className="flex flex-col items-center justify-center">
-            <div className="relative w-44 h-44 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="transparent"
-                  stroke="#F3F4F6"
-                  strokeWidth="10"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  fill="transparent"
-                  stroke="#14B8A6"
-                  strokeWidth="10"
-                  strokeDasharray="251.2"
-                  strokeDashoffset={
-                    251.2 - (251.2 * (isNaN(Number(aktivitasData?.persentaseSelesai)) ? 0 : Number(aktivitasData?.persentaseSelesai || 0))) / 100
-                  }
-                  strokeLinecap="round"
-                  className="transition-all duration-700 ease-out"
-                />
-              </svg>
-              <div className="absolute flex flex-col items-center text-center">
-                <span className="text-2xl font-black text-saas-dark leading-none">
-                  {isNaN(Number(aktivitasData?.persentaseSelesai)) ? 0 : Number(aktivitasData?.persentaseSelesai || 0)}%
-                </span>
-                <span className="text-[10px] text-saas-muted font-bold uppercase tracking-wider mt-1">Selesai</span>
-              </div>
+      {/* Aktivitas Kunjungan (Dual Progress Bar Standar Posyandu) */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-5 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="font-bold text-sm text-slate-900 dark:text-white">Cakupan Pemeriksaan Periode Ini</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Realisasi sasaran balita &amp; skrining lansia</p>
             </div>
+            <button
+              type="button"
+              onClick={() => onOpenDetailAktivitas()}
+              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+              title="Lihat Rincian Nama Pasien"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+          </div>
 
-            <div className="w-full space-y-2 mt-6">
-              {[
-                {
-                  key: "balita" as const,
-                  label: "Balita Selesai Periksa",
-                  count: `${aktivitasData?.balitaSelesaiCount ?? 0} Anak`,
-                  color: "bg-sky-500",
-                },
-                {
-                  key: "lansia" as const,
-                  label: "Lansia Selesai Periksa",
-                  count: `${aktivitasData?.lansiaSelesaiCount ?? 0} Lansia`,
-                  color: "bg-emerald-500",
-                },
-                {
-                  key: "belum_balita" as const,
-                  label: "Balita Belum Periksa",
-                  count: `${(aktivitasData?.belumMengisiList ?? []).filter(i => i.tipe === 'Balita').length} Anak`,
-                  color: "bg-amber-400",
-                },
-                {
-                  key: "belum_lansia" as const,
-                  label: "Lansia Belum Periksa",
-                  count: `${(aktivitasData?.belumMengisiList ?? []).filter(i => i.tipe === 'Lansia').length} Lansia`,
-                  color: "bg-orange-400",
-                },
-              ].map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => onOpenDetailAktivitas(item.key)}
-                  className="w-full flex items-center justify-between text-xs border-b border-gray-50 pb-2.5 pt-1.5 hover:bg-gray-50/80 px-2 rounded-lg transition-colors group cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2.5 h-2.5 rounded-full ${item.color}`}></span>
-                    <span className="text-saas-muted group-hover:text-saas-dark font-semibold transition-colors">
-                      {item.label}
+          {isAktivitasLoading ? (
+            <div className="py-12 text-center text-xs text-slate-500">Memuat data capaian...</div>
+          ) : (() => {
+            const balitaSelesai = aktivitasData?.balitaSelesaiCount ?? 0;
+            const belumBalitaCount = (aktivitasData?.belumMengisiList ?? []).filter(i => i.tipe === 'Balita').length;
+            const balitaTotal = balitaSelesai + belumBalitaCount;
+            const persenBalita = balitaTotal > 0 ? Math.round((balitaSelesai / balitaTotal) * 100) : 0;
+
+            const lansiaSelesai = aktivitasData?.lansiaSelesaiCount ?? 0;
+            const belumLansiaCount = (aktivitasData?.belumMengisiList ?? []).filter(i => i.tipe === 'Lansia').length;
+            const lansiaTotal = lansiaSelesai + belumLansiaCount;
+            const persenLansia = lansiaTotal > 0 ? Math.round((lansiaSelesai / lansiaTotal) * 100) : 0;
+
+            return (
+              <div className="space-y-4">
+                {/* Progress Balita */}
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">Cakupan Balita (D/S)</span>
+                    <span className="font-bold text-teal-700 dark:text-teal-400 tabular-nums">
+                      {balitaSelesai} / {balitaTotal} ({persenBalita}%)
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-bold text-saas-dark">{item.count}</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-saas-primary group-hover:translate-x-0.5 transition-all" />
+                  <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-teal-600 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, persenBalita)}%` }}
+                    />
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+                </div>
+
+                {/* Progress Lansia */}
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                  <div className="flex items-center justify-between text-xs mb-1.5">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">Skrining Lansia</span>
+                    <span className="font-bold text-blue-700 dark:text-blue-400 tabular-nums">
+                      {lansiaSelesai} / {lansiaTotal} ({persenLansia}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, persenLansia)}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Rincian Tabular */}
+                <div className="pt-2 divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                  {[
+                    {
+                      key: "balita" as const,
+                      label: "Balita Sudah Ditimbang",
+                      count: `${balitaSelesai} Anak`,
+                      color: "bg-teal-600",
+                    },
+                    {
+                      key: "belum_balita" as const,
+                      label: "Balita Belum Hadir",
+                      count: `${belumBalitaCount} Anak`,
+                      color: "bg-amber-500",
+                    },
+                    {
+                      key: "lansia" as const,
+                      label: "Lansia Sudah Diperiksa",
+                      count: `${lansiaSelesai} Lansia`,
+                      color: "bg-blue-600",
+                    },
+                    {
+                      key: "belum_lansia" as const,
+                      label: "Lansia Belum Hadir",
+                      count: `${belumLansiaCount} Lansia`,
+                      color: "bg-slate-400",
+                    },
+                  ].map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => onOpenDetailAktivitas(item.key)}
+                      className="w-full flex items-center justify-between py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 px-1 rounded transition-colors group cursor-pointer text-left"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${item.color}`}></span>
+                        <span className="text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white font-medium">
+                          {item.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-slate-900 dark:text-white tabular-nums">{item.count}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-700 group-hover:translate-x-0.5 transition-all" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
       </div>
     </div>
   );

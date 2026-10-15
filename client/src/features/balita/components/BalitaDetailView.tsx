@@ -27,6 +27,7 @@ import {
 import { formatTanggalIndonesia } from "@/lib/dateUtils";
 import { extractPemberianLain } from "@/features/laporan/types";
 import { calculateAgeInMonths, getStatusBadgeStyle } from "@/features/pelayanan/types";
+import { BBU_DATA } from "@/lib/antropometriData";
 import { Balita, PemeriksaanBalita } from "../types";
 
 export interface BalitaDetailViewProps {
@@ -125,6 +126,7 @@ export default function BalitaDetailView({
   // Pagination State untuk Riwayat Perkembangan Bulanan
   const [pageRiwayat, setPageRiwayat] = useState(1);
   const [pageSizeRiwayat, setPageSizeRiwayat] = useState(5);
+  const [chartMode, setChartMode] = useState<"kms" | "tinggi">("kms");
 
   useEffect(() => {
     setPageRiwayat(1);
@@ -162,14 +164,14 @@ export default function BalitaDetailView({
                 <button
                   type="button"
                   onClick={() => onEditProfile(activeBalita)}
-                  className="px-3 py-1.5 border border-gray-200 text-saas-dark rounded-full text-xs font-semibold hover:bg-gray-50 transition-all cursor-pointer"
+                  className="px-3 py-1.5 border border-gray-200 text-saas-dark rounded-lg text-xs font-semibold hover:bg-gray-50 transition-all cursor-pointer"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
                   onClick={onDeleteProfile}
-                  className="px-3 py-1.5 border border-red-200 text-trend-dangerText rounded-full text-xs font-semibold hover:bg-red-50 transition-all cursor-pointer"
+                  className="px-3 py-1.5 border border-red-200 text-trend-dangerText rounded-lg text-xs font-semibold hover:bg-red-50 transition-all cursor-pointer"
                 >
                   Hapus
                 </button>
@@ -240,11 +242,11 @@ export default function BalitaDetailView({
               <p className="text-xs text-saas-muted mt-0.5">Masukkan data pengukuran BB, TB, LK, dan vitamin.</p>
             </div>
             {currentPeriodExam ? (
-              <span className="self-start sm:self-auto text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+              <span className="self-start sm:self-auto text-[11px] font-bold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" /> Sudah Diisi Periode Ini
               </span>
             ) : (
-              <span className="self-start sm:self-auto text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="self-start sm:self-auto text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
                 Belum Diisi Periode Ini
               </span>
             )}
@@ -590,73 +592,162 @@ export default function BalitaDetailView({
 
       {/* GRAFIK PERTUMBUHAN BALITA */}
       <div className="bg-white rounded-card shadow-soft-card border border-gray-100/70 p-6 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
-            <h3 className="font-bold text-base text-saas-dark flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-saas-primary" />
-              Grafik Pertumbuhan Balita (BB, TB &amp; LK)
+            <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-teal-700 dark:text-teal-400" />
+              Kurva Pertumbuhan Balita (Standar WHO &amp; Kemenkes)
             </h3>
-            <p className="text-xs text-saas-muted mt-0.5">
-              Grafik tren pertumbuhan berat badan (kg), tinggi badan (cm), dan lingkar kepala (cm) berdasarkan riwayat periksa.
+            <p className="text-xs text-slate-500 mt-0.5">
+              Grafik pertumbuhan individu anak dengan garis acuan median, ambang gizi kurang (-2 SD), dan bawah garis merah (-3 SD).
             </p>
           </div>
-          <span className="text-xs font-bold text-saas-muted bg-gray-50 px-2.5 py-1 rounded-full border border-gray-150">
-            {activeBalita.pemeriksaan.length} Data Periksa
-          </span>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setChartMode("kms")}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  chartMode === "kms"
+                    ? "bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                Kurva KMS (Berat Badan)
+              </button>
+              <button
+                type="button"
+                onClick={() => setChartMode("tinggi")}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  chartMode === "tinggi"
+                    ? "bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                Tinggi &amp; Lingkar Kepala
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div className="h-64 w-full pt-2">
-          {activeBalita.pemeriksaan.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={[...activeBalita.pemeriksaan]
-                  .sort((a, b) => new Date(a.tanggalPeriksa).getTime() - new Date(b.tanggalPeriksa).getTime())
-                  .map((p) => ({
-                    tanggal: formatTanggalIndonesia(p.tanggalPeriksa),
-                    "Berat Badan (kg)": p.beratBadan,
-                    "Tinggi Badan (cm)": p.tinggiBadan,
-                    "Lingkar Kepala (cm)": p.lingkarKepala || null,
-                  }))}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                <XAxis dataKey="tanggal" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#FFF",
-                    borderRadius: "12px",
-                    border: "1px solid #E5E7EB",
-                    fontSize: "12px",
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="Berat Badan (kg)"
-                  stroke="#0D9488"
-                  strokeWidth={3}
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="Tinggi Badan (cm)"
-                  stroke="#3B82F6"
-                  strokeWidth={3}
-                  dot={{ r: 4 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="Lingkar Kepala (cm)"
-                  stroke="#F59E0B"
-                  strokeWidth={2}
-                  strokeDasharray="4 4"
-                  dot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center text-xs text-saas-muted font-medium bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-              Belum ada riwayat pemeriksaan untuk menampilkan grafik pertumbuhan.
+        <div className="h-72 w-full pt-2">
+          {activeBalita.pemeriksaan.length > 0 ? (() => {
+            const jk: 'L' | 'P' = (activeBalita.jenisKelamin || '').toUpperCase().startsWith('P') ? 'P' : 'L';
+            const sortedExams = [...activeBalita.pemeriksaan]
+              .sort((a, b) => new Date(a.tanggalPeriksa).getTime() - new Date(b.tanggalPeriksa).getTime());
+
+            if (chartMode === "kms") {
+              const kmsChartData = sortedExams.map((p) => {
+                const ageM = calculateAgeInMonths(activeBalita.tanggalLahir, p.tanggalPeriksa);
+                const std = BBU_DATA[jk]?.[Math.min(60, Math.max(0, ageM))];
+                return {
+                  tanggal: `${formatTanggalIndonesia(p.tanggalPeriksa)} (${ageM} bln)`,
+                  "Berat Badan Balita (kg)": p.beratBadan,
+                  "Median WHO (Gizi Baik)": std ? std[3] : null,
+                  "Batas Gizi Kurang (-2 SD)": std ? std[1] : null,
+                  "Bawah Garis Merah / BGM (-3 SD)": std ? std[0] : null,
+                  "Batas Berat Lebih (+2 SD)": std ? std[5] : null,
+                };
+              });
+
+              return (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={kmsChartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="tanggal" tick={{ fontSize: 11 }} />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      domain={['auto', 'auto']}
+                      unit=" kg"
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#FFF",
+                        borderRadius: "8px",
+                        border: "1px solid #E2E8F0",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                    <Line
+                      type="monotone"
+                      dataKey="Berat Badan Balita (kg)"
+                      stroke="#0F766E"
+                      strokeWidth={3}
+                      dot={{ r: 5, fill: "#0F766E" }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="Median WHO (Gizi Baik)"
+                      stroke="#16A34A"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="Batas Gizi Kurang (-2 SD)"
+                      stroke="#D97706"
+                      strokeWidth={1.5}
+                      strokeDasharray="3 3"
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="Bawah Garis Merah / BGM (-3 SD)"
+                      stroke="#DC2626"
+                      strokeWidth={1.5}
+                      strokeDasharray="2 2"
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              );
+            }
+
+            const tinggiChartData = sortedExams.map((p) => ({
+              tanggal: formatTanggalIndonesia(p.tanggalPeriksa),
+              "Tinggi Badan (cm)": p.tinggiBadan,
+              "Lingkar Kepala (cm)": p.lingkarKepala || null,
+            }));
+
+            return (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={tinggiChartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                  <XAxis dataKey="tanggal" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} domain={['auto', 'auto']} unit=" cm" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#FFF",
+                      borderRadius: "8px",
+                      border: "1px solid #E2E8F0",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                  <Line
+                    type="monotone"
+                    dataKey="Tinggi Badan (cm)"
+                    stroke="#2563EB"
+                    strokeWidth={2.5}
+                    dot={{ r: 4 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Lingkar Kepala (cm)"
+                    stroke="#D97706"
+                    strokeWidth={2}
+                    strokeDasharray="4 4"
+                    dot={{ r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            );
+          })() : (
+            <div className="h-full flex items-center justify-center text-xs text-slate-500 font-medium bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              Belum ada riwayat pemeriksaan untuk menampilkan kurva pertumbuhan.
             </div>
           )}
         </div>
@@ -703,7 +794,7 @@ export default function BalitaDetailView({
                     <td className="py-4 text-saas-muted">{exam.lingkarLengan ? `${exam.lingkarLengan} cm` : "-"}</td>
                     <td className="py-4">
                       <span
-                        className={`px-2 py-0.5 rounded-full font-bold ${
+                        className={`px-2 py-0.5 rounded-md font-bold ${
                           exam.statusBBU === "Normal"
                             ? "bg-trend-successBg text-trend-successText"
                             : "bg-trend-dangerBg text-trend-dangerText"
@@ -714,7 +805,7 @@ export default function BalitaDetailView({
                     </td>
                     <td className="py-4">
                       <span
-                        className={`px-2 py-0.5 rounded-full font-bold ${
+                        className={`px-2 py-0.5 rounded-md font-bold ${
                           exam.statusTBU === "Normal"
                             ? "bg-trend-successBg text-trend-successText"
                             : "bg-trend-dangerBg text-trend-dangerText"
@@ -725,7 +816,7 @@ export default function BalitaDetailView({
                     </td>
                     <td className="py-4">
                       <span
-                        className={`px-2 py-0.5 rounded-full font-bold ${
+                        className={`px-2 py-0.5 rounded-md font-bold ${
                           exam.statusBBTB === "Normal"
                             ? "bg-trend-successBg text-trend-successText"
                             : "bg-trend-dangerBg text-trend-dangerText"

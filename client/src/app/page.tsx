@@ -56,7 +56,7 @@ import BalitaIcon from "../components/BalitaIcon";
 // Login Page (rendered inline when not authenticated)
 import LoginPage from "./login/page";
 
-function SwipeableNotificationItem({
+function ClinicalNotificationItem({
   item,
   onItemClick,
   onDelete,
@@ -65,138 +65,66 @@ function SwipeableNotificationItem({
   onItemClick: (item: AppNotification) => void;
   onDelete: (id: string, e?: React.MouseEvent) => void;
 }) {
-  const [offsetX, setOffsetX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const startXRef = useRef<number | null>(null);
-
-  let bgClass = "bg-blue-50 border-blue-200 text-blue-900";
+  let borderClass = "border-slate-200 bg-white hover:bg-slate-50";
   let IconComponent = Info;
-  let iconColor = "text-blue-600";
+  let iconColor = "text-teal-700";
+  let badgeColor = "bg-teal-50 text-teal-700 border-teal-200";
 
   if (item.type === "DANGER") {
-    bgClass = "bg-red-50 border-red-200 text-red-900";
+    borderClass = "border-red-200 bg-red-50/40 hover:bg-red-50/70";
     IconComponent = WarningCircle;
     iconColor = "text-red-600";
+    badgeColor = "bg-red-50 text-red-700 border-red-200";
   } else if (item.type === "WARNING") {
-    bgClass = "bg-amber-50 border-amber-200 text-amber-900";
+    borderClass = "border-amber-200 bg-amber-50/40 hover:bg-amber-50/70";
     IconComponent = Warning;
     iconColor = "text-amber-600";
+    badgeColor = "bg-amber-50 text-amber-700 border-amber-200";
   } else if (item.type === "SUCCESS") {
-    bgClass = "bg-emerald-50 border-emerald-200 text-emerald-900";
+    borderClass = "border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50/70";
     IconComponent = CheckCircle;
     iconColor = "text-emerald-600";
+    badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
   }
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startXRef.current = e.touches[0].clientX;
-    setIsDragging(true);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (startXRef.current === null) return;
-    const diff = e.touches[0].clientX - startXRef.current;
-    setOffsetX(diff);
-  };
-
-  const handleTouchEnd = () => {
-    if (Math.abs(offsetX) > 70) {
-      onDelete(item.id);
-    } else {
-      setOffsetX(0);
-    }
-    startXRef.current = null;
-    setIsDragging(false);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    startXRef.current = e.clientX;
-    setIsDragging(true);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (startXRef.current === null || !isDragging) return;
-    const diff = e.clientX - startXRef.current;
-    setOffsetX(diff);
-  };
-
-  const handleMouseUp = () => {
-    if (Math.abs(offsetX) > 70) {
-      onDelete(item.id);
-    } else {
-      setOffsetX(0);
-    }
-    startXRef.current = null;
-    setIsDragging(false);
-  };
-
   return (
-    <div className="relative overflow-hidden rounded-xl group select-none">
-      {/* Background Delete Indicator (only visible when swiped/dragged) */}
-      {offsetX !== 0 && (
-        <div className="absolute inset-0 bg-red-600 text-white flex items-center justify-between px-4 font-extrabold text-xs rounded-xl shadow-inner">
-          {offsetX > 0 ? (
-            <div className="flex items-center gap-1.5">
-              <Trash className="w-4 h-4" weight="bold" /> Hapus Notifikasi
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 ml-auto">
-              Hapus Notifikasi <Trash className="w-4 h-4" weight="bold" />
-            </div>
-          )}
+    <div
+      onClick={() => onItemClick(item)}
+      className={`p-3 border rounded-lg text-xs relative transition-all cursor-pointer group select-none ${borderClass} ${
+        !item.isRead ? "shadow-2xs font-semibold ring-1 ring-teal-600/10" : "opacity-90 hover:opacity-100"
+      }`}
+    >
+      <div className="flex gap-2.5 items-start">
+        <div className="mt-0.5 p-1 rounded-md bg-white border border-slate-200/60 shrink-0">
+          <IconComponent className={`w-3.5 h-3.5 ${iconColor}`} weight="bold" />
         </div>
-      )}
-
-      {/* Foreground Card */}
-      <div
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={() => {
-          if (isDragging) handleMouseUp();
-        }}
-        style={{
-          transform: `translateX(${offsetX}px)`,
-          transition: isDragging ? "none" : "transform 0.2s ease-out",
-        }}
-        onClick={() => {
-          if (Math.abs(offsetX) < 5) {
-            onItemClick(item);
-          }
-        }}
-        className={`p-3 border rounded-xl text-xs relative transition-all cursor-pointer ${bgClass} ${
-          !item.isRead ? "shadow-2xs font-semibold ring-1 ring-black/5" : "opacity-85 hover:opacity-100"
-        }`}
-      >
-        <div className="flex gap-2.5 items-start">
-          <IconComponent className={`w-4 h-4 shrink-0 mt-0.5 ${iconColor}`} weight="bold" />
-          <div className="flex-1 min-w-0 pr-6">
-            <div className="flex items-center justify-between gap-1 mb-0.5">
-              <p className="font-bold text-gray-900 text-xs truncate">
-                {item.title}
-              </p>
-              {!item.isRead && (
-                <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
-              )}
-            </div>
-            <p className="text-[11px] text-gray-700 leading-relaxed">
-              {item.message}
+        <div className="flex-1 min-w-0 pr-6">
+          <div className="flex items-center justify-between gap-1 mb-0.5">
+            <p className="font-bold text-slate-900 text-xs truncate">
+              {item.title}
             </p>
+            {!item.isRead && (
+              <span className="w-2 h-2 rounded-full bg-teal-600 shrink-0" title="Belum dibaca" />
+            )}
           </div>
+          <p className="text-[11px] text-slate-600 leading-relaxed font-normal">
+            {item.message}
+          </p>
         </div>
-
-        {/* Hover Delete Button */}
-        <button
-          type="button"
-          onClick={(e) => onDelete(item.id, e)}
-          className="absolute top-2.5 right-2 p-1 text-gray-400 hover:text-red-600 hover:bg-red-100 rounded-md transition-all opacity-0 group-hover:opacity-100 border border-transparent hover:border-red-200 cursor-pointer"
-          title="Hapus Notifikasi"
-        >
-          <Trash className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" weight="bold" />
-        </button>
       </div>
+
+      {/* Delete Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(item.id, e);
+        }}
+        className="absolute top-2.5 right-2 p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
+        title="Hapus Notifikasi"
+      >
+        <Trash className="w-3.5 h-3.5" weight="bold" />
+      </button>
     </div>
   );
 }
@@ -964,10 +892,10 @@ export default function Home() {
       {/* 2. MOBILE SIDEBAR DRAWER OVERLAY (Tampil di < md saat isMobileMenuOpen=true) */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop Blur Overlay */}
+          {/* Solid Dark Overlay */}
           <div
             onClick={() => setIsMobileMenuOpen(false)}
-            className="fixed inset-0 bg-saas-dark/40 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-black/50 transition-opacity"
           />
 
           {/* Mobile Drawer Panel */}
@@ -1205,7 +1133,7 @@ export default function Home() {
                             </div>
                           </div>
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${
                               item.tipe === "Balita"
                                 ? "bg-teal-50 text-teal-800 border-teal-200"
                                 : "bg-indigo-50 text-indigo-800 border-indigo-200"
@@ -1237,41 +1165,32 @@ export default function Home() {
                 activePeriode.tahun !== now.getFullYear();
               return (
                 <button
+                  type="button"
                   onClick={() => setIsPeriodeModalOpen(true)}
-                  className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-2xs group border cursor-pointer ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all border cursor-pointer ${
                     isOutdated
-                      ? "bg-amber-50 hover:bg-amber-100/90 border-amber-300 text-amber-950"
-                      : "bg-white hover:bg-teal-50/60 border-teal-600/40 text-gray-900"
+                      ? "bg-amber-50 hover:bg-amber-100/80 border-amber-200 text-amber-900 dark:bg-amber-950/40 dark:hover:bg-amber-900/40 dark:border-amber-800/60 dark:text-amber-200"
+                      : "bg-white hover:bg-slate-50 border-slate-200 text-slate-800 shadow-2xs dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-800 dark:text-slate-100"
                   }`}
                   title={
                     isOutdated
-                      ? "Periode belum sesuai bulan berjalan! Klik untuk kelola."
-                      : "Buka atau Pilih Periode Pelayanan"
+                      ? "Periode belum sesuai bulan berjalan. Klik untuk memilih atau membuka periode."
+                      : "Kelola Periode Pelayanan"
                   }
                 >
-                  <div
-                    className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border ${
-                      isOutdated ? "bg-amber-600 text-white border-amber-700" : "bg-teal-700 text-white border-teal-800"
-                    }`}
-                  >
-                    <Calendar className="w-3.5 h-3.5" weight="bold" />
-                  </div>
+                  <Calendar className={`w-4 h-4 shrink-0 ${isOutdated ? "text-amber-600 dark:text-amber-400" : "text-teal-700 dark:text-teal-400"}`} weight="bold" />
                   <div className="text-left hidden sm:block">
-                    <span
-                      className={`block text-[9px] font-extrabold uppercase leading-none ${
-                        isOutdated ? "text-amber-800" : "text-teal-800"
-                      }`}
-                    >
-                      {isOutdated ? "Bulan Baru - Kelola Periode" : "Periode Pelayanan"}
+                    <span className="block text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold leading-none">
+                      Periode
                     </span>
-                    <span className="block text-[11px] font-extrabold leading-tight truncate max-w-[130px] text-gray-900 mt-0.5">
+                    <span className="block text-xs font-bold text-slate-900 dark:text-white leading-tight mt-0.5 truncate max-w-[130px]">
                       {activePeriode ? activePeriode.nama : "Pilih Periode"}
                     </span>
                   </div>
-                  <CaretDown
-                    className="w-3 h-3 shrink-0 group-hover:translate-y-0.5 transition-transform text-gray-500"
-                    weight="bold"
-                  />
+                  {isOutdated && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title="Bulan baru" />
+                  )}
+                  <CaretDown className="w-3 h-3 text-slate-400 dark:text-slate-500 shrink-0" weight="bold" />
                 </button>
               );
             })()}
@@ -1283,14 +1202,14 @@ export default function Home() {
                 setTheme(nextTheme);
                 toast.success(nextTheme === "dark" ? "Mode Gelap diaktifkan" : "Mode Terang diaktifkan");
               }}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-all cursor-pointer group"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-gray-100 dark:border-slate-800 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-800 transition-all cursor-pointer group"
               title={resolvedTheme === "dark" ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
               aria-label="Ubah Tema Tampilan"
             >
               {resolvedTheme === "dark" ? (
                 <Sun className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform" />
               ) : (
-                <Moon className="w-4 h-4 text-saas-dark group-hover:-rotate-12 transition-transform" />
+                <Moon className="w-4 h-4 text-saas-dark dark:text-slate-200 group-hover:-rotate-12 transition-transform" />
               )}
             </button>
 
@@ -1301,12 +1220,12 @@ export default function Home() {
                   setShowNotification((prev) => !prev);
                   if (!showNotification) loadNotifications();
                 }}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-gray-100 flex items-center justify-center relative hover:bg-gray-50 transition-all"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-gray-100 dark:border-slate-800 flex items-center justify-center relative hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
                 aria-label="Notifikasi"
               >
-                <Bell className="w-4 h-4 text-saas-dark" weight="bold" />
+                <Bell className="w-4 h-4 text-saas-dark dark:text-slate-200" weight="bold" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
@@ -1320,7 +1239,7 @@ export default function Home() {
                     <div className="flex items-center gap-2">
                       <h4 className="font-extrabold text-sm text-saas-dark">Notifikasi</h4>
                       {unreadCount > 0 && (
-                        <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <span className="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-md">
                           {unreadCount} baru
                         </span>
                       )}
@@ -1349,7 +1268,7 @@ export default function Home() {
                       </div>
                     ) : (
                       notifications.map((item) => (
-                        <SwipeableNotificationItem
+                        <ClinicalNotificationItem
                           key={item.id}
                           item={item}
                           onItemClick={handleNotificationItemClick}
@@ -1407,7 +1326,7 @@ export default function Home() {
                         Edit
                       </button>
                     </div>
-                    <div className="mt-2 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-teal-50 text-saas-primary border border-teal-200/50">
+                    <div className="mt-2 inline-block px-2 py-0.5 rounded-md text-[9px] font-bold bg-teal-50 text-saas-primary border border-teal-200/50">
                       {user.role === "OWNER" ? "Pengelola (Owner)" : "Kader Posyandu"}
                     </div>
                   </div>
@@ -1496,7 +1415,7 @@ export default function Home() {
       </div>
 
       {/* 5. MOBILE BOTTOM NAVIGATION BAR (Tampil khusus di HP < md) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-t border-gray-200/80 px-2 flex items-center justify-around z-40 shadow-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 px-2 flex items-center justify-around z-40 shadow-lg">
         {[
           { name: "Overview", label: "Home", icon: SquaresFour },
           { name: "Pelayanan", label: "Layanan", icon: ClipboardText },
@@ -1526,7 +1445,7 @@ export default function Home() {
       {isEditProfileOpen && (
         <div
           onClick={() => setIsEditProfileOpen(false)}
-          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-4 bg-saas-dark/40 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -1744,7 +1663,7 @@ export default function Home() {
       {showLogoutConfirm && (
         <div
           onClick={() => setShowLogoutConfirm(false)}
-          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-4 bg-saas-dark/40 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}

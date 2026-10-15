@@ -52,6 +52,18 @@ input[type="date"]::-webkit-datetime-edit-year-field {
   color: #0B0F19;
 }
 
+/* Global Tabular Numbers for Health Data & Tables */
+.tabular-nums,
+table,
+td,
+th,
+input[type="number"],
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum";
+  font-feature-settings: "tnum";
+}
+
 /* ─────────────────────────────────────────────────────────────
    KOMPREHENSIF DARK MODE (SESUAI OPSI DI MENU PENGATURAN)
    ───────────────────────────────────────────────────────────── */
@@ -98,25 +110,32 @@ html.dark .hover\:bg-gray-50\/60:hover,
 html.dark .hover\:bg-gray-50\/80:hover,
 html.dark .hover\:bg-gray-100:hover,
 html.dark .hover\:bg-gray-100\/80:hover,
-html.dark .hover\:bg-gray-200\/50:hover {
+html.dark .hover\:bg-gray-200\/50:hover,
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
   background-color: #243046 !important;
 }
 
 /* Dark Mode Typography */
 html.dark .text-saas-dark,
 html.dark .text-gray-900,
-html.dark .text-gray-800 {
+html.dark .text-gray-800,
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
   color: #F8FAFC !important;
 }
 
 html.dark .text-saas-muted,
 html.dark .text-gray-700,
 html.dark .text-gray-600,
-html.dark .text-gray-500 {
+html.dark .text-gray-500,
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
   color: #94A3B8 !important;
 }
 
-html.dark .text-gray-400 {
+html.dark .text-gray-400,
+html.dark .text-slate-400 {
   color: #64748B !important;
 }
 
@@ -129,7 +148,10 @@ html.dark .border-gray-200,
 html.dark .border-gray-200\/50,
 html.dark .border-gray-200\/70,
 html.dark .border-gray-200\/80,
-html.dark .border-gray-300 {
+html.dark .border-gray-300,
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-300 {
   border-color: #1E293B !important;
 }
 

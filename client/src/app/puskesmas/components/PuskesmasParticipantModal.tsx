@@ -117,7 +117,7 @@ export default function PuskesmasParticipantModal({
     <div
       onClick={onClose}
       style={{ margin: 0 }}
-      className="posyandu-participant-modal-backdrop fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] !m-0 !mt-0 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="posyandu-participant-modal-backdrop fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] !m-0 !mt-0 flex items-center justify-center p-3 sm:p-5 bg-black/60 animate-in fade-in duration-200"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -146,7 +146,7 @@ export default function PuskesmasParticipantModal({
                   {selectedItem.namaWarga}
                 </h3>
                 <span
-                  className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                  className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-md border ${
                     isBalita
                       ? "bg-teal-50 text-teal-800 border-teal-200"
                       : "bg-indigo-50 text-indigo-800 border-indigo-200"
@@ -157,19 +157,19 @@ export default function PuskesmasParticipantModal({
 
                 {/* Badge Gender: Jelas, Kontras & Berikon */}
                 {isMale ? (
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1 shadow-2xs">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1 shadow-2xs">
                     <GenderMale className="w-3.5 h-3.5 text-blue-600" weight="bold" />
                     Laki-laki
                   </span>
                 ) : (
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-pink-50 text-pink-700 border border-pink-200 inline-flex items-center gap-1 shadow-2xs">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-pink-50 text-pink-700 border border-pink-200 inline-flex items-center gap-1 shadow-2xs">
                     <GenderFemale className="w-3.5 h-3.5 text-pink-600" weight="bold" />
                     Perempuan
                   </span>
                 )}
 
                 {selectedItem.isPerluRujukan && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" /> Perlu Perhatian
                   </span>
                 )}

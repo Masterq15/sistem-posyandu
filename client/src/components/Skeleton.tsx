@@ -64,7 +64,7 @@ export function CardSkeleton({ className = "" }: { className?: string }) {
       </div>
 
       <div className="flex items-center gap-2 pt-2 border-t border-gray-100/80">
-        <Skeleton variant="rounded" className="h-5 w-16 rounded-pill" />
+        <Skeleton variant="rounded" className="h-5 w-16 rounded-md" />
         <Skeleton variant="rounded" className="h-3 w-28" />
       </div>
     </div>
@@ -78,13 +78,13 @@ export function DashboardSkeleton() {
       {/* Header Skeleton */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-hairline pb-6">
         <div className="space-y-2">
-          <Skeleton variant="rounded" className="h-4 w-32 rounded-pill" />
+          <Skeleton variant="rounded" className="h-4 w-32 rounded-md" />
           <Skeleton variant="rounded" className="h-8 w-64" />
           <Skeleton variant="rounded" className="h-4 w-80" />
         </div>
         <div className="flex items-center gap-3">
-          <Skeleton variant="rounded" className="h-10 w-36 rounded-pill" />
-          <Skeleton variant="rounded" className="h-10 w-32 rounded-pill" />
+          <Skeleton variant="rounded" className="h-10 w-36 rounded-lg" />
+          <Skeleton variant="rounded" className="h-10 w-32 rounded-lg" />
         </div>
       </div>
 
@@ -158,7 +158,7 @@ export function TableSkeleton({
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <Skeleton variant="rounded" className="h-10 w-full sm:w-64 rounded-input" />
-          <Skeleton variant="rounded" className="h-10 w-24 rounded-pill" />
+          <Skeleton variant="rounded" className="h-10 w-24 rounded-lg" />
         </div>
       </div>
 
@@ -214,8 +214,8 @@ export function DetailViewSkeleton() {
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Header Navigation */}
       <div className="flex items-center justify-between">
-        <Skeleton variant="rounded" className="h-9 w-28 rounded-pill" />
-        <Skeleton variant="rounded" className="h-9 w-32 rounded-pill" />
+        <Skeleton variant="rounded" className="h-9 w-28 rounded-lg" />
+        <Skeleton variant="rounded" className="h-9 w-32 rounded-lg" />
       </div>
 
       {/* Main Info Card */}
@@ -226,14 +226,14 @@ export function DetailViewSkeleton() {
             <Skeleton variant="rounded" className="h-6 w-48" />
             <Skeleton variant="rounded" className="h-4 w-64" />
             <div className="flex gap-2 pt-1">
-              <Skeleton variant="rounded" className="h-5 w-20 rounded-pill" />
-              <Skeleton variant="rounded" className="h-5 w-24 rounded-pill" />
+              <Skeleton variant="rounded" className="h-5 w-20 rounded-md" />
+              <Skeleton variant="rounded" className="h-5 w-24 rounded-md" />
             </div>
           </div>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
-          <Skeleton variant="rounded" className="h-10 w-32 rounded-pill" />
-          <Skeleton variant="rounded" className="h-10 w-32 rounded-pill" />
+          <Skeleton variant="rounded" className="h-10 w-32 rounded-lg" />
+          <Skeleton variant="rounded" className="h-10 w-32 rounded-lg" />
         </div>
       </div>
 
@@ -502,7 +502,7 @@ export function RiwayatTableSkeleton({ rows = 6 }: { rows?: number }) {
               <td className="py-4 px-3"><Skeleton variant="rounded" className="h-4 w-36 font-bold" /></td>
               <td className="py-4 px-3"><Skeleton variant="rounded" className="h-5 w-18 rounded-md" /></td>
               <td className="py-4 px-3"><Skeleton variant="rounded" className="h-3.5 w-56" /></td>
-              <td className="py-4 px-3"><Skeleton variant="rounded" className="h-6 w-28 rounded-full" /></td>
+              <td className="py-4 px-3"><Skeleton variant="rounded" className="h-6 w-28 rounded-md" /></td>
               <td className="py-4 px-3"><Skeleton variant="rounded" className="h-3.5 w-24" /></td>
               <td className="py-4 px-3 text-right"><Skeleton variant="rounded" className="h-8 w-8 rounded-lg ml-auto" /></td>
             </tr>
@@ -559,7 +559,7 @@ export function LaporanSkeleton() {
       {/* Header Skeleton */}
       <div className="bg-white rounded-card shadow-soft-card border border-hairline/60 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="space-y-2">
-          <Skeleton variant="rounded" className="h-4 w-32 rounded-pill" />
+          <Skeleton variant="rounded" className="h-4 w-32 rounded-md" />
           <Skeleton variant="rounded" className="h-7 w-72" />
           <Skeleton variant="rounded" className="h-3.5 w-96 max-w-full" />
         </div>

@@ -198,7 +198,7 @@ export default function DashboardExamModal({
             <div className="flex items-center gap-2">
               <span className="font-bold text-saas-dark">Mencatat data untuk:</span>
               <span
-                className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
                   selectedPasien.tipe === "Balita"
                     ? "bg-teal-50 text-saas-primary"
                     : "bg-red-50 text-red-500"

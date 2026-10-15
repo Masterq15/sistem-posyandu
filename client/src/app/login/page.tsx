@@ -33,109 +33,45 @@ type Mode = "login" | "register" | "forgot";
 type RegisterStep = 1 | 2;
 
 // ─────────────────────────────────────────────────────────────
-// FLOATING DECORATIVE CARD
+// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// LEFT HERO — Puskesmas & Posyandu Overview (Simplified for Kader)
 // ─────────────────────────────────────────────────────────────
 
-function StatBubble({
-  icon,
-  label,
-  value,
-  className,
-  delay = 0,
-  accentColor = "bg-teal-50 text-teal-600",
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  className?: string;
-  delay?: number;
-  accentColor?: string;
-}) {
+function LeftHero() {
   return (
-    <div
-      className={`absolute bg-white/95 backdrop-blur-md rounded-xl p-3.5 shadow-soft-card border border-teal-100/50 flex items-center gap-3 animate-float ${className}`}
-      style={{ animationDelay: `${delay}s` }}
-    >
-      <div className={`w-9 h-9 rounded-full ${accentColor} flex items-center justify-center shrink-0`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-none">
-          {label}
-        </p>
-        <p className="text-xs font-semibold text-teal-900 mt-1">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// LEFT PANEL — Coinbase Hero Band Dark Style
-// ─────────────────────────────────────────────────────────────
-
-function LeftPanel() {
-  return (
-    <div className="hidden md:flex w-[48%] shrink-0 bg-gradient-to-br from-teal-50 via-teal-100/60 to-emerald-50 rounded-[20px] p-10 flex-col justify-between relative overflow-hidden text-slate-800 border border-teal-100/30">
-      {/* Subtle decorative grid lines */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0d948806_1px,transparent_1px),linear-gradient(to_bottom,#0d948806_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-      {/* Brand Header */}
-      <div className="relative z-10 flex items-center gap-3">
-        <div className="w-10 h-10 bg-white border border-slate-200/90 rounded-xl flex items-center justify-center p-1.5 shadow-2xs shrink-0">
-          <img src="/logo.svg" alt="Logo SIIP" className="w-7 h-7 object-contain" />
+    <div className="hidden lg:flex flex-col justify-between max-w-md text-white select-none py-4">
+      <div className="space-y-6">
+        {/* Brand */}
+        <div className="flex items-center gap-3">
+          <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center p-2 shadow-sm shrink-0">
+            <img src="/logo.svg" alt="Logo SIIP" className="w-16 h-16 object-contain" />
+          </div>
+          <div>
+            <p className="text-white font-extrabold text-2xl tracking-tight leading-none">SIIP</p>
+            <span className="inline-block text-xs text-teal-300 font-medium mt-1">
+              Sistem Informasi Posyandu
+            </span>
+          </div>
         </div>
-        <div>
-          <p className="text-teal-950 font-black text-base tracking-tight leading-none">SIIP</p>
-          <span className="inline-block mt-1 px-2.5 py-0.5 bg-teal-600/10 text-teal-800 rounded-pill text-[8.5px] tracking-wider font-bold">
-            Sistem Informasi Posyandu
-          </span>
+
+        {/* Simplified Headline */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-extrabold text-white leading-tight">
+            Pelayanan Posyandu Balita &amp; Lansia
+          </h1>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            Aplikasi pencatatan kader yang praktis, cepat, dan rapi untuk Posyandu di wilayah kerja Puskesmas.
+          </p>
         </div>
       </div>
 
-      {/* Center Hero Copy */}
-      <div className="relative z-10 my-auto py-6">
-        <h2 className="text-teal-950 text-3xl lg:text-[34px] font-bold leading-[1.25] tracking-tight mb-4 font-sans">
-          Pencatatan Posyandu<br />
-          Kini Lebih<br />
-          <span className="text-saas-primary">Mudah & Cepat!</span>
-        </h2>
-        <p className="text-slate-600 text-sm font-medium leading-relaxed max-w-[290px]">
-          Membantu Ibu & Kader mencatat tumbuh kembang balita serta kesehatan lansia secara otomatis, aman, dan rapi.
-        </p>
-
-        {/* Product UI Mockup Card Layering */}
-        <div className="relative h-52 mt-8">
-          <StatBubble
-            icon={<BalitaIcon className="w-4 h-4 text-teal-600" />}
-            label="Data Balita"
-            value="Tercatat Rapi"
-            accentColor="bg-teal-50 text-teal-600"
-            className="left-0 top-0 w-44"
-            delay={0}
-          />
-          <StatBubble
-            icon={<Heart className="w-4 h-4 text-emerald-600" />}
-            label="Tumbuh Kembang"
-            value="Grafik Otomatis"
-            accentColor="bg-emerald-50 text-emerald-600"
-            className="right-0 top-12 w-44"
-            delay={1.5}
-          />
-          <StatBubble
-            icon={<Users className="w-4 h-4 text-sky-600" />}
-            label="Kesehatan Lansia"
-            value="Mudah Dipantau"
-            accentColor="bg-sky-50 text-sky-600"
-            className="left-6 bottom-2 w-44"
-            delay={3}
-          />
-        </div>
-      </div>
-
-      {/* Footer minimal tag */}
-      <div className="relative z-10 flex items-center justify-between border-t border-teal-200/50 pt-4 text-[11px] text-slate-500">
-        <span className="font-bold text-emerald-600">● SISTEM AKTIF</span>
-        <Link href="/puskesmas" className="font-bold text-saas-primary hover:underline flex items-center gap-1">
+      {/* Footer Info & Portal Publik Link */}
+      <div className="pt-6 mt-8 flex items-center justify-between text-xs text-slate-400">
+        <Link
+          href="/puskesmas"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-600 text-white font-semibold transition-colors"
+        >
           <Building2 className="w-3.5 h-3.5" /> Portal Publik →
         </Link>
       </div>
@@ -176,13 +112,10 @@ function LoginForm({
 
   return (
     <div className="w-full max-w-sm mx-auto">
-      <div className="mb-8">
-        <span className="inline-block px-3 py-1 bg-teal-50 text-saas-primary rounded-pill text-[11px] font-bold tracking-wider uppercase mb-3">
-          MASUK APLIKASI
-        </span>
-        <h1 className="text-3xl font-extrabold text-teal-950 tracking-tight">Selamat Datang!</h1>
-        <p className="text-sm text-slate-500 mt-2 font-normal leading-relaxed">
-          Silakan masukkan email atau username dan kata sandi Anda untuk mulai mengelola data Posyandu.
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Masuk ke SIIP</h1>
+        <p className="text-xs text-slate-600 mt-1 font-normal leading-relaxed">
+          Gunakan akun kader Posyandu Anda untuk memulai pelayanan.
         </p>
       </div>
 
@@ -256,7 +189,7 @@ function LoginForm({
           id="btn-login-submit"
           type="submit"
           disabled={isLoading}
-          className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-pill transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 shadow-sm"
+          className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 shadow-sm"
         >
           {isLoading ? (
             <>
@@ -339,7 +272,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
   return (
     <div className="w-full max-w-sm mx-auto">
       <div className="mb-8">
-        <span className="inline-block px-3 py-1 bg-teal-50 text-saas-primary rounded-pill text-[11px] font-bold tracking-wider uppercase mb-3">
+        <span className="inline-block px-3 py-1 bg-teal-50 text-saas-primary rounded-md text-[11px] font-bold tracking-wider uppercase mb-3">
           RESET KATA SANDI
         </span>
         <h1 className="text-3xl font-extrabold text-teal-950 tracking-tight">Lupa Kata Sandi?</h1>
@@ -350,7 +283,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
 
       {successMessage ? (
         <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-4 text-center">
-          <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+          <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mx-auto">
             <Mail className="w-6 h-6" />
           </div>
           <div className="space-y-2">
@@ -364,7 +297,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
           <button
             type="button"
             onClick={onBack}
-            className="w-full py-3 bg-saas-primary hover:bg-saas-primary-active text-white text-xs font-bold rounded-pill transition-all mt-2"
+            className="w-full py-3 bg-saas-primary hover:bg-saas-primary-active text-white text-xs font-bold rounded-xl transition-all mt-2"
           >
             Kembali ke Halaman Login
           </button>
@@ -399,7 +332,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
             id="btn-forgot-submit"
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-pill transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 shadow-sm"
+            className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 shadow-sm"
           >
             {isLoading ? (
               <>
@@ -414,7 +347,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
           <button
             type="button"
             onClick={onBack}
-            className="w-full py-3 border border-hairline text-slate-700 text-xs font-bold rounded-pill hover:bg-slate-50 transition-all flex items-center justify-center gap-2 mt-2"
+            className="w-full py-3 border border-hairline text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2 mt-2"
           >
             <ArrowLeft className="w-4 h-4" /> Kembali ke Login
           </button>
@@ -490,7 +423,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     <div className="w-full max-w-sm mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <span className="inline-block px-3 py-1 bg-teal-50 text-saas-primary rounded-pill text-[11px] font-bold tracking-wider uppercase mb-3">
+        <span className="inline-block px-3 py-1 bg-teal-50 text-saas-primary rounded-md text-[11px] font-bold tracking-wider uppercase mb-3">
           DAFTAR POSYANDU BARU
         </span>
         <h1 className="text-3xl font-extrabold text-teal-950 tracking-tight">
@@ -573,7 +506,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
           <button
             id="btn-register-step1"
             type="submit"
-            className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-pill transition-all flex items-center justify-center gap-2 mt-4 shadow-sm"
+            className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 mt-4 shadow-sm"
           >
             Lanjut ke Langkah 2 <ArrowRight className="w-4 h-4" />
           </button>
@@ -654,7 +587,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
               id="btn-register-back"
               type="button"
               onClick={() => { setStep(1); setError(null); }}
-              className="flex-1 py-3.5 border border-hairline text-slate-700 text-sm font-bold rounded-pill hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 border border-hairline text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" /> Kembali
             </button>
@@ -662,7 +595,7 @@ function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
               id="btn-register-submit"
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-pill transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+              className="flex-1 py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
             >
               {isLoading ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan Data...</>
@@ -776,37 +709,33 @@ export default function LoginPage() {
         }
         description="Portal masuk dan pendaftaran Posyandu digital untuk Kader dan Pengelola SIIP."
       />
-      {/* Inject float animation */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
-        }
-        .animate-float { animation: float 4s ease-in-out infinite; }
-      `}</style>
+      <div className="relative min-h-screen w-full flex items-center justify-center overflow-x-hidden">
+        {/* Full Background Puskesmas Image */}
+        <img
+          src="/puskesmas.webp"
+          alt="Gedung Puskesmas"
+          className="absolute inset-0 w-full h-full object-cover select-none"
+        />
+        {/* Dark Clinical Contrast Overlay */}
+        <div className="absolute inset-0 bg-slate-950/80" />
 
-      <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/40 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        {/* Ambient glow */}
-        <div className="pointer-events-none fixed inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-saas-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
-        </div>
+        {/* Content Container: Kiri Info Puskesmas - Kanan Login Card */}
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-10">
+          {/* Left: Info Puskesmas */}
+          <LeftHero />
 
-        {/* Card */}
-        <div className="relative w-full max-w-4xl bg-white rounded-[28px] p-3 flex shadow-xl shadow-teal-900/5 min-h-[600px] overflow-hidden border border-teal-100/30">
-
-          {/* Left colored panel */}
-          <LeftPanel />
-
-          {/* Right form panel */}
-          <div className="flex-1 flex flex-col justify-center px-4 sm:px-8 py-6 sm:py-10 min-w-0">
-            {/* Mobile logo */}
-            <div className="md:hidden flex items-center gap-3 mb-8">
+          {/* Right: Login Card */}
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800">
+            {/* Mobile / Tablet Logo */}
+            <div className="lg:hidden flex items-center gap-3 mb-6">
               <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1.5 shadow-2xs shrink-0">
                 <img src="/logo.svg" alt="Logo SIIP" className="w-6 h-6 object-contain" />
               </div>
               <div>
-                <span className="font-black text-teal-950 text-base leading-none block">SIIP</span>
-                <span className="text-[8px] text-teal-700 font-bold uppercase tracking-wider block mt-0.5">Sistem Informasi Posyandu</span>
+                <span className="font-black text-slate-900 dark:text-white text-base leading-none block">SIIP</span>
+                <span className="text-[9px] text-teal-700 dark:text-teal-400 font-bold uppercase tracking-wider block mt-0.5">
+                  Sistem Informasi Posyandu
+                </span>
               </div>
             </div>
 
@@ -823,10 +752,10 @@ export default function LoginPage() {
             )}
 
             {/* Footer */}
-            <div className="mt-8 flex flex-col items-center gap-1.5 text-center">
+            <div className="mt-8 pt-5 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center gap-1.5 text-center">
               <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
                 <span>Created by</span>
-                <span className="font-semibold text-slate-700">Universitas Putra Bangsa</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Universitas Putra Bangsa</span>
                 <img
                   src="/logoupb.webp"
                   alt="Logo Universitas Putra Bangsa"
@@ -834,7 +763,7 @@ export default function LoginPage() {
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               </div>
-              <p className="text-[11px] text-saas-muted font-medium">
+              <p className="text-[11px] text-slate-400 font-medium">
                 © 2026 SIIP · Sistem Informasi Posyandu
               </p>
             </div>

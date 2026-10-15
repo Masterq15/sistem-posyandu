@@ -14,43 +14,43 @@ module.exports = {
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       colors: {
-        canvas: '#FFFFFF',       // Clean white canvas (Coinbase style)
+        canvas: '#F8FAFC',       // Clinical soft slate page background
         surface: {
-          soft: '#F7F8FA',       // Soft elevation band
-          strong: '#EEF0F3',     // Secondary button & input plate fill
-          dark: '#0A0B0D',       // Editorial deep dark hero background
-          elevated: '#16181C',   // Dark mode card elevation
+          soft: '#F1F5F9',       // Slate 100 soft elevation
+          strong: '#E2E8F0',     // Slate 200 plate fill
+          dark: '#0F172A',       // Slate 900 dark hero / card
+          elevated: '#1E293B',   // Dark mode card elevation
         },
         saas: {
-          primary: '#14B8A6',        // Toska utama (SIIP Brand)
-          'primary-active': '#0D9488', // Darker Toska press state
-          'primary-light': '#CCFBF1',  // Soft Toska fill/badge
-          dark: '#0A0B0D',           // Coinbase Ink text
-          muted: '#5B616E',          // Coinbase body text color
-          'muted-soft': '#9CA3AF',     // Subdued text
+          primary: '#0F766E',        // Clinical Teal 700
+          'primary-active': '#115E59', // Deep Teal 800
+          'primary-light': '#F0FDFA',  // Soft Teal 50
+          dark: '#0F172A',           // Slate 900 deep text
+          muted: '#475569',          // Slate 600 body text
+          'muted-soft': '#64748B',     // Slate 500 subdued text
           lightBg: '#FFFFFF',        // Card background
         },
         hairline: {
-          DEFAULT: '#DEE1E6',
-          soft: '#EEF0F3',
+          DEFAULT: '#E2E8F0',
+          soft: '#F1F5F9',
         },
         trend: {
           successBg: '#ECFDF5',
-          successText: '#05B169',    // Coinbase semantic up
+          successText: '#16A34A',    // Emerald 600
           dangerBg: '#FEF2F2',
-          dangerText: '#CF202F',     // Coinbase semantic down
+          dangerText: '#DC2626',     // Red 600
           warningBg: '#FFFBEB',
-          warningText: '#F59E0B',
+          warningText: '#D97706',    // Amber 600
         }
       },
       borderRadius: {
-        'card': '12px',          // Match /puskesmas rounded-xl card radius
-        'input': '12px',
-        'pill': '100px',         // Coinbase signature CTA pill
+        'card': '12px',
+        'input': '8px',
+        'pill': '9999px',
       },
       boxShadow: {
-        'soft-card': '0 4px 12px rgba(11, 15, 25, 0.04)',
-        'elevated': '0 12px 32px rgba(0, 0, 0, 0.08)',
+        'soft-card': '0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 3px 1px rgba(0, 0, 0, 0.03)',
+        'elevated': '0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04)',
       }
     },
   },

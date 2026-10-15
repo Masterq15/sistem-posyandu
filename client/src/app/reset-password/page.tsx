@@ -88,20 +88,12 @@ function ResetPasswordFormContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/40 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <PageHelmet
         title="Reset Kata Sandi"
         description="Atur ulang kata sandi akun kader SIIP Anda dengan aman."
       />
-      {/* Ambient Glow */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div
-          className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-saas-primary/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDuration: "6s" }}
-        />
-      </div>
-
-      <div className="relative w-full max-w-md bg-white rounded-[28px] p-6 sm:p-8 shadow-xl shadow-teal-900/5 border border-teal-100/30">
+      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-xl p-6 sm:p-8 shadow-xs border border-slate-200 dark:border-slate-800">
         {/* Header Logo */}
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="w-11 h-11 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-1.5 shadow-2xs">
@@ -143,7 +135,7 @@ function ResetPasswordFormContent() {
             </div>
             <button
               onClick={() => router.push("/login")}
-              className="w-full py-3 bg-saas-primary text-white text-sm font-bold rounded-pill hover:bg-saas-primary-active transition-all flex items-center justify-center gap-2 mt-4"
+              className="w-full py-3 bg-saas-primary text-white text-sm font-bold rounded-xl hover:bg-saas-primary-active transition-all flex items-center justify-center gap-2 mt-4"
             >
               <ArrowLeft className="w-4 h-4" /> Kembali ke Halaman Login
             </button>
@@ -153,7 +145,7 @@ function ResetPasswordFormContent() {
         {/* Success state */}
         {!isVerifying && isValidToken && isSuccess && (
           <div className="py-6 text-center space-y-4">
-            <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <div>
@@ -167,7 +159,7 @@ function ResetPasswordFormContent() {
             <button
               id="btn-login-after-reset"
               onClick={() => router.push("/login")}
-              className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-pill transition-all shadow-sm flex items-center justify-center gap-2 mt-4"
+              className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 mt-4"
             >
               Masuk Sekarang
             </button>
@@ -251,7 +243,7 @@ function ResetPasswordFormContent() {
                 id="btn-reset-password-submit"
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-pill transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm mt-4"
+                className="w-full py-3.5 bg-saas-primary hover:bg-saas-primary-active text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm mt-4"
               >
                 {isLoading ? (
                   <>

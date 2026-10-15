@@ -333,11 +333,11 @@ export default function ManajemenAkunModule({ posyanduId: propPosyanduId }: Mana
           <div className="flex items-center gap-2">
             <h2 className="text-2xl font-bold text-saas-dark tracking-tight">Manajemen Akun Kader</h2>
             {isOwner ? (
-              <span className="px-2.5 py-0.5 rounded-full bg-teal-50 text-saas-primary text-xs font-bold border border-teal-100">
+              <span className="px-2.5 py-0.5 rounded-md bg-teal-50 text-saas-primary text-xs font-bold border border-teal-100">
                 Akses Owner (Full)
               </span>
             ) : (
-              <span className="px-2.5 py-0.5 rounded-full bg-gray-100 text-saas-muted text-xs font-bold border border-gray-200">
+              <span className="px-2.5 py-0.5 rounded-md bg-gray-100 text-saas-muted text-xs font-bold border border-gray-200">
                 Akses Anggota (Read Only)
               </span>
             )}
@@ -563,7 +563,7 @@ export default function ManajemenAkunModule({ posyanduId: propPosyanduId }: Mana
                             <button
                               disabled={!isOwner || isCurrentUser}
                               onClick={() => handleChangeRole(kader)}
-                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
+                              className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
                                 isKaderOwner
                                   ? "bg-teal-50 text-saas-primary border-saas-primary/20 hover:bg-teal-100"
                                   : "bg-gray-50 text-saas-muted border-gray-200 hover:bg-gray-100"
@@ -578,7 +578,7 @@ export default function ManajemenAkunModule({ posyanduId: propPosyanduId }: Mana
                             <button
                               disabled={!isOwner || isKaderOwner}
                               onClick={() => handleToggleStatus(kader)}
-                              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 border transition-colors ${
+                              className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold inline-flex items-center gap-1 border transition-colors ${
                                 kader.isActive
                                   ? "bg-trend-successBg text-trend-successText border-trend-successText/20 hover:bg-green-100"
                                   : "bg-trend-dangerBg text-trend-dangerText border-trend-dangerText/20 hover:bg-red-100"
@@ -658,7 +658,7 @@ export default function ManajemenAkunModule({ posyanduId: propPosyanduId }: Mana
       {editingKader && (
         <div
           onClick={() => setEditingKader(null)}
-          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] !mt-0 flex items-center justify-center p-4 bg-saas-dark/40 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] !mt-0 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -811,7 +811,7 @@ export default function ManajemenAkunModule({ posyanduId: propPosyanduId }: Mana
       {deletingKader && (
         <div
           onClick={() => setDeletingKader(null)}
-          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] !mt-0 flex items-center justify-center p-4 bg-saas-dark/40 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[9999] !mt-0 flex items-center justify-center p-4 bg-black/50 animate-in fade-in duration-200"
         >
           <div
             onClick={(e) => e.stopPropagation()}

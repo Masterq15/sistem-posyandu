@@ -231,7 +231,7 @@ export default function BalitaListTable({
                           {latestExam ? (
                             <div className="flex flex-col gap-1 items-start">
                               <span
-                                className={`px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 ${
+                                className={`px-2.5 py-0.5 rounded-md text-xs font-bold inline-flex items-center gap-1.5 ${
                                   latestExam.statusBBU === "Normal"
                                     ? "bg-trend-successBg text-trend-successText"
                                     : latestExam.statusBBU === "Kurang" ||

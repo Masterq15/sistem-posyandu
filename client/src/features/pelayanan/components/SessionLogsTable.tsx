@@ -43,7 +43,7 @@ export default function SessionLogsTable({
             <h3 className="font-extrabold text-sm text-saas-dark">
               Catatan Pemeriksaan Periode Ini ({activeTab})
             </h3>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
               {filteredSessionLogs.length} Pemeriksaan
             </span>
           </div>
@@ -88,7 +88,7 @@ export default function SessionLogsTable({
                     <td className="py-3.5 text-saas-muted font-semibold">{log.summary}</td>
                     <td className="py-3.5">
                       <span
-                        className={`px-2 py-0.5 rounded-full font-bold ${
+                        className={`px-2 py-0.5 rounded-md font-bold ${
                           log.status.includes("Normal")
                             ? "bg-trend-successBg text-trend-successText"
                             : "bg-trend-dangerBg text-trend-dangerText"

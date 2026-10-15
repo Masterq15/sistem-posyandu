@@ -353,6 +353,87 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
     };
   }, [riwayatLogs]);
 
+  // Daftar Pasien yang Perlu Prioritas Tindak Lanjut Hari Ini
+  const priorityItems = useMemo(() => {
+    const list: Array<{
+      id: string;
+      nama: string;
+      tipe: "Balita" | "Lansia";
+      subText: string;
+      alasan: string;
+      tingkat: "bahaya" | "waspada";
+    }> = [];
+
+    const balitaLogs = riwayatLogs.filter((l) => l.tipe === "Balita");
+    const lansiaLogs = riwayatLogs.filter((l) => l.tipe === "Lansia");
+
+    balitaLogs.forEach((l) => {
+      let alasan = "";
+      let tingkat: "bahaya" | "waspada" = "waspada";
+
+      if (l.statusTbU === "SP") {
+        alasan = "Sangat Pendek (Indikasi Stunting Berat)";
+        tingkat = "bahaya";
+      } else if (l.statusTbU === "P") {
+        alasan = "Pendek (Indikasi Stunting)";
+        tingkat = "waspada";
+      } else if (l.statusBbTb === "SK" || l.statusBbU === "SK") {
+        alasan = "Gizi Buruk / Bawah Garis Merah (BGM)";
+        tingkat = "bahaya";
+      } else if (l.statusBbTb === "K" || l.statusBbU === "K") {
+        alasan = "Gizi Kurang (Perlu Konseling PMT)";
+        tingkat = "waspada";
+      }
+
+      if (alasan && !list.some((item) => item.nama === l.nama)) {
+        list.push({
+          id: l.pasienId || l.id,
+          nama: l.nama,
+          tipe: "Balita",
+          subText: l.namaIbu ? `Ibu: ${l.namaIbu}` : (l.usiaBulan ? `${l.usiaBulan} bln` : "-"),
+          alasan,
+          tingkat,
+        });
+      }
+    });
+
+    lansiaLogs.forEach((l) => {
+      const sistol = Number(l.tekananDarahSistol || 0);
+      const diastol = Number(l.tekananDarahDiastol || 0);
+      const gds = Number(l.gulaDarahSewaktu || 0);
+
+      let alasan = "";
+      let tingkat: "bahaya" | "waspada" = "waspada";
+
+      if (sistol >= 160 || diastol >= 100) {
+        alasan = `Hipertensi Derajat 2 (${sistol}/${diastol} mmHg)`;
+        tingkat = "bahaya";
+      } else if (sistol >= 140 || diastol >= 90) {
+        alasan = `Hipertensi Derajat 1 (${sistol}/${diastol} mmHg)`;
+        tingkat = "waspada";
+      } else if (gds >= 200) {
+        alasan = `Gula Darah Tinggi (${gds} mg/dL)`;
+        tingkat = "bahaya";
+      } else if (gds >= 140) {
+        alasan = `Gula Darah Waspada (${gds} mg/dL)`;
+        tingkat = "waspada";
+      }
+
+      if (alasan && !list.some((item) => item.nama === l.nama)) {
+        list.push({
+          id: l.pasienId || l.id,
+          nama: l.nama,
+          tipe: "Lansia",
+          subText: l.nik ? `NIK: ${l.nik}` : "-",
+          alasan,
+          tingkat,
+        });
+      }
+    });
+
+    return list.slice(0, 5);
+  }, [riwayatLogs]);
+
   const targetMonth = activePeriode ? activePeriode.bulan : (new Date().getUTCMonth() + 1);
   const targetYear = activePeriode ? activePeriode.tahun : new Date().getUTCFullYear();
 
@@ -704,12 +785,9 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-hairline pb-4 sm:pb-6">
         <div>
-          <span className="inline-block px-2.5 py-0.5 bg-teal-50 text-saas-primary rounded-pill text-[10px] sm:text-[11px] font-semibold tracking-wide uppercase mb-1">
-            Ringkasan Real-Time
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-bold sm:font-normal text-saas-dark tracking-tight">Dashboard Overview</h2>
-          <p className="text-xs sm:text-sm text-saas-muted mt-0.5 sm:mt-1 font-normal">
-            Pantau pertumbuhan anak dan kondisi kesehatan lansia secara terpusat.
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Dashboard Overview</h2>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-normal">
+            Pemantauan pertumbuhan balita dan status kesehatan lansia tingkat posyandu.
           </p>
         </div>
       </div>
@@ -723,6 +801,75 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
         perluTindakLanjutBalita={perluTindakLanjutBalita}
         perluFollowUpLansia={perluFollowUpLansia}
       />
+
+      {/* 2. Blok Prioritas Hari Ini (Jika ada temuan klinis) */}
+      {priorityItems.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800 mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Prioritas Hari Ini — Tindak Lanjut Temuan Klinis
+              </h3>
+              <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300">
+                {priorityItems.length} Perlu Pemantauan
+              </span>
+            </div>
+            <p className="text-xs text-slate-500">
+              Daftar warga yang memerlukan kunjungan rumah, konseling PMT, atau rujukan Puskesmas.
+            </p>
+          </div>
+
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {priorityItems.map((item) => (
+              <div
+                key={`${item.tipe}-${item.id}`}
+                className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 px-2 rounded-lg transition-colors"
+              >
+                <div className="flex items-start sm:items-center gap-3">
+                  <span
+                    className={`px-2 py-0.5 text-[10px] font-bold rounded-md shrink-0 uppercase tracking-wider ${
+                      item.tipe === "Balita"
+                        ? "bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-300 border border-teal-200 dark:border-teal-800"
+                        : "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
+                    }`}
+                  >
+                    {item.tipe}
+                  </span>
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 dark:text-white mr-2">
+                      {item.nama}
+                    </span>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      ({item.subText})
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-semibold rounded-md ${
+                      item.tingkat === "bahaya"
+                        ? "bg-red-50 text-red-700 dark:bg-red-950/80 dark:text-red-300 border border-red-200 dark:border-red-900"
+                        : "bg-amber-50 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-200 dark:border-amber-900"
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${item.tingkat === "bahaya" ? "bg-red-600" : "bg-amber-600"}`} />
+                    {item.alasan}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate(item.tipe, item.id)}
+                    className="text-xs font-bold text-teal-700 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300 hover:underline shrink-0 cursor-pointer ml-auto sm:ml-0"
+                  >
+                    Buka Data →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
 
       {/* 2. Main Charts */}
@@ -868,7 +1015,7 @@ export default function DashboardModule({ searchQuery, onNavigate, posyanduId, a
                 <div key={i} className="border border-gray-200 rounded-lg p-3 text-xs">
                   <div className="flex justify-between items-center mb-1.5">
                     <span className="font-bold text-saas-dark">{item.rtRw}</span>
-                    <span className="bg-saas-primary/10 text-saas-primary px-2.5 py-0.5 rounded-full text-xs font-bold">
+                    <span className="bg-saas-primary/10 text-saas-primary px-2.5 py-0.5 rounded-md text-xs font-bold">
                       {persentase}%
                     </span>
                   </div>

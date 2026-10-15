@@ -192,10 +192,10 @@ export default function LansiaListTable({
                         <td className="py-4">
                           <div className="flex gap-1.5">
                             {item.riwayatHt && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-trend-dangerText">HT</span>
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-50 text-trend-dangerText">HT</span>
                             )}
                             {item.riwayatDm && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-50 text-orange-600">DM</span>
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-50 text-orange-600">DM</span>
                             )}
                             {!item.riwayatHt && !item.riwayatDm && (
                               <span className="text-xs text-saas-muted font-semibold">-</span>
@@ -204,7 +204,7 @@ export default function LansiaListTable({
                         </td>
                         <td className="py-4">
                           <span
-                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                            className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold ${
                               item.tingkatKemandirian === "A"
                                 ? "bg-trend-successBg text-trend-successText"
                                 : item.tingkatKemandirian === "B"

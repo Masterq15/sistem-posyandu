@@ -336,7 +336,7 @@ export default function BantuanModule() {
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-base text-saas-dark">{selectedGuide.title}</h3>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
+                  <span className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold ${
                     selectedGuide.category === "owner" ? "bg-purple-100 text-purple-700" : "bg-teal-100 text-teal-700"
                   }`}>
                     {selectedGuide.category === "owner" ? "Khusus Owner" : "Kader"}
@@ -357,7 +357,7 @@ export default function BantuanModule() {
                     <div className="flex items-center gap-2">
                       <h4 className="font-extrabold text-saas-dark">{step.title}</h4>
                       {step.badge && (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[9px]">
+                        <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold text-[9px]">
                           {step.badge}
                         </span>
                       )}
@@ -386,7 +386,7 @@ export default function BantuanModule() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="max-w-xl space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-teal-50 text-saas-primary font-extrabold text-[10px] border border-teal-200/50">
+                  <span className="px-2.5 py-0.5 rounded-md bg-teal-50 text-saas-primary font-extrabold text-[10px] border border-teal-200/50">
                     Pusat Pengetahuan & Panduan
                   </span>
                   {user?.posyandu?.nama && (
@@ -482,7 +482,7 @@ export default function BantuanModule() {
                 <div>
                   <h3 className="font-extrabold text-sm text-saas-dark flex items-center gap-2">
                     Tabel Standar & Acuan Pemeriksaan
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-teal-100 text-teal-800 rounded-full">
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-teal-100 text-teal-800 rounded-md">
                       Resmi Kemenkes RI
                     </span>
                   </h3>
@@ -744,7 +744,7 @@ export default function BantuanModule() {
                             <td className="py-2.5 px-3 text-emerald-700 font-bold">&lt; 120</td>
                             <td className="py-2.5 px-3 text-emerald-700 font-bold">&lt; 80</td>
                             <td className="py-2.5 px-3">
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                              <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold">
                                 Normal
                               </span>
                             </td>
@@ -757,7 +757,7 @@ export default function BantuanModule() {
                             <td className="py-2.5 px-3 text-amber-700 font-bold">120 – 139</td>
                             <td className="py-2.5 px-3 text-amber-700 font-bold">80 – 89</td>
                             <td className="py-2.5 px-3">
-                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                              <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">
                                 Waspada
                               </span>
                             </td>
@@ -770,7 +770,7 @@ export default function BantuanModule() {
                             <td className="py-2.5 px-3 text-orange-700 font-bold">140 – 159</td>
                             <td className="py-2.5 px-3 text-orange-700 font-bold">90 – 99</td>
                             <td className="py-2.5 px-3">
-                              <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[10px] font-bold">
+                              <span className="px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 text-[10px] font-bold">
                                 Hipertensi 1
                               </span>
                             </td>
@@ -783,7 +783,7 @@ export default function BantuanModule() {
                             <td className="py-2.5 px-3 text-red-700 font-bold">≥ 160</td>
                             <td className="py-2.5 px-3 text-red-700 font-bold">≥ 100</td>
                             <td className="py-2.5 px-3">
-                              <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-[10px] font-bold">
+                              <span className="px-2 py-0.5 rounded-md bg-red-100 text-red-800 text-[10px] font-bold">
                                 Hipertensi 2
                               </span>
                             </td>
@@ -796,7 +796,7 @@ export default function BantuanModule() {
                             <td className="py-2.5 px-3 text-rose-800 font-extrabold">&gt; 180</td>
                             <td className="py-2.5 px-3 text-rose-800 font-extrabold">&gt; 120</td>
                             <td className="py-2.5 px-3">
-                              <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black">
+                              <span className="px-2 py-0.5 rounded-md bg-rose-600 text-white text-[10px] font-black">
                                 Darurat!
                               </span>
                             </td>
@@ -937,7 +937,7 @@ export default function BantuanModule() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-2">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">
                           Kategori A
                         </span>
                         <h4 className="font-extrabold text-sm text-emerald-950">Mandiri (Skor 20)</h4>
@@ -947,7 +947,7 @@ export default function BantuanModule() {
                       </div>
 
                       <div className="p-4 bg-amber-50/60 border border-amber-200 rounded-xl space-y-2">
-                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-extrabold">
+                        <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold">
                           Kategori B
                         </span>
                         <h4 className="font-extrabold text-sm text-amber-950">Ketergantungan Sebagian (Skor 5 – 19)</h4>
@@ -957,7 +957,7 @@ export default function BantuanModule() {
                       </div>
 
                       <div className="p-4 bg-rose-50/60 border border-rose-200 rounded-xl space-y-2">
-                        <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-extrabold">
+                        <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-extrabold">
                           Kategori C
                         </span>
                         <h4 className="font-extrabold text-sm text-rose-950">Ketergantungan Total (Skor 0 – 4)</h4>
@@ -1136,7 +1136,7 @@ export default function BantuanModule() {
 
               <div className="pt-4 border-t border-gray-100">
                 <p className="text-[10px] text-saas-muted font-medium leading-relaxed">
-                  💡 <strong>Info Pengembang:</strong> Anda dapat mengganti nomor WhatsApp di atas dengan nomor pribadi/tim pengembang Anda kapan saja.
+                  <span className="font-bold text-saas-dark">Catatan:</span> Layanan dukungan teknis hanya untuk masalah terkait sistem, bukan untuk konsultasi medis. Untuk pertanyaan medis, silakan hubungi tenaga kesehatan di Puskesmas atau Posyandu terdekat.
                 </p>
               </div>
             </div>

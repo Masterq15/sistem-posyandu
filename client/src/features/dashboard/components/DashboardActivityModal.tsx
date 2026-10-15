@@ -188,7 +188,7 @@ export default function DashboardActivityModal({
                             >
                               {item.nama}
                             </button>
-                            <span className="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full font-semibold">
+                            <span className="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded-md font-semibold">
                               Balita
                             </span>
                           </div>
@@ -280,7 +280,7 @@ export default function DashboardActivityModal({
                             >
                               {item.nama}
                             </button>
-                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-semibold">
+                            <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-semibold">
                               Lansia
                             </span>
                           </div>
@@ -381,7 +381,7 @@ export default function DashboardActivityModal({
                               {item.nama}
                             </button>
                             <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                              className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
                                 item.tipe === "Balita"
                                   ? "bg-sky-100 text-sky-700"
                                   : "bg-emerald-100 text-emerald-700"
